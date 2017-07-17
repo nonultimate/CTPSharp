@@ -1,8 +1,8 @@
 
 #include "stdafx.h"
 #include "TradeApi.h"
-#include "..\api\ThostFtdcUserApiDataType.h"
-#include "..\api\ThostFtdcUserApiStruct.h"
+#include "..\api\x86\ThostFtdcUserApiDataType.h"
+#include "..\api\x86\ThostFtdcUserApiStruct.h"
 
 // UserApi对象
 CThostFtdcTraderApi* pUserApi;
@@ -121,7 +121,7 @@ CBRtnChangeAccountByBank cbRtnChangeAccountByBank = 0;	///银行发起变更银行账号通
 //===============
 
 //连接
-TRADEAPI_API void Connect(char* FRONT_ADDR, char *pszFlowPath)
+TRADEAPI_API void Connect(char *frontAddr, char *pszFlowPath)
 {
 	// 初始化UserApi
 	pUserApi = CThostFtdcTraderApi::CreateFtdcTraderApi(pszFlowPath);			// 创建UserApi
@@ -129,7 +129,7 @@ TRADEAPI_API void Connect(char* FRONT_ADDR, char *pszFlowPath)
 	pUserApi->RegisterSpi((CThostFtdcTraderSpi*)pUserSpi);			// 注册事件类
 	pUserApi->SubscribePublicTopic(THOST_TERT_QUICK/*THOST_TERT_RESTART*/);					// 注册公有流
 	pUserApi->SubscribePrivateTopic(THOST_TERT_QUICK/*THOST_TERT_RESTART*/);					// 注册私有流
-	pUserApi->RegisterFront(FRONT_ADDR);							// connect
+	pUserApi->RegisterFront(frontAddr);							// connect
 	pUserApi->Init();
 	//pUserApi->Join();
 }
@@ -145,45 +145,45 @@ TRADEAPI_API void DisConnect()
 }
 
 //发送用户登录请求
-TRADEAPI_API int ReqUserLogin(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcUserIDType USER_ID, TThostFtdcPasswordType PASSWORD)
+TRADEAPI_API int ReqUserLogin(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID, TThostFtdcPasswordType password)
 {
 	CThostFtdcReqUserLoginField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.UserID, USER_ID);
-	strcpy_s(req.Password, PASSWORD);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.UserID, userID);
+	strcpy_s(req.Password, password);
 	strcpy_s(req.UserProductInfo, "HF");
 	return pUserApi->ReqUserLogin(&req, requestID);
 }
 //发送登出请求
-TRADEAPI_API int ReqUserLogout(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcUserIDType INVESTOR_ID)
+TRADEAPI_API int ReqUserLogout(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType investorID)
 {
 	CThostFtdcUserLogoutField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.UserID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.UserID, investorID);
 	return pUserApi->ReqUserLogout(&req, requestID);
 }
 //更新用户口令
-TRADEAPI_API int ReqUserPasswordUpdate(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcUserIDType USER_ID, TThostFtdcUserIDType OLD_PASSWORD, TThostFtdcPasswordType NEW_PASSWORD)
+TRADEAPI_API int ReqUserPasswordUpdate(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID, TThostFtdcUserIDType OLD_password, TThostFtdcPasswordType NEW_password)
 {
 	CThostFtdcUserPasswordUpdateField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.UserID, USER_ID);
-	strcpy_s(req.OldPassword, OLD_PASSWORD);
-	strcpy_s(req.NewPassword, NEW_PASSWORD);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.UserID, userID);
+	strcpy_s(req.OldPassword, OLD_password);
+	strcpy_s(req.NewPassword, NEW_password);
 	return pUserApi->ReqUserPasswordUpdate(&req, requestID);
 }
 ///资金账户口令更新请求
-TRADEAPI_API int ReqTradingAccountPasswordUpdate(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcAccountIDType ACCOUNT_ID, TThostFtdcUserIDType OLD_PASSWORD, TThostFtdcPasswordType NEW_PASSWORD)
+TRADEAPI_API int ReqTradingAccountPasswordUpdate(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcAccountIDType accountID, TThostFtdcUserIDType oldPassword, TThostFtdcPasswordType newPassword)
 {
 	CThostFtdcTradingAccountPasswordUpdateField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.AccountID, ACCOUNT_ID);
-	strcpy_s(req.NewPassword, NEW_PASSWORD);
-	strcpy_s(req.OldPassword, OLD_PASSWORD);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.AccountID, accountID);
+	strcpy_s(req.NewPassword, newPassword);
+	strcpy_s(req.OldPassword, oldPassword);
 	return pUserApi->ReqTradingAccountPasswordUpdate(&req, requestID);
 }
 //报单录入请求
@@ -204,12 +204,12 @@ TRADEAPI_API int ReqQueryMaxOrderVolume(int requestID, CThostFtdcQueryMaxOrderVo
 	return pUserApi->ReqQueryMaxOrderVolume(pMaxOrderVolume, requestID);
 }
 //投资者结算结果确认
-TRADEAPI_API int ReqSettlementInfoConfirm(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID)
+TRADEAPI_API int ReqSettlementInfoConfirm(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
 	CThostFtdcSettlementInfoConfirmField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	return pUserApi->ReqSettlementInfoConfirm(&req, requestID);
 }
 ///执行宣告录入请求
@@ -258,41 +258,41 @@ TRADEAPI_API int ReqQryTrade(int requestID, CThostFtdcQryTradeField *pQryTrade)
 	return pUserApi->ReqQryTrade(pQryTrade, requestID);
 }
 //请求查询投资者持仓
-TRADEAPI_API int ReqQryInvestorPosition(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryInvestorPosition(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryInvestorPositionField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	return pUserApi->ReqQryInvestorPosition(&req, requestID);
 }
 //请求查询资金账户
-TRADEAPI_API int ReqQryTradingAccount(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID)
+TRADEAPI_API int ReqQryTradingAccount(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
 	CThostFtdcQryTradingAccountField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	return pUserApi->ReqQryTradingAccount(&req, requestID);
 }
 ///请求查询投资者
-TRADEAPI_API int ReqQryInvestor(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID)
+TRADEAPI_API int ReqQryInvestor(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
 	CThostFtdcQryInvestorField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	return pUserApi->ReqQryInvestor(&req, requestID);
 }
 ///请求查询交易编码
-TRADEAPI_API int ReqQryTradingCode(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcClientIDType CLIENT_ID, TThostFtdcExchangeIDType	EXCHANGE_ID)
+TRADEAPI_API int ReqQryTradingCode(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcClientIDType CLIENT_ID, TThostFtdcExchangeIDType	EXCHANGE_ID)
 {
 	CThostFtdcQryTradingCodeField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	if (CLIENT_ID != NULL)
 		strcpy_s(req.ClientID, CLIENT_ID);
 	if (EXCHANGE_ID != NULL)
@@ -300,27 +300,27 @@ TRADEAPI_API int ReqQryTradingCode(int requestID, TThostFtdcBrokerIDType BROKER_
 	return pUserApi->ReqQryTradingCode(&req, requestID);
 }
 ///请求查询合约保证金率
-TRADEAPI_API int ReqQryInstrumentMarginRate(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID, TThostFtdcHedgeFlagType	HEDGE_FLAG)
+TRADEAPI_API int ReqQryInstrumentMarginRate(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcInstrumentIDType instrumentID, TThostFtdcHedgeFlagType	HEDGE_FLAG)
 {
 	CThostFtdcQryInstrumentMarginRateField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	if (HEDGE_FLAG != NULL)
 		req.HedgeFlag = HEDGE_FLAG;						//*不*能采用null进行所有查询
 	return pUserApi->ReqQryInstrumentMarginRate(&req, requestID);
 }
 ///请求查询合约手续费率
-TRADEAPI_API int ReqQryInstrumentCommissionRate(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryInstrumentCommissionRate(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryInstrumentCommissionRateField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	return pUserApi->ReqQryInstrumentCommissionRate(&req, requestID);
 }
 ///请求查询交易所
@@ -332,80 +332,80 @@ TRADEAPI_API int ReqQryExchange(int requestID, TThostFtdcExchangeIDType EXCHANGE
 	return pUserApi->ReqQryExchange(&req, requestID);
 }
 //请求查询合约
-TRADEAPI_API int ReqQryInstrument(int requestID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryInstrument(int requestID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryInstrumentField req;
 	memset(&req, 0, sizeof(req));
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	return pUserApi->ReqQryInstrument(&req, requestID);
 }
 //请求查询行情
-TRADEAPI_API int ReqQryDepthMarketData(int requestID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryDepthMarketData(int requestID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryDepthMarketDataField req;
 	memset(&req, 0, sizeof(req));
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	return pUserApi->ReqQryDepthMarketData(&req, requestID);
 }
 ///请求查询投资者结算结果
-TRADEAPI_API int ReqQrySettlementInfo(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcDateType	TRADING_DAY)
+TRADEAPI_API int ReqQrySettlementInfo(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcDateType	TRADING_DAY)
 {
 	CThostFtdcQrySettlementInfoField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	if (TRADING_DAY != NULL)
 		strcpy_s(req.TradingDay, TRADING_DAY);
 	return pUserApi->ReqQrySettlementInfo(&req, requestID);
 }
 //查询持仓明细
-TRADEAPI_API int ReqQryInvestorPositionDetail(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryInvestorPositionDetail(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryInvestorPositionDetailField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	return pUserApi->ReqQryInvestorPositionDetail(&req, requestID);
 }
 ///请求查询客户通知
-TRADEAPI_API int ReqQryNotice(int requestID, TThostFtdcBrokerIDType BROKERID)
+TRADEAPI_API int ReqQryNotice(int requestID, TThostFtdcBrokerIDType brokerID)
 {
 	CThostFtdcQryNoticeField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKERID);
+	strcpy_s(req.BrokerID, brokerID);
 	return pUserApi->ReqQryNotice(&req, requestID);
 }
 ///请求查询结算信息确认
-TRADEAPI_API int ReqQrySettlementInfoConfirm(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID)
+TRADEAPI_API int ReqQrySettlementInfoConfirm(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
 	CThostFtdcQrySettlementInfoConfirmField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	return pUserApi->ReqQrySettlementInfoConfirm(&req, requestID);
 }
 ///请求查询**组合**持仓明细
-TRADEAPI_API int ReqQryInvestorPositionCombineDetail(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryInvestorPositionCombineDetail(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryInvestorPositionCombineDetailField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.CombInstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
+	if (instrumentID != NULL)
+		strcpy_s(req.CombInstrumentID, instrumentID);
 	return pUserApi->ReqQryInvestorPositionCombineDetail(&req, requestID);
 }
 ///请求查询保证金监管系统经纪公司资金账户密钥
-TRADEAPI_API int ReqQryCFMMCTradingAccountKey(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID)
+TRADEAPI_API int ReqQryCFMMCTradingAccountKey(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
 	CThostFtdcQryCFMMCTradingAccountKeyField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	return pUserApi->ReqQryCFMMCTradingAccountKey(&req, requestID);
 }
 ///请求查询仓单折抵信息
@@ -419,24 +419,24 @@ TRADEAPI_API int ReqQryInvestorProductGroupMargin(int requestID, CThostFtdcQryIn
 	return pUserApi->ReqQryInvestorProductGroupMargin(pQryInvestorProductGroupMargin, requestID);
 }
 ///请求查询交易所保证金率
-TRADEAPI_API int ReqQryExchangeMarginRate(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID, TThostFtdcHedgeFlagType Hedge_Flag)
+TRADEAPI_API int ReqQryExchangeMarginRate(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInstrumentIDType instrumentID, TThostFtdcHedgeFlagType Hedge_Flag)
 {
 	CThostFtdcQryExchangeMarginRateField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	req.HedgeFlag = Hedge_Flag;
 	return pUserApi->ReqQryExchangeMarginRate(&req, requestID);
 }
 ///请求查询交易所调整保证金率
-TRADEAPI_API int ReqQryExchangeMarginRateAdjust(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID, TThostFtdcHedgeFlagType Hedge_Flag)
+TRADEAPI_API int ReqQryExchangeMarginRateAdjust(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInstrumentIDType instrumentID, TThostFtdcHedgeFlagType Hedge_Flag)
 {
 	CThostFtdcQryExchangeMarginRateAdjustField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	req.HedgeFlag = Hedge_Flag;
 	return pUserApi->ReqQryExchangeMarginRateAdjust(&req, requestID);
 }
@@ -468,36 +468,36 @@ TRADEAPI_API int ReqQryProductGroup(int requestID, TThostFtdcInstrumentIDType Pr
 	return pUserApi->ReqQryProductGroup(&req, requestID);
 }
 ///请求查询做市商合约手续费率
-TRADEAPI_API int ReqQryMMInstrumentCommissionRate(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryMMInstrumentCommissionRate(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryMMInstrumentCommissionRateField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	return pUserApi->ReqQryMMInstrumentCommissionRate(&req, requestID);
 }
 ///请求查询做市商期权合约手续费
-TRADEAPI_API int ReqQryMMOptionInstrCommRate(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryMMOptionInstrCommRate(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryMMOptionInstrCommRateField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	return pUserApi->ReqQryMMOptionInstrCommRate(&req, requestID);
 }
 ///请求查询报单手续费
-TRADEAPI_API int ReqQryInstrumentOrderCommRate(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryInstrumentOrderCommRate(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryInstrumentOrderCommRateField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	return pUserApi->ReqQryInstrumentOrderCommRate(&req, requestID);
 }
 ///请求查询期权交易成本
@@ -506,14 +506,14 @@ TRADEAPI_API int ReqQryOptionInstrTradeCost(int requestID, CThostFtdcQryOptionIn
 	return pUserApi->ReqQryOptionInstrTradeCost(pQryOptionInstrTradeCost, requestID);
 }
 ///请求查询期权合约手续费
-TRADEAPI_API int ReqQryOptionInstrCommRate(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryOptionInstrCommRate(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryOptionInstrCommRateField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 	return pUserApi->ReqQryOptionInstrCommRate(&req, requestID);
 }
 ///请求查询执行宣告
@@ -542,33 +542,33 @@ TRADEAPI_API int ReqQryCombAction(int requestID, CThostFtdcQryCombActionField *p
 	return pUserApi->ReqQryCombAction(pQryCombAction, requestID);
 }
 ///请求查询交易通知
-TRADEAPI_API int ReqQryTradingNotice(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID)
+TRADEAPI_API int ReqQryTradingNotice(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
 	CThostFtdcQryTradingNoticeField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	return pUserApi->ReqQryTradingNotice(&req, requestID);
 }
 ///请求查询经纪公司交易参数
-TRADEAPI_API int ReqQryBrokerTradingParams(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID)
+TRADEAPI_API int ReqQryBrokerTradingParams(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
 	CThostFtdcQryBrokerTradingParamsField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	return pUserApi->ReqQryBrokerTradingParams(&req, requestID);
 }
 ///请求查询经纪公司交易算法
-TRADEAPI_API int ReqQryBrokerTradingAlgos(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcExchangeIDType EXCHANGE_ID, TThostFtdcInstrumentIDType INSTRUMENT_ID)
+TRADEAPI_API int ReqQryBrokerTradingAlgos(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcExchangeIDType EXCHANGE_ID, TThostFtdcInstrumentIDType instrumentID)
 {
 	CThostFtdcQryBrokerTradingAlgosField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
+	strcpy_s(req.BrokerID, brokerID);
 	if (EXCHANGE_ID != NULL)
 		strcpy_s(req.ExchangeID, EXCHANGE_ID);
-	if (INSTRUMENT_ID != NULL)
-		strcpy_s(req.InstrumentID, INSTRUMENT_ID);
+	if (instrumentID != NULL)
+		strcpy_s(req.InstrumentID, instrumentID);
 
 	return pUserApi->ReqQryBrokerTradingAlgos(&req, requestID);
 }
@@ -583,22 +583,22 @@ TRADEAPI_API int ReqParkedOrderAction(int requestID, CThostFtdcParkedOrderAction
 	return pUserApi->ReqParkedOrderAction(ParkedOrderAction, requestID);
 }
 ///请求删除预埋单
-TRADEAPI_API int ReqRemoveParkedOrder(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcParkedOrderIDType ParkedOrder_ID)
+TRADEAPI_API int ReqRemoveParkedOrder(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcParkedOrderIDType ParkedOrder_ID)
 {
 	CThostFtdcRemoveParkedOrderField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	strcpy_s(req.ParkedOrderID, ParkedOrder_ID);
 	return pUserApi->ReqRemoveParkedOrder(&req, requestID);
 }
 ///请求删除预埋撤单
-TRADEAPI_API int ReqRemoveParkedOrderAction(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID, TThostFtdcParkedOrderActionIDType ParkedOrderAction_ID)
+TRADEAPI_API int ReqRemoveParkedOrderAction(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcParkedOrderActionIDType ParkedOrderAction_ID)
 {
 	CThostFtdcRemoveParkedOrderActionField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	strcpy_s(req.ParkedOrderActionID, ParkedOrderAction_ID);
 	return pUserApi->ReqRemoveParkedOrderAction(&req, requestID);
 }
@@ -613,31 +613,31 @@ TRADEAPI_API int ReqQryTransferBank(int requestID, TThostFtdcBankIDType Bank_ID,
 	return pUserApi->ReqQryTransferBank(&req, requestID);
 }
 ///请求查询转帐流水
-TRADEAPI_API int ReqQryTransferSerial(int requestID, TThostFtdcBrokerIDType Broker_ID, TThostFtdcAccountIDType Account_ID, TThostFtdcBankIDType Bank_ID)
+TRADEAPI_API int ReqQryTransferSerial(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcAccountIDType Account_ID, TThostFtdcBankIDType Bank_ID)
 {
 	CThostFtdcQryTransferSerialField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, Broker_ID);
+	strcpy_s(req.BrokerID, brokerID);
 	strcpy_s(req.AccountID, Account_ID);
 	strcpy_s(req.BankID, Bank_ID);
 	return pUserApi->ReqQryTransferSerial(&req, requestID);
 }
 ///请求查询银期签约关系
-TRADEAPI_API int ReqQryAccountregister(int requestID, TThostFtdcBrokerIDType Broker_ID, TThostFtdcAccountIDType Account_ID, TThostFtdcBankIDType Bank_ID)
+TRADEAPI_API int ReqQryAccountregister(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcAccountIDType Account_ID, TThostFtdcBankIDType Bank_ID)
 {
 	CThostFtdcQryAccountregisterField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, Broker_ID);
+	strcpy_s(req.BrokerID, brokerID);
 	strcpy_s(req.AccountID, Account_ID);
 	strcpy_s(req.BankID, Bank_ID);
 	return pUserApi->ReqQryAccountregister(&req, requestID);
 }
 ///请求查询签约银行
-TRADEAPI_API int ReqQryContractBank(int requestID, TThostFtdcBrokerIDType Broker_ID, TThostFtdcBankIDType Bank_ID, TThostFtdcBankBrchIDType BankBrch_ID)
+TRADEAPI_API int ReqQryContractBank(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcBankIDType Bank_ID, TThostFtdcBankBrchIDType BankBrch_ID)
 {
 	CThostFtdcQryContractBankField  req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, Broker_ID);
+	strcpy_s(req.BrokerID, brokerID);
 	if (Bank_ID != NULL)
 		strcpy_s(req.BankID, Bank_ID);
 	if (BankBrch_ID != NULL)
@@ -671,12 +671,12 @@ TRADEAPI_API int ReqQryParkedOrderAction(int requestID, TThostFtdcBrokerIDType B
 	return pUserApi->ReqQryParkedOrderAction(&req, requestID);
 }
 ///请求查询监控中心用户令牌
-TRADEAPI_API int ReqQueryCFMMCTradingAccountToken(int requestID, TThostFtdcBrokerIDType BROKER_ID, TThostFtdcInvestorIDType INVESTOR_ID)
+TRADEAPI_API int ReqQueryCFMMCTradingAccountToken(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
 	CThostFtdcQueryCFMMCTradingAccountTokenField req;
 	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, BROKER_ID);
-	strcpy_s(req.InvestorID, INVESTOR_ID);
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.InvestorID, investorID);
 	return pUserApi->ReqQueryCFMMCTradingAccountToken(&req, requestID);
 }
 ///期货发起银行资金转期货请求

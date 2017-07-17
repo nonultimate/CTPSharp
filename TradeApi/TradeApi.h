@@ -10,9 +10,9 @@
 #define TRADEAPI_API __declspec(dllimport)
 #endif
 
-#include "..\api\ThostFtdcTraderApi.h"
-#include "..\api\ThostFtdcUserApiDataType.h"
-#include "..\api\ThostFtdcUserApiStruct.h"
+#include "..\api\x86\ThostFtdcTraderApi.h"
+#include "..\api\x86\ThostFtdcUserApiDataType.h"
+#include "..\api\x86\ThostFtdcUserApiStruct.h"
 
 // 此类是从 TradeApi.dll 导出的
 class CTraderSpi : public CThostFtdcTraderSpi

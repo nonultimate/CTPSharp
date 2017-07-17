@@ -1,4 +1,5 @@
-﻿using CTPTradeAdapter.Interface;
+﻿using CTPCore;
+using CTPTradeAdapter.Interface;
 using CTPTradeAdapter.Model;
 using CTPTradeApi;
 using System;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using static CTPTradeApi.TradeApi;
 
 namespace CTPTradeAdapter.Adapter
 {
@@ -55,7 +57,7 @@ namespace CTPTradeAdapter.Adapter
             _api = new TradeApi("", "", flowPath);
             _api.OnRspError += OnRspError;
             _api.OnFrontConnect += OnFrontConnect;
-            _api.OnDisConnected += OnDisConnected;
+            _api.OnDisconnected += OnDisConnected;
             _api.OnRspUserLogin += OnRspUserLogin;
             _api.OnRspUserLogout += OnRspUserLogout;
             _api.OnRspOrderInsert += OnRspOrderInsert;
@@ -68,6 +70,19 @@ namespace CTPTradeAdapter.Adapter
             _api.OnRspParkedOrderAction += OnRspParkedOrderAction;
             _api.OnRspQryParkedOrder += OnRspQryParkedOrder;
             _api.OnRspQryParkedOrderAction += OnRspQryParkedOrderAction;
+        }
+
+        #endregion
+
+        #region 回调事件
+
+        /// <summary>
+        /// 心跳超时警告。当长时间未收到报文时，该方法被调用。
+        /// </summary>
+        public event HeartBeatWarning OnHeartBeatWarning
+        {
+            add { _api.OnHeartBeatWarning += value; }
+            remove { _api.OnHeartBeatWarning -= value; }
         }
 
         #endregion
@@ -105,17 +120,8 @@ namespace CTPTradeAdapter.Adapter
         public void Disconnect(DataCallback callback)
         {
             AddCallback(callback, -2);
-            _api.DisConnect();
-        }
-
-        /// <summary>
-        /// 获取交易日
-        /// </summary>
-        /// <returns></returns>
-        public string GetTradingDay()
-        {
-            return _api.GetTradingDay();
-        }
+            _api.Disconnect();
+        }        
 
         /// <summary>
         /// 用户登录
@@ -137,6 +143,15 @@ namespace CTPTradeAdapter.Adapter
         {
             int requestID = AddCallback(callback);
             _api.UserLogout(requestID);
+        }
+
+        /// <summary>
+        /// 获取交易日
+        /// </summary>
+        /// <returns></returns>
+        public string GetTradingDay()
+        {
+            return _api.GetTradingDay();
         }
 
         /// <summary>
@@ -438,7 +453,7 @@ namespace CTPTradeAdapter.Adapter
         /// <summary>
         /// 断开连接回调
         /// </summary>
-        /// <param name="reason"></param>
+        /// <param name="reason">原因</param>
         private void OnDisConnected(int reason)
         {
             ExecuteCallback(-2, new DataResult()
@@ -473,6 +488,7 @@ namespace CTPTradeAdapter.Adapter
                 };
                 _api.FrontID = pRspUserLogin.FrontID;
                 _api.SessionID = pRspUserLogin.SessionID;
+                _api.MaxOrderRef = pRspUserLogin.MaxOrderRef;
                 result.Result = account;
                 result.IsSuccess = true;
             }

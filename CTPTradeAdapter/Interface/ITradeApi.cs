@@ -1,24 +1,8 @@
-﻿using CTPTradeAdapter.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using CTPCore;
+using CTPTradeAdapter.Model;
 
 namespace CTPTradeAdapter.Interface
 {
-    /// <summary>
-    /// 数据回调委托
-    /// </summary>
-    /// <param name="result">结果对象</param>
-    public delegate void DataCallback(DataResult result);
-
-    /// <summary>
-    /// 数据列表回调委托
-    /// </summary>
-    /// <typeparam name="T">列表元素类型</typeparam>
-    /// <param name="result">列表结果对象</param>
-    public delegate void DataListCallback<T>(DataListResult<T> result);
-
     /// <summary>
     /// 交易接口
     /// </summary>
@@ -45,12 +29,6 @@ namespace CTPTradeAdapter.Interface
         void Disconnect(DataCallback callback);
 
         /// <summary>
-        /// 获取交易日
-        /// </summary>
-        /// <returns></returns>
-        string GetTradingDay();
-
-        /// <summary>
         /// 用户登录
         /// </summary>
         /// <param name="callback">登录回调</param>
@@ -63,6 +41,12 @@ namespace CTPTradeAdapter.Interface
         /// </summary>
         /// <param name="callback">登出回调</param>
         void UserLogout(DataCallback callback);
+
+        /// <summary>
+        /// 获取交易日
+        /// </summary>
+        /// <returns></returns>
+        string GetTradingDay();
 
         /// <summary>
         /// 更新用户口令

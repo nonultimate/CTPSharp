@@ -22,8 +22,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x86</PlatformTarget>
-    <DocumentationFile>bin\Debug\CTPTradeAdapter.XML</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Debug\CTPTradeAdapter.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,8 +32,14 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x86</PlatformTarget>
-    <DocumentationFile>bin\Release\CTPTradeAdapter.XML</DocumentationFile>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Release\CTPTradeAdapter.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>CTP.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GalaSoft.MvvmLight, Version=5.3.0.19038, Culture=neutral, PublicKeyToken=0e453835af4ee6ce, processorArchitecture=MSIL">
@@ -79,8 +85,6 @@
     <Compile Include="Model\Enum\PriceSourceType.cs" />
     <Compile Include="Model\Enum\TradeType.cs" />
     <Compile Include="Model\Input\CancelOrderParameter.cs" />
-    <Compile Include="Model\DataListResult.cs" />
-    <Compile Include="Model\DataResult.cs" />
     <Compile Include="Model\Enum\OpenCloseFlag.cs" />
     <Compile Include="Model\OrderInfo.cs" />
     <Compile Include="Model\Input\OrderParameter.cs" />
@@ -95,6 +99,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CTPCore\CTPCore.csproj">
+      <Project>{cb7e978d-69b6-458a-9aec-40490647ddd3}</Project>
+      <Name>CTPCore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CTPTradeApi\CTPTradeApi.csproj">
       <Project>{61365bf3-4d1a-46b6-bf83-cdc4e00fc82a}</Project>
       <Name>CTPTradeApi</Name>
@@ -104,6 +112,7 @@
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CTP.snk" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -115,7 +124,7 @@
     <Error Condition="!Exists('..\packages\Fody.1.29.2\build\portable-net+sl+win+wpa+wp\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.29.2\build\portable-net+sl+win+wpa+wp\Fody.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>copy /y $(SolutionDir)$(ConfigurationName)\TradeApi.dll $(TargetDir)</PostBuildEvent>
+    <PostBuildEvent>if exist $(SolutionDir)$(ConfigurationName)\TradeApi.dll copy /y $(SolutionDir)$(ConfigurationName)\TradeApi.dll $(TargetDir)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

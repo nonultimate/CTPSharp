@@ -1,0 +1,42 @@
+﻿
+Dump of file D:\Work\git\CTPSharp\x64\Debug\MdApi.dll
+
+File Type: DLL
+
+  Section contains the following exports for MdApi.dll
+
+    00000000 characteristics
+    596597B6 time date stamp Wed Jul 12 11:29:58 2017
+        0.00 version
+           1 ordinal base
+          16 number of functions
+          16 number of names
+
+    ordinal hint RVA      name
+
+          1    0 00001000 ?Connect@@YAXPEAD0@Z = ?Connect@@YAXPEAD0@Z (void __cdecl Connect(char *,char *))
+          2    1 000010E0 ?DisConnect@@YAXXZ = ?DisConnect@@YAXXZ (void __cdecl DisConnect(void))
+          3    2 00001360 ?GetTradingDay@@YAPEBDXZ = ?GetTradingDay@@YAPEBDXZ (char const * __cdecl GetTradingDay(void))
+          4    3 000013E0 ?RegOnFrontConnected@@YAXP6AHXZ@Z = ?RegOnFrontConnected@@YAXP6AHXZ@Z (void __cdecl RegOnFrontConnected(int (__cdecl*)(void)))
+          5    4 00001400 ?RegOnFrontDisconnected@@YAXP6AHH@Z@Z = ?RegOnFrontDisconnected@@YAXP6AHH@Z@Z (void __cdecl RegOnFrontDisconnected(int (__cdecl*)(int)))
+          6    5 000013C0 ?RegOnHeartBeatWarning@@YAXP6AHH@Z@Z = ?RegOnHeartBeatWarning@@YAXP6AHH@Z@Z (void __cdecl RegOnHeartBeatWarning(int (__cdecl*)(int)))
+          7    6 000013A0 ?RegOnRspError@@YAXP6AHPEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspError@@YAXP6AHPEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspError(int (__cdecl*)(struct CThostFtdcRspInfoField *,int,bool)))
+          8    7 00001460 ?RegOnRspSubMarketData@@YAXP6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspSubMarketData@@YAXP6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspSubMarketData(int (__cdecl*)(struct CThostFtdcSpecificInstrumentField *,struct CThostFtdcRspInfoField *,int,bool)))
+          9    8 00001480 ?RegOnRspUnSubMarketData@@YAXP6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspUnSubMarketData@@YAXP6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspUnSubMarketData(int (__cdecl*)(struct CThostFtdcSpecificInstrumentField *,struct CThostFtdcRspInfoField *,int,bool)))
+         10    9 00001420 ?RegOnRspUserLogin@@YAXP6AHPEAUCThostFtdcRspUserLoginField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspUserLogin@@YAXP6AHPEAUCThostFtdcRspUserLoginField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspUserLogin(int (__cdecl*)(struct CThostFtdcRspUserLoginField *,struct CThostFtdcRspInfoField *,int,bool)))
+         11    A 00001440 ?RegOnRspUserLogout@@YAXP6AHPEAUCThostFtdcUserLogoutField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspUserLogout@@YAXP6AHPEAUCThostFtdcUserLogoutField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspUserLogout(int (__cdecl*)(struct CThostFtdcUserLogoutField *,struct CThostFtdcRspInfoField *,int,bool)))
+         12    B 000014A0 ?RegOnRtnDepthMarketData@@YAXP6AHPEAUCThostFtdcDepthMarketDataField@@@Z@Z = ?RegOnRtnDepthMarketData@@YAXP6AHPEAUCThostFtdcDepthMarketDataField@@@Z@Z (void __cdecl RegOnRtnDepthMarketData(int (__cdecl*)(struct CThostFtdcDepthMarketDataField *)))
+         13    C 00001120 ?ReqUserLogin@@YAXHQEAD00@Z = ?ReqUserLogin@@YAXHQEAD00@Z (void __cdecl ReqUserLogin(int,char * const,char * const,char * const))
+         14    D 00001200 ?ReqUserLogout@@YAXHQEAD0@Z = ?ReqUserLogout@@YAXHQEAD0@Z (void __cdecl ReqUserLogout(int,char * const,char * const))
+         15    E 000012C0 ?SubMarketData@@YAXQEAPEADH@Z = ?SubMarketData@@YAXQEAPEADH@Z (void __cdecl SubMarketData(char * * const,int))
+         16    F 00001310 ?UnSubscribeMarketData@@YAXQEAPEADH@Z = ?UnSubscribeMarketData@@YAXQEAPEADH@Z (void __cdecl UnSubscribeMarketData(char * * const,int))
+
+  Summary
+
+        3000 .data
+        1000 .gfids
+        4000 .pdata
+       15000 .rdata
+        1000 .reloc
+        1000 .rsrc
+       38000 .text
