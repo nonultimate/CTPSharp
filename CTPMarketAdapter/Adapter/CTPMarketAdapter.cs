@@ -5,7 +5,6 @@ using CTPMarketApi;
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
-using static CTPMarketApi.MarketApi;
 
 namespace CTPMarketAdapter.Adapter
 {
@@ -68,7 +67,7 @@ namespace CTPMarketAdapter.Adapter
         /// <summary>
         /// 心跳超时警告。当长时间未收到报文时，该方法被调用。
         /// </summary>
-        public event HeartBeatWarning OnHeartBeatWarning
+        public event MarketApi.HeartBeatWarning OnHeartBeatWarning
         {
             add { _api.OnHeartBeatWarning += value; }
             remove { _api.OnHeartBeatWarning -= value; }

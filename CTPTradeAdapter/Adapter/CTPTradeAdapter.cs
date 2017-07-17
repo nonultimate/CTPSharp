@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
-using static CTPTradeApi.TradeApi;
 
 namespace CTPTradeAdapter.Adapter
 {
@@ -79,7 +78,7 @@ namespace CTPTradeAdapter.Adapter
         /// <summary>
         /// 心跳超时警告。当长时间未收到报文时，该方法被调用。
         /// </summary>
-        public event HeartBeatWarning OnHeartBeatWarning
+        public event TradeApi.HeartBeatWarning OnHeartBeatWarning
         {
             add { _api.OnHeartBeatWarning += value; }
             remove { _api.OnHeartBeatWarning -= value; }
