@@ -67,14 +67,13 @@ namespace CTPTradeApi
 
         #region 委托定义
 
+        delegate IntPtr DelegateGetString();
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate void DelegateConnect(string frontAddr, string flowPath);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate void DelegateDisconnect();
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate string DelegateGetTradingDay();
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqQryExchange(int requestID, string exchangeID);
@@ -191,9 +190,10 @@ namespace CTPTradeApi
         delegate void DelegateRegRtnTrade(RtnTrade cb);
         delegate void DelegateRegRtnTradingNotice(RtnTradingNotice cb);
 
+        DelegateGetString getApiVersion;
         DelegateConnect connect;
         DelegateDisconnect disconnect;
-        DelegateGetTradingDay getTradingDay;
+        DelegateGetString getTradingDay;
         DelegateReqUser reqUserLogin;
         DelegateReqAccount reqUserLogout;
         DelegateReqUserUpdate reqUserPasswordUpdate;
@@ -365,9 +365,10 @@ namespace CTPTradeApi
 
                 #region 获取非托管方法
 
+                getApiVersion = GetDelegate<DelegateGetString>("?GetApiVersion");
+                getTradingDay = GetDelegate<DelegateGetString>("?GetTradingDay");
                 connect = GetDelegate<DelegateConnect>("?Connect");
                 disconnect = GetDelegate<DelegateDisconnect>("?DisConnect");
-                getTradingDay = GetDelegate<DelegateGetTradingDay>("?GetTradingDay");
                 reqUserLogin = GetDelegate<DelegateReqUser>("?ReqUserLogin");
                 reqUserLogout = GetDelegate<DelegateReqAccount>("?ReqUserLogout");
                 reqUserPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("?ReqUserPasswordUpdate");
@@ -503,15 +504,34 @@ namespace CTPTradeApi
         }
 
         /// <summary>
+        /// 获取接口版本号
+        /// </summary>
+        /// <returns></returns>
+        public string GetApiVersion()
+        {
+            IntPtr ptr = getApiVersion();
+
+            return Marshal.PtrToStringAnsi(ptr);
+        }
+
+        /// <summary>
+        /// 获取交易日（登录成功后调用）
+        /// </summary>
+        /// <returns></returns>
+        public string GetTradingDay()
+        {
+            IntPtr ptr = getTradingDay();
+
+            return Marshal.PtrToStringAnsi(ptr);
+        }
+
+        /// <summary>
         /// 连接
         /// </summary>
         public void Connect()
         {
             connect(this.FrontAddr, this._flowPath);
         }
-
-        //[DllImport(dllName, EntryPoint = "?Connect@@YAXPAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern void connect(string frontAddr, string flowPath);
 
         /// <summary>
         /// 断开
@@ -520,21 +540,6 @@ namespace CTPTradeApi
         {
             disconnect();
         }
-
-        //[DllImport(dllName, EntryPoint = "?DisConnect@@YAXXZ", CallingConvention = CallingConvention.Cdecl)]
-        //static extern void disconnect();
-
-        /// <summary>
-        /// 获取交易日
-        /// </summary>
-        /// <returns></returns>
-        public string GetTradingDay()
-        {
-            return getTradingDay();
-        }
-
-        //[DllImport(dllName, EntryPoint = "?GetTradingDay@@YAPBDXZ", CallingConvention = CallingConvention.Cdecl)]
-        //static extern string getTradingDay();
 
         /// <summary>
         /// 登入请求
@@ -550,9 +555,6 @@ namespace CTPTradeApi
             return reqUserLogin(requestID, this.BrokerID, this.InvestorID, this._password);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqUserLogin@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqUserLogin(int requestID, string brokerID, string investorID, string password);
-
         /// <summary>
         /// 发送登出请求
         /// </summary>
@@ -560,9 +562,6 @@ namespace CTPTradeApi
         {
             return reqUserLogout(requestID, this.BrokerID, this.InvestorID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqUserLogout@@YAHHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqUserLogout(int requestID, string brokerID, string investorID);
 
         /// <summary>
         /// 更新用户口令
@@ -576,9 +575,6 @@ namespace CTPTradeApi
             return reqUserPasswordUpdate(requestID, this.BrokerID, userID, oldPassword, newPassword);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqUserPasswordUpdate@@YAHHQAD000@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqUserPasswordUpdate(int requestID, string brokerID, string userID, string oldPassword, string newPassword);
-
         /// <summary>
         /// 资金账户口令更新请求
         /// </summary>
@@ -590,9 +586,6 @@ namespace CTPTradeApi
         {
             return reqTradingAccountPasswordUpdate(requestID, this.BrokerID, accountID, oldPassword, newPassword);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqTradingAccountPasswordUpdate@@YAHHQAD000@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqTradingAccountPasswordUpdate(int requestID, string brokerID, string accountID, string oldPassword, string newPassword);
 
         /// <summary>
         /// 下单:录入报单
@@ -719,9 +712,6 @@ namespace CTPTradeApi
             return reqOrderInsert(requestID, ref tmp);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqOrderInsert@@YAHHPAUCThostFtdcInputOrderField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqOrderInsert(int requestID, ref CThostFtdcInputOrderField req);
-
         /// <summary>
         /// 撤单
         /// </summary>
@@ -764,9 +754,6 @@ namespace CTPTradeApi
             return reqOrderAction(requestID, ref tmp);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqOrderAction@@YAHHPAUCThostFtdcInputOrderActionField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqOrderAction(int requestID, ref CThostFtdcInputOrderActionField pOrder);
-
         /// <summary>
         /// 查询最大允许报单数量请求
         /// </summary>
@@ -777,9 +764,6 @@ namespace CTPTradeApi
             return reqQueryMaxOrderVolume(requestID, ref pMaxOrderVolume);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQueryMaxOrderVolume@@YAHHPAUCThostFtdcQueryMaxOrderVolumeField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQueryMaxOrderVolume(int requestID, ref CThostFtdcQueryMaxOrderVolumeField pMaxOrderVolume);
-
         /// <summary>
         /// 确认结算结果
         /// </summary>
@@ -789,9 +773,6 @@ namespace CTPTradeApi
         {
             return reqSettlementInfoConfirm(requestID, this.BrokerID, this.InvestorID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqSettlementInfoConfirm@@YAHHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqSettlementInfoConfirm(int requestID, string brokerID, string investorID);
 
         /// <summary>
         /// 请求查询报单:不填-查所有
@@ -815,9 +796,6 @@ namespace CTPTradeApi
             tmp.OrderSysID = orderSysID;
             return reqQryOrder(requestID, ref tmp);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryOrder@@YAHHPAUCThostFtdcQryOrderField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryOrder(int requestID, ref CThostFtdcQryOrderField pQryOrder);
 
         /// <summary>
         /// 请求查询成交:不填-查所有
@@ -843,9 +821,6 @@ namespace CTPTradeApi
             return reqQryTrade(requestID, ref tmp);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryTrade@@YAHHPAUCThostFtdcQryTradeField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryTrade(int requestID, ref CThostFtdcQryTradeField pQryTrade);
-
         /// <summary>
         /// 查询投资者持仓
         /// </summary>
@@ -855,9 +830,6 @@ namespace CTPTradeApi
         {
             return reqQryInvestorPosition(requestID, this.BrokerID, this.InvestorID, instrument);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryInvestorPosition@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryInvestorPosition(int requestID, string brokerID, string investorID, string Instrument);
 
         /// <summary>
         /// 查询帐户资金请求
@@ -869,9 +841,6 @@ namespace CTPTradeApi
             return reqQryTradingAccount(requestID, this.BrokerID, this.InvestorID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryTradingAccount@@YAHHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryTradingAccount(int requestID, string brokerID, string investorID);
-
         /// <summary>
         /// 请求查询投资者
         /// </summary>
@@ -881,9 +850,6 @@ namespace CTPTradeApi
         {
             return reqQryInvestor(requestID, this.BrokerID, this.InvestorID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryInvestor@@YAHHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryInvestor(int requestID, string brokerID, string investorID);
 
         /// <summary>
         /// 请求查询交易编码:参数不填-查所有
@@ -896,9 +862,6 @@ namespace CTPTradeApi
         {
             return reqQryTradingCode(requestID, this.BrokerID, this.InvestorID, clientID, exchangeID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryTradingCode@@YAHHQAD000@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryTradingCode(int requestID, string brokerID, string investorID, string clientID, string exchangeID);
 
         /// <summary>
         /// 请求查询合约保证金率:能为null;每次只能查一个合约
@@ -913,9 +876,6 @@ namespace CTPTradeApi
             return reqQryInstrumentMarginRate(requestID, this.BrokerID, this.InvestorID, instrumentID, hedgeFlag);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryInstrumentMarginRate@@YAHHQAD00D@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryInstrumentMarginRate(int requestID, string brokerID, string investorID, string instrumentID, TThostFtdcHedgeFlagType hedgeFlag);
-
         /// <summary>
         /// 请求查询合约手续费率
         /// </summary>
@@ -926,9 +886,6 @@ namespace CTPTradeApi
         {
             return reqQryInstrumentCommissionRate(requestID, this.BrokerID, this.InvestorID, instrumentID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryInstrumentCommissionRate@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryInstrumentCommissionRate(int requestID, string brokerID, string investorID, string instrumentID);
 
         /// <summary>
         /// 请求查询交易所
@@ -941,9 +898,6 @@ namespace CTPTradeApi
             return reqQryExchange(requestID, exchangeID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryExchange@@YAHHQAD@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryExchange(int requestID, string exchangeID);
-
         /// <summary>
         /// 查询合约
         /// </summary>
@@ -954,9 +908,6 @@ namespace CTPTradeApi
         {
             return reqQryInstrument(requestID, instrumentID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryInstrument@@YAHHQAD@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryInstrument(int requestID, string instrumentID);
 
         /// <summary>
         /// 查询行情
@@ -969,9 +920,6 @@ namespace CTPTradeApi
             return reqQryDepthMarketData(requestID, instrumentID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryDepthMarketData@@YAHHQAD@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryDepthMarketData(int requestID, string Instrument);
-
         /// <summary>
         /// 请求查询投资者结算结果
         /// </summary>
@@ -982,9 +930,6 @@ namespace CTPTradeApi
         {
             return reqQrySettlementInfo(requestID, this.BrokerID, this.InvestorID, date);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQrySettlementInfo@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQrySettlementInfo(int requestID, string brokerID, string investorID, string tradingDay);
 
         /// <summary>
         /// 查询投资者持仓明细
@@ -997,9 +942,6 @@ namespace CTPTradeApi
             return reqQryInvestorPositionDetail(requestID, this.BrokerID, this.InvestorID, instrumentID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryInvestorPositionDetail@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryInvestorPositionDetail(int requestID, string brokerID, string investorID, string Instrument);
-
         /// <summary>
         /// 请求查询客户通知
         /// </summary>
@@ -1010,9 +952,6 @@ namespace CTPTradeApi
             return reqQryNotice(requestID, this.BrokerID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryNotice@@YAHHQAD@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryNotice(int requestID, string brokerID);
-
         /// <summary>
         /// 请求查询结算信息确认
         /// </summary>
@@ -1022,9 +961,6 @@ namespace CTPTradeApi
         {
             return reqQrySettlementInfoConfirm(requestID, this.BrokerID, this.InvestorID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQrySettlementInfoConfirm@@YAHHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQrySettlementInfoConfirm(int requestID, string brokerID, string investorID);
 
         /// <summary>
         /// 请求查询**组合**持仓明细
@@ -1037,9 +973,6 @@ namespace CTPTradeApi
             return reqQryInvestorPositionCombineDetail(requestID, this.BrokerID, this.InvestorID, instrumentID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryInvestorPositionCombineDetail@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryInvestorPositionCombineDetail(int requestID, string brokerID, string investorID, string instrumentID);
-
         /// <summary>
         /// 请求查询保证金监管系统经纪公司资金账户密钥
         /// </summary>
@@ -1049,9 +982,6 @@ namespace CTPTradeApi
         {
             return reqQryCFMMCTradingAccountKey(requestID, this.BrokerID, this.InvestorID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryCFMMCTradingAccountKey@@YAHHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryCFMMCTradingAccountKey(int requestID, string brokerID, string investorID);
 
         /// <summary>
         /// 请求查询交易通知
@@ -1063,9 +993,6 @@ namespace CTPTradeApi
             return reqQryTradingNotice(requestID, this.BrokerID, this.InvestorID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryTradingNotice@@YAHHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryTradingNotice(int requestID, string brokerID, string investorID);
-
         /// <summary>
         /// 请求查询经纪公司交易参数
         /// </summary>
@@ -1075,9 +1002,6 @@ namespace CTPTradeApi
         {
             return reqQryBrokerTradingParams(requestID, this.BrokerID, this.InvestorID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryBrokerTradingParams@@YAHHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryBrokerTradingParams(int requestID, string brokerID, string investorID);
 
         /// <summary>
         /// 请求查询经纪公司交易算法
@@ -1090,9 +1014,6 @@ namespace CTPTradeApi
         {
             return reqQryBrokerTradingAlgos(requestID, this.BrokerID, exchangeID, instrumentID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryBrokerTradingAlgos@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryBrokerTradingAlgos(int requestID, string brokerID, string exchangeID, string instrumentID);
 
         /// <summary>
         /// 预埋单录入请求
@@ -1143,9 +1064,6 @@ namespace CTPTradeApi
             return reqParkedOrderInsert(requestID, ref tmp);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqParkedOrderInsert@@YAHHPAUCThostFtdcParkedOrderField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqParkedOrderInsert(int requestID, ref CThostFtdcParkedOrderField pField);
-
         /// <summary>
         /// 预埋撤单录入请求
         /// </summary>
@@ -1188,9 +1106,6 @@ namespace CTPTradeApi
             return reqParkedOrderAction(requestID, ref tmp);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqParkedOrderAction@@YAHHPAUCThostFtdcParkedOrderActionField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqParkedOrderAction(int requestID, ref CThostFtdcParkedOrderActionField pField);
-
         /// <summary>
         /// 请求删除预埋单
         /// </summary>
@@ -1202,9 +1117,6 @@ namespace CTPTradeApi
             return reqRemoveParkedOrder(requestID, this.BrokerID, this.InvestorID, parkedOrderID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqRemoveParkedOrder@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqRemoveParkedOrder(int requestID, string brokerID, string investorID, string parkedOrderID);
-
         /// <summary>
         /// 请求删除预埋撤单
         /// </summary>
@@ -1215,9 +1127,6 @@ namespace CTPTradeApi
         {
             return reqRemoveParkedOrderAction(requestID, this.BrokerID, this.InvestorID, parkedOrderActionID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqRemoveParkedOrderAction@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqRemoveParkedOrderAction(int requestID, string brokerID, string investorID, string parkedOrderActionID);
 
         /// <summary>
         /// 请求查询转帐银行
@@ -1231,9 +1140,6 @@ namespace CTPTradeApi
             return reqQryTransferBank(requestID, bankID, bankBranchID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryTransferBank@@YAHHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryTransferBank(int requestID, string bankID, string bankBranchID);
-
         /// <summary>
         /// 请求查询转帐流水
         /// </summary>
@@ -1244,9 +1150,6 @@ namespace CTPTradeApi
         {
             return reqQryTransferSerial(requestID, this.BrokerID, this.InvestorID, bankID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryTransferSerial@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryTransferSerial(int requestID, string brokerID, string accountID, string bankID);
 
         /// <summary>
         /// 请求查询银期签约关系
@@ -1259,9 +1162,6 @@ namespace CTPTradeApi
             return reqQryAccountregister(requestID, this.BrokerID, this.InvestorID, bankID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryAccountregister@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryAccountregister(int requestID, string brokerID, string accountID, string bankID);
-
         /// <summary>
         /// 请求查询签约银行
         /// </summary>
@@ -1271,9 +1171,6 @@ namespace CTPTradeApi
         {
             return reqQryContractBank(requestID, this.BrokerID, null, null);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqQryContractBank@@YAHHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryContractBank(int requestID, string brokerID, string bankID, string bankBranchID);
 
         /// <summary>
         /// 请求查询预埋单
@@ -1287,9 +1184,6 @@ namespace CTPTradeApi
             return reqQryParkedOrder(requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryParkedOrder@@YAHHQAD000@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryParkedOrder(int requestID, string brokerID, string investorID, string instrumentID, string exchangeID);
-
         /// <summary>
         /// 请求查询预埋撤单
         /// </summary>
@@ -1302,9 +1196,6 @@ namespace CTPTradeApi
             return reqQryParkedOrderAction(requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQryParkedOrderAction@@YAHHQAD000@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQryParkedOrderAction(int requestID, string brokerID, string investorID, string instrumentID, string exchangeID);
-
         /// <summary>
         /// 期货发起银行资金转期货请求
         /// </summary>
@@ -1315,9 +1206,6 @@ namespace CTPTradeApi
         {
             return reqFromBankToFutureByFuture(requestID, ref field);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqFromBankToFutureByFuture@@YAHHPAUCThostFtdcReqTransferField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqFromBankToFutureByFuture(int requestID, ref CThostFtdcReqTransferField pField);
 
         /// <summary>
         /// 期货发起期货资金转银行请求
@@ -1330,9 +1218,6 @@ namespace CTPTradeApi
             return reqFromFutureToBankByFuture(requestID, ref field);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqFromFutureToBankByFuture@@YAHHPAUCThostFtdcReqTransferField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqFromFutureToBankByFuture(int requestID, ref CThostFtdcReqTransferField pField);
-
         /// <summary>
         /// 期货发起查询银行余额请求
         /// </summary>
@@ -1344,15 +1229,7 @@ namespace CTPTradeApi
             return reqQueryBankAccountMoneyByFuture(requestID, ref field);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqQueryBankAccountMoneyByFuture@@YAHHPAUCThostFtdcReqQueryAccountField@@@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern int reqQueryBankAccountMoneyByFuture(int requestID, ref CThostFtdcReqQueryAccountField pField);
-
-        //回调函数
-
         #region 连接响应
-
-        //[DllImport(dllName, EntryPoint = "?RegOnFrontConnected@@YGXP6GHXZ@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnFrontConnected(FrontConnect fc);
 
         FrontConnect frontConnect;
 
@@ -1373,9 +1250,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 断开连接响应
-
-        //[DllImport(dllName, EntryPoint = "?RegOnFrontDisconnected@@YGXP6GHH@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnDisConnected(Disconnected dc);
 
         Disconnected disConnected;
 
@@ -1398,9 +1272,6 @@ namespace CTPTradeApi
 
         #region 心跳响应
 
-        //[DllImport(dllName, EntryPoint = "?RegOnHeartBeatWarning@@YGXP6GHH@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnHeartBeatWarning(HeartBeatWarning hbw);
-
         HeartBeatWarning heartBeatWarning;
 
         /// <summary>
@@ -1421,10 +1292,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 期货发起银行资金转期货错误回报
-
-        ///期货发起银行资金转期货错误回报
-        //[DllImport(dllName, EntryPoint = "?RegErrRtnBankToFutureByFuture@@YGXP6GHPAUCThostFtdcReqTransferField@@PAUCThostFtdcRspInfoField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regErrRtnBankToFutureByFuture(ErrRtnBankToFutureByFuture cb);
 
         ErrRtnBankToFutureByFuture errRtnBankToFutureByFuture;
 
@@ -1449,9 +1316,6 @@ namespace CTPTradeApi
 
         #region 期货发起期货资金转银行错误回报
 
-        //[DllImport(dllName, EntryPoint = "?RegErrRtnFutureToBankByFuture@@YGXP6GHPAUCThostFtdcReqTransferField@@PAUCThostFtdcRspInfoField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regErrRtnFutureToBankByFuture(ErrRtnFutureToBankByFuture cb);
-
         ErrRtnFutureToBankByFuture errRtnFutureToBankByFuture;
 
         /// <summary>
@@ -1474,9 +1338,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 报单操作错误回报
-
-        //[DllImport(dllName, EntryPoint = "?RegErrRtnOrderAction@@YGXP6GHPAUCThostFtdcOrderActionField@@PAUCThostFtdcRspInfoField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regErrRtnOrderAction(ErrRtnOrderAction cb);
 
         ErrRtnOrderAction errRtnOrderAction;
 
@@ -1501,9 +1362,6 @@ namespace CTPTradeApi
 
         #region 报单录入错误回报
 
-        //[DllImport(dllName, EntryPoint = "?RegErrRtnOrderInsert@@YGXP6GHPAUCThostFtdcInputOrderField@@PAUCThostFtdcRspInfoField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regErrRtnOrderInsert(ErrRtnOrderInsert cb);
-
         ErrRtnOrderInsert errRtnOrderInsert;
 
         /// <summary>
@@ -1526,9 +1384,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 期货发起查询银行余额错误回报
-
-        //[DllImport(dllName, EntryPoint = "?RegErrRtnQueryBankBalanceByFuture@@YGXP6GHPAUCThostFtdcReqQueryAccountField@@PAUCThostFtdcRspInfoField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regErrRtnQueryBankBalanceByFuture(ErrRtnQueryBankBalanceByFuture cb);
 
         ErrRtnQueryBankBalanceByFuture errRtnQueryBankBalanceByFuture;
 
@@ -1561,9 +1416,6 @@ namespace CTPTradeApi
 
         #region 期货端手工发起冲正银行转期货错误回报
 
-        //[DllImport(dllName, EntryPoint = "?RegErrRtnRepealBankToFutureByFutureManual@@YGXP6GHPAUCThostFtdcReqRepealField@@PAUCThostFtdcRspInfoField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regErrRtnRepealBankToFutureByFutureManual(ErrRtnRepealBankToFutureByFutureManual cb);
-
         ErrRtnRepealBankToFutureByFutureManual errRtnRepealBankToFutureByFutureManual;
 
         /// <summary>
@@ -1593,9 +1445,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 期货端手工发起冲正期货转银行错误回报
-
-        //[DllImport(dllName, EntryPoint = "?RegErrRtnRepealFutureToBankByFutureManual@@YGXP6GHPAUCThostFtdcReqRepealField@@PAUCThostFtdcRspInfoField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regErrRtnRepealFutureToBankByFutureManual(ErrRtnRepealFutureToBankByFutureManual cb);
 
         ErrRtnRepealFutureToBankByFutureManual errRtnRepealFutureToBankByFutureManual;
 
@@ -1628,9 +1477,6 @@ namespace CTPTradeApi
 
         #region 错误应答
 
-        //[DllImport(dllName, EntryPoint = "?RegRspError@@YGXP6GHPAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspError(RspError cb);
-
         RspError rspError;
 
         /// <summary>
@@ -1661,9 +1507,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 期货发起银行资金转期货应答
-
-        //[DllImport(dllName, EntryPoint = "?RegRspFromBankToFutureByFuture@@YGXP6GHPAUCThostFtdcReqTransferField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspFromBankToFutureByFuture(RspFromBankToFutureByFuture cb);
 
         RspFromBankToFutureByFuture rspFromBankToFutureByFuture;
 
@@ -1698,9 +1541,6 @@ namespace CTPTradeApi
 
         #region 期货发起期货资金转银行应答
 
-        //[DllImport(dllName, EntryPoint = "?RegRspFromFutureToBankByFuture@@YGXP6GHPAUCThostFtdcReqTransferField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspFromFutureToBankByFuture(RspFromFutureToBankByFuture cb);
-
         RspFromFutureToBankByFuture rspFromFutureToBankByFuture;
 
         /// <summary>
@@ -1733,9 +1573,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 报单操作请求响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspOrderAction@@YGXP6GHPAUCThostFtdcInputOrderActionField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspOrderAction(RspOrderAction cb);
 
         RspOrderAction rspOrderAction;
 
@@ -1770,9 +1607,6 @@ namespace CTPTradeApi
 
         #region 报单录入请求响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspOrderInsert@@YGXP6GHPAUCThostFtdcInputOrderField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspOrderInsert(RspOrderInsert cb);
-
         RspOrderInsert rspOrderInsert;
 
         /// <summary>
@@ -1805,9 +1639,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 预埋撤单录入请求响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspParkedOrderAction@@YGXP6GHPAUCThostFtdcParkedOrderActionField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspParkedOrderAction(RspParkedOrderAction cb);
 
         RspParkedOrderAction rspParkedOrderAction;
 
@@ -1842,9 +1673,6 @@ namespace CTPTradeApi
 
         #region 预埋单录入请求响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspParkedOrderInsert@@YGXP6GHPAUCThostFtdcParkedOrderField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspParkedOrderInsert(RspParkedOrderInsert cb);
-
         RspParkedOrderInsert rspParkedOrderInsert;
 
         /// <summary>
@@ -1878,9 +1706,6 @@ namespace CTPTradeApi
 
         #region 请求查询经纪公司交易算法响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryBrokerTradingAlgos@@YGXP6GHPAUCThostFtdcBrokerTradingAlgosField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryBrokerTradingAlgos(RspQryBrokerTradingAlgos cb);
-
         RspQryBrokerTradingAlgos rspQryBrokerTradingAlgos;
 
         /// <summary>
@@ -1912,9 +1737,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询经纪公司交易参数响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryBrokerTradingParams@@YGXP6GHPAUCThostFtdcBrokerTradingParamsField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryBrokerTradingParams(RspQryBrokerTradingParams cb);
 
         RspQryBrokerTradingParams rspQryBrokerTradingParams;
 
@@ -1949,9 +1771,6 @@ namespace CTPTradeApi
 
         #region 查询保证金监管系统经纪公司资金账户密钥响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryCFMMCTradingAccountKey@@YGXP6GHPAUCThostFtdcCFMMCTradingAccountKeyField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryCFMMCTradingAccountKey(RspQryCFMMCTradingAccountKey cb);
-
         RspQryCFMMCTradingAccountKey rspQryCFMMCTradingAccountKey;
 
         /// <summary>
@@ -1984,9 +1803,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询签约银行响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryContractBank@@YGXP6GHPAUCThostFtdcContractBankField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryContractBank(RspQryContractBank cb);
 
         RspQryContractBank rspQryContractBank;
 
@@ -2021,9 +1837,6 @@ namespace CTPTradeApi
 
         #region 请求查询行情响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryDepthMarketData@@YGXP6GHPAUCThostFtdcDepthMarketDataField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryDepthMarketData(RspQryDepthMarketData cb);
-
         RspQryDepthMarketData rspQryDepthMarketData;
 
         /// <summary>
@@ -2056,9 +1869,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询交易所响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryExchange@@YGXP6GHPAUCThostFtdcExchangeField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryExchange(RspQryExchange cb);
 
         RspQryExchange rspQryExchange;
 
@@ -2093,9 +1903,6 @@ namespace CTPTradeApi
 
         #region 请求查询合约响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryInstrument@@YGXP6GHPAUCThostFtdcInstrumentField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryInstrument(RspQryInstrument cb);
-
         RspQryInstrument rspQryInstrument;
 
         /// <summary>
@@ -2128,9 +1935,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询合约手续费率响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryInstrumentCommissionRate@@YGXP6GHPAUCThostFtdcInstrumentCommissionRateField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryInstrumentCommissionRate(RspQryInstrumentCommissionRate cb);
 
         RspQryInstrumentCommissionRate rspQryInstrumentCommissionRate;
 
@@ -2166,9 +1970,6 @@ namespace CTPTradeApi
 
         #region 请求查询合约保证金率响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryInstrumentMarginRate@@YGXP6GHPAUCThostFtdcInstrumentMarginRateField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryInstrumentMarginRate(RspQryInstrumentMarginRate cb);
-
         RspQryInstrumentMarginRate rspQryInstrumentMarginRate;
 
         /// <summary>
@@ -2201,9 +2002,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询投资者响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryInvestor@@YGXP6GHPAUCThostFtdcInvestorField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryInvestor(RspQryInvestor cb);
 
         RspQryInvestor rspQryInvestor;
 
@@ -2238,9 +2036,6 @@ namespace CTPTradeApi
 
         #region 请求查询投资者持仓响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryInvestorPosition@@YGXP6GHPAUCThostFtdcInvestorPositionField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryInvestorPosition(RspQryInvestorPosition cb);
-
         RspQryInvestorPosition rspQryInvestorPosition;
 
         /// <summary>
@@ -2273,9 +2068,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询投资者持仓明细响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryInvestorPositionCombineDetail@@YGXP6GHPAUCThostFtdcInvestorPositionCombineDetailField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryInvestorPositionCombineDetail(RspQryInvestorPositionCombineDetail cb);
 
         RspQryInvestorPositionCombineDetail rspQryInvestorPositionCombineDetail;
 
@@ -2311,9 +2103,6 @@ namespace CTPTradeApi
 
         #region 请求查询投资者持仓明细响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryInvestorPositionDetail@@YGXP6GHPAUCThostFtdcInvestorPositionDetailField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryInvestorPositionDetail(RspQryInvestorPositionDetail cb);
-
         RspQryInvestorPositionDetail rspQryInvestorPositionDetail;
 
         /// <summary>
@@ -2348,9 +2137,6 @@ namespace CTPTradeApi
 
         #region 请求查询客户通知响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryNotice@@YGXP6GHPAUCThostFtdcNoticeField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryNotice(RspQryNotice cb);
-
         RspQryNotice rspQryNotice;
 
         /// <summary>
@@ -2383,9 +2169,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询报单响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryOrder@@YGXP6GHPAUCThostFtdcOrderField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryOrder(RspQryOrder cb);
 
         RspQryOrder rspQryOrder;
 
@@ -2420,9 +2203,6 @@ namespace CTPTradeApi
 
         #region 请求查询预埋单响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryParkedOrder@@YGXP6GHPAUCThostFtdcParkedOrderField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryParkedOrder(RspQryParkedOrder cb);
-
         RspQryParkedOrder rspQryParkedOrder;
 
         /// <summary>
@@ -2455,9 +2235,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询预埋撤单响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryParkedOrderAction@@YGXP6GHPAUCThostFtdcParkedOrderActionField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryParkedOrderAction(RspQryParkedOrderAction cb);
 
         RspQryParkedOrderAction rspQryParkedOrderAction;
 
@@ -2492,9 +2269,6 @@ namespace CTPTradeApi
 
         #region 请求查询投资者结算结果响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQrySettlementInfo@@YGXP6GHPAUCThostFtdcSettlementInfoField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQrySettlementInfo(RspQrySettlementInfo cb);
-
         RspQrySettlementInfo rspQrySettlementInfo;
 
         /// <summary>
@@ -2527,9 +2301,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询结算信息确认响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQrySettlementInfoConfirm@@YGXP6GHPAUCThostFtdcSettlementInfoConfirmField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQrySettlementInfoConfirm(RspQrySettlementInfoConfirm cb);
 
         RspQrySettlementInfoConfirm rspQrySettlementInfoConfirm;
 
@@ -2565,9 +2336,6 @@ namespace CTPTradeApi
 
         #region 请求查询成交响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryTrade@@YGXP6GHPAUCThostFtdcTradeField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryTrade(RspQryTrade cb);
-
         RspQryTrade rspQryTrade;
         /// <summary>
         /// 请求查询成交响应委托
@@ -2599,10 +2367,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询资金账户响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryTradingAccount@@YGXP6GHPAUCThostFtdcTradingAccountField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryTradingAccount(RspQryTradingAccount cb);
-
         RspQryTradingAccount rspQryTradingAccount;
 
         /// <summary>
@@ -2635,9 +2399,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询交易编码响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryTradingCode@@YGXP6GHPAUCThostFtdcTradingCodeField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryTradingCode(RspQryTradingCode cb);
 
         RspQryTradingCode rspQryTradingCode;
 
@@ -2672,9 +2433,6 @@ namespace CTPTradeApi
 
         #region 请求查询交易通知响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryTradingNotice@@YGXP6GHPAUCThostFtdcTradingNoticeField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryTradingNotice(RspQryTradingNotice cb);
-
         RspQryTradingNotice rspQryTradingNotice;
         /// <summary>
         /// 请求查询交易通知响应委托
@@ -2707,9 +2465,6 @@ namespace CTPTradeApi
 
         #region 请求查询转帐银行响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryTransferBank@@YGXP6GHPAUCThostFtdcTransferBankField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryTransferBank(RspQryTransferBank cb);
-
         RspQryTransferBank rspQryTransferBank;
         /// <summary>
         /// 请求查询转帐银行响应委托
@@ -2740,9 +2495,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 请求查询转帐流水响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQryTransferSerial@@YGXP6GHPAUCThostFtdcTransferSerialField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryTransferSerial(RspQryTransferSerial cb);
 
         RspQryTransferSerial rspQryTransferSerial;
 
@@ -2777,9 +2529,6 @@ namespace CTPTradeApi
 
         #region 请求查询银期签约关系响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQryAccountregister@@YGXP6GHPAUCThostFtdcAccountregisterField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQryAccountregister(RspQryAccountregister cb);
-
         RspQryAccountregister rspQryAccountregister;
 
         /// <summary>
@@ -2812,9 +2561,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 期货发起查询银行余额应答
-
-        //[DllImport(dllName, EntryPoint = "?RegRspQueryBankAccountMoneyByFuture@@YGXP6GHPAUCThostFtdcReqQueryAccountField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQueryBankAccountMoneyByFuture(RspQueryBankAccountMoneyByFuture cb);
 
         RspQueryBankAccountMoneyByFuture rspQueryBankAccountMoneyByFuture;
 
@@ -2849,9 +2595,6 @@ namespace CTPTradeApi
 
         #region 查询最大报单数量响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspQueryMaxOrderVolume@@YGXP6GHPAUCThostFtdcQueryMaxOrderVolumeField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspQueryMaxOrderVolume(RspQueryMaxOrderVolume cb);
-
         RspQueryMaxOrderVolume rspQueryMaxOrderVolume;
 
         /// <summary>
@@ -2885,9 +2628,6 @@ namespace CTPTradeApi
 
         #region 删除预埋单响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspRemoveParkedOrder@@YGXP6GHPAUCThostFtdcRemoveParkedOrderField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspRemoveParkedOrder(RspRemoveParkedOrder cb);
-
         RspRemoveParkedOrder rspRemoveParkedOrder;
 
         /// <summary>
@@ -2920,9 +2660,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 删除预埋撤单响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspRemoveParkedOrderAction@@YGXP6GHPAUCThostFtdcRemoveParkedOrderActionField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspRemoveParkedOrderAction(RspRemoveParkedOrderAction cb);
 
         RspRemoveParkedOrderAction rspRemoveParkedOrderAction;
 
@@ -2958,9 +2695,6 @@ namespace CTPTradeApi
 
         #region 投资者结算结果确认响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspSettlementInfoConfirm@@YGXP6GHPAUCThostFtdcSettlementInfoConfirmField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspSettlementInfoConfirm(RspSettlementInfoConfirm cb);
-
         RspSettlementInfoConfirm rspSettlementInfoConfirm;
 
         /// <summary>
@@ -2993,9 +2727,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 资金账户口令更新请求响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspTradingAccountPasswordUpdate@@YGXP6GHPAUCThostFtdcTradingAccountPasswordUpdateField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspTradingAccountPasswordUpdate(RspTradingAccountPasswordUpdate cb);
 
         RspTradingAccountPasswordUpdate rspTradingAccountPasswordUpdate;
 
@@ -3031,9 +2762,6 @@ namespace CTPTradeApi
 
         #region 登录请求响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspUserLogin@@YGXP6GHPAUCThostFtdcRspUserLoginField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspUserLogin(RspUserLogin cb);
-
         RspUserLogin rspUserLogin;
 
         /// <summary>
@@ -3066,9 +2794,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 登出请求响应
-
-        //[DllImport(dllName, EntryPoint = "?RegRspUserLogout@@YGXP6GHPAUCThostFtdcUserLogoutField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspUserLogout(RspUserLogout cb);
 
         RspUserLogout rspUserLogout;
 
@@ -3103,9 +2828,6 @@ namespace CTPTradeApi
 
         #region 用户口令更新请求响应
 
-        //[DllImport(dllName, EntryPoint = "?RegRspUserPasswordUpdate@@YGXP6GHPAUCThostFtdcUserPasswordUpdateField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRspUserPasswordUpdate(RspUserPasswordUpdate cb);
-
         RspUserPasswordUpdate rspUserPasswordUpdate;
 
         /// <summary>
@@ -3139,9 +2861,6 @@ namespace CTPTradeApi
 
         #region 提示条件单校验错误
 
-        //[DllImport(dllName, EntryPoint = "?RegRtnErrorConditionalOrder@@YGXP6GHPAUCThostFtdcErrorConditionalOrderField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnErrorConditionalOrder(RtnErrorConditionalOrder cb);
-
         RtnErrorConditionalOrder rtnErrorConditionalOrder;
 
         /// <summary>
@@ -3170,9 +2889,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 银行发起银行资金转期货通知
-
-        //[DllImport(dllName, EntryPoint = "?RegRtnFromBankToFutureByBank@@YGXP6GHPAUCThostFtdcRspTransferField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnFromBankToFutureByBank(RtnFromBankToFutureByBank cb);
 
         RtnFromBankToFutureByBank rtnFromBankToFutureByBank;
 
@@ -3203,9 +2919,6 @@ namespace CTPTradeApi
 
         #region 期货发起银行资金转期货通知
 
-        //[DllImport(dllName, EntryPoint = "?RegRtnFromBankToFutureByFuture@@YGXP6GHPAUCThostFtdcRspTransferField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnFromBankToFutureByFuture(RtnFromBankToFutureByFuture cb);
-
         RtnFromBankToFutureByFuture rtnFromBankToFutureByFuture;
 
         /// <summary>
@@ -3234,9 +2947,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 银行发起期货资金转银行通知
-
-        //[DllImport(dllName, EntryPoint = "?RegRtnFromFutureToBankByBank@@YGXP6GHPAUCThostFtdcRspTransferField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnFromFutureToBankByBank(RtnFromFutureToBankByBank cb);
 
         RtnFromFutureToBankByBank rtnFromFutureToBankByBank;
 
@@ -3267,9 +2977,6 @@ namespace CTPTradeApi
 
         #region 期货发起期货资金转银行通知
 
-        //[DllImport(dllName, EntryPoint = "?RegRtnFromFutureToBankByFuture@@YGXP6GHPAUCThostFtdcRspTransferField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnFromFutureToBankByFuture(RtnFromFutureToBankByFuture cb);
-
         RtnFromFutureToBankByFuture rtnFromFutureToBankByFuture;
 
         /// <summary>
@@ -3298,9 +3005,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 合约交易状态通知
-
-        //[DllImport(dllName, EntryPoint = "?RegRtnInstrumentStatus@@YGXP6GHPAUCThostFtdcInstrumentStatusField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnInstrumentStatus(RtnInstrumentStatus cb);
 
         RtnInstrumentStatus rtnInstrumentStatus;
 
@@ -3331,9 +3035,6 @@ namespace CTPTradeApi
 
         #region 报单通知
 
-        //[DllImport(dllName, EntryPoint = "?RegRtnOrder@@YGXP6GHPAUCThostFtdcOrderField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnOrder(RtnOrder cb);
-
         RtnOrder rtnOrder;
 
         /// <summary>
@@ -3362,9 +3063,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 期货发起查询银行余额通知
-
-        //[DllImport(dllName, EntryPoint = "?RegRtnQueryBankBalanceByFuture@@YGXP6GHPAUCThostFtdcNotifyQueryAccountField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnQueryBankBalanceByFuture(RtnQueryBankBalanceByFuture cb);
 
         RtnQueryBankBalanceByFuture rtnQueryBankBalanceByFuture;
 
@@ -3395,9 +3093,6 @@ namespace CTPTradeApi
 
         #region 银行发起冲正银行转期货通知
 
-        //[DllImport(dllName, EntryPoint = "?RegRtnRepealFromBankToFutureByBank@@YGXP6GHPAUCThostFtdcRspRepealField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnRepealFromBankToFutureByBank(RtnRepealFromBankToFutureByBank cb);
-
         RtnRepealFromBankToFutureByBank rtnRepealFromBankToFutureByBank;
 
         /// <summary>
@@ -3427,9 +3122,6 @@ namespace CTPTradeApi
 
         #region 期货发起冲正银行转期货请求通知
 
-        //[DllImport(dllName, EntryPoint = "?RegRtnRepealFromBankToFutureByFuture@@YGXP6GHPAUCThostFtdcRspRepealField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnRepealFromBankToFutureByFuture(RtnRepealFromBankToFutureByFuture cb);
-
         RtnRepealFromBankToFutureByFuture rtnRepealFromBankToFutureByFuture;
 
         /// <summary>
@@ -3457,10 +3149,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 期货端手工发起冲正银行转期货请求通知
-
-        //[DllImport(dllName, EntryPoint = "?RegRtnRepealFromBankToFutureByFutureManual@@YGXP6GHPAUCThostFtdcRspRepealField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnRepealFromBankToFutureByFutureManual(RtnRepealFromBankToFutureByFutureManual cb);
-
         RtnRepealFromBankToFutureByFutureManual rtnRepealFromBankToFutureByFutureManual;
 
         /// <summary>
@@ -3488,9 +3176,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 银行发起冲正期货转银行通知
-
-        //[DllImport(dllName, EntryPoint = "?RegRtnRepealFromFutureToBankByBank@@YGXP6GHPAUCThostFtdcRspRepealField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnRepealFromFutureToBankByBank(RtnRepealFromFutureToBankByBank cb);
 
         RtnRepealFromFutureToBankByBank rtnRepealFromFutureToBankByBank;
 
@@ -3520,9 +3205,6 @@ namespace CTPTradeApi
 
         #region 期货发起冲正期货转银行请求通知
 
-        //[DllImport(dllName, EntryPoint = "?RegRtnRepealFromFutureToBankByFuture@@YGXP6GHPAUCThostFtdcRspRepealField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnRepealFromFutureToBankByFuture(RtnRepealFromFutureToBankByFuture cb);
-
         RtnRepealFromFutureToBankByFuture rtnRepealFromFutureToBankByFuture;
 
         /// <summary>
@@ -3550,9 +3232,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 期货端手工发起冲正期货转银行请求通知
-
-        //[DllImport(dllName, EntryPoint = "?RegRtnRepealFromFutureToBankByFutureManual@@YGXP6GHPAUCThostFtdcRspRepealField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnRepealFromFutureToBankByFutureManual(RtnRepealFromFutureToBankByFutureManual cb);
 
         RtnRepealFromFutureToBankByFutureManual rtnRepealFromFutureToBankByFutureManual;
 
@@ -3582,9 +3261,6 @@ namespace CTPTradeApi
 
         #region 成交通知
 
-        //[DllImport(dllName, EntryPoint = "?RegRtnTrade@@YGXP6GHPAUCThostFtdcTradeField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnTrade(RtnTrade cb);
-
         RtnTrade rtnTrade;
 
         /// <summary>
@@ -3612,9 +3288,6 @@ namespace CTPTradeApi
         #endregion
 
         #region 交易通知
-
-        //[DllImport(dllName, EntryPoint = "?RegRtnTradingNotice@@YGXP6GHPAUCThostFtdcTradingNoticeInfoField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regRtnTradingNotice(RtnTradingNotice cb);
 
         RtnTradingNotice rtnTradingNotice;
 

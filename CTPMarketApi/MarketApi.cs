@@ -67,8 +67,7 @@ namespace CTPMarketApi
 
         #region 委托定义
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate string DelegateGetTradingDay();
+        delegate IntPtr DelegateGetString();
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate void DelegateConnect(string pFrontAddr, string flowPath);
@@ -99,7 +98,8 @@ namespace CTPMarketApi
         delegate void DelegateRegOnRspUnSubMarketData(RspUnSubMarketData cb);
         delegate void DelegateRegOnRtnDepthMarketData(RtnDepthMarketData cb);
 
-        DelegateGetTradingDay getTradingDay;
+        DelegateGetString getApiVersion;
+        DelegateGetString getTradingDay;
         DelegateConnect connect;
         DelegateDisconnect disconnect;
         DelegateUserLogin userLogin;
@@ -177,7 +177,8 @@ namespace CTPMarketApi
 
                 #region 获取非托管方法
 
-                getTradingDay = GetDelegate<DelegateGetTradingDay>("?GetTradingDay");
+                getApiVersion = GetDelegate<DelegateGetString>("?GetApiVersion");
+                getTradingDay = GetDelegate<DelegateGetString>("?GetTradingDay");
                 connect = GetDelegate<DelegateConnect>("?Connect");
                 disconnect = GetDelegate<DelegateDisconnect>("?DisConnect");
                 userLogin = GetDelegate<DelegateUserLogin>("?ReqUserLogin");
@@ -218,16 +219,26 @@ namespace CTPMarketApi
         }
 
         /// <summary>
-		/// 获取当前交易日:只有登录成功后,才能得到正确的交易日
+        /// 获取接口版本
+        /// </summary>
+        /// <returns></returns>
+        public string GetApiVersion()
+        {
+            IntPtr ptr = getApiVersion();
+
+            return Marshal.PtrToStringAnsi(ptr);
+        }
+
+        /// <summary>
+		/// 获取当前交易日（登录成功后调用）
 		/// </summary>
 		/// <returns></returns>
 		public string GetTradingDay()
         {
-            return getTradingDay();
-        }
+            IntPtr ptr = getTradingDay();
 
-        //[DllImport(dllName, EntryPoint = "?GetTradingDay@@YAPBDXZ", CallingConvention = CallingConvention.Cdecl)]
-        //static extern string getTradingDay();
+            return Marshal.PtrToStringAnsi(ptr);
+        }
 
         /// <summary>
 		/// 连接
@@ -237,9 +248,6 @@ namespace CTPMarketApi
             connect(this.FrontAddr, this._flowPath);
         }
 
-        //[DllImport(dllName, EntryPoint = "?Connect@@YAXPAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern void connect(string pFrontAddr, string flowPath);
-
         /// <summary>
         /// 断开连接
         /// </summary>
@@ -247,9 +255,6 @@ namespace CTPMarketApi
         {
             disconnect();
         }
-
-        //[DllImport(dllName, EntryPoint = "?DisConnect@@YAXXZ", CallingConvention = CallingConvention.Cdecl)]
-        //static extern void disconnect();
 
         /// <summary>
         /// 用户登录
@@ -265,9 +270,6 @@ namespace CTPMarketApi
             userLogin(requestID, this.BrokerID, this.InvestorID, this._password);
         }
 
-        //[DllImport(dllName, EntryPoint = "?ReqUserLogin@@YAXHQAD00@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern void userLogin(int requestID, string brokerID, string investorID, string password);
-
         /// <summary>
         /// 用户注销
         /// </summary>
@@ -276,9 +278,6 @@ namespace CTPMarketApi
         {
             userLogout(requestID, this.BrokerID, this.InvestorID);
         }
-
-        //[DllImport(dllName, EntryPoint = "?ReqUserLogout@@YAXHQAD0@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern void userLogout(int requestID, string brokerID, string investorID);
 
         /// <summary>
 		/// 订阅行情
@@ -289,9 +288,6 @@ namespace CTPMarketApi
             subscribeMarketData(instruments, instruments == null ? 0 : instruments.Length);
         }
 
-        //[DllImport(dllName, EntryPoint = "?SubMarketData@@YAXQAPADH@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern void subscribeMarketData(string[] instrumentsID, int nCount);
-
         /// <summary>
         /// 退订行情
         /// </summary>
@@ -301,15 +297,7 @@ namespace CTPMarketApi
             unsubscribeMarketData(instruments, instruments == null ? 0 : instruments.Length);
         }
 
-        //[DllImport(dllName, EntryPoint = "?UnSubscribeMarketData@@YAXQAPADH@Z", CallingConvention = CallingConvention.Cdecl)]
-        //static extern void unsubscribeMarketData(string[] ppInstrumentID, int nCount);
-
-        //回调函数
-
         #region 错误响应
-
-        //[DllImport(dllName, EntryPoint = "?RegOnRspError@@YGXP6GHPAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnRspError(RspError cb);
 
         RspError rspError;
 
@@ -331,9 +319,6 @@ namespace CTPMarketApi
 
         #region 心跳响应
 
-        //[DllImport(dllName, EntryPoint = "?RegOnHeartBeatWarning@@YGXP6GHH@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnHeartBeatWarning(HeartBeatWarning cb);
-
         HeartBeatWarning heartBeatWarning;
 
         /// <summary>
@@ -353,9 +338,6 @@ namespace CTPMarketApi
         #endregion
 
         #region 连接响应
-
-        //[DllImport(dllName, EntryPoint = "?RegOnFrontConnected@@YGXP6GHXZ@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnFrontConnected(FrontConnected cb);
 
         FrontConnected frontConnected;
 
@@ -377,9 +359,6 @@ namespace CTPMarketApi
 
         #region 断开应答
 
-        //[DllImport(dllName, EntryPoint = "?RegOnFrontDisconnected@@YGXP6GHH@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnFrontDisconnected(FrontDisconnected cb);
-
         FrontDisconnected frontDisconnected;
 
         /// <summary>
@@ -399,9 +378,6 @@ namespace CTPMarketApi
         #endregion
 
         #region 登入请求应答
-
-        //[DllImport(dllName, EntryPoint = "?RegOnRspUserLogin@@YGXP6GHPAUCThostFtdcRspUserLoginField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnRspUserLogin(RspUserLogin cb);
 
         RspUserLogin rspUserLogin;
 
@@ -423,9 +399,6 @@ namespace CTPMarketApi
         #endregion
 
         #region 登出请求应答
-
-        //[DllImport(dllName, EntryPoint = "?RegOnRspUserLogout@@YGXP6GHPAUCThostFtdcUserLogoutField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnRspUserLogout(RspUserLogout cb);
 
         RspUserLogout rspUserLogout;
 
@@ -452,9 +425,6 @@ namespace CTPMarketApi
 
         #region 订阅行情应答
 
-        //[DllImport(dllName, EntryPoint = "?RegOnRspSubMarketData@@YGXP6GHPAUCThostFtdcSpecificInstrumentField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnRspSubMarketData(RspSubMarketData cb);
-
         RspSubMarketData rspSubMarketData;
 
         /// <summary>
@@ -480,9 +450,6 @@ namespace CTPMarketApi
 
         #region 退订请求应答
 
-        //[DllImport(dllName, EntryPoint = "?RegOnRspUnSubMarketData@@YGXP6GHPAUCThostFtdcSpecificInstrumentField@@PAUCThostFtdcRspInfoField@@H_N@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnRspUnSubMarketData(RspUnSubMarketData cb);
-
         RspUnSubMarketData rspUnSubMarketData;
 
         /// <summary>
@@ -507,9 +474,6 @@ namespace CTPMarketApi
         #endregion
 
         #region 深度行情通知
-
-        //[DllImport(dllName, EntryPoint = "?RegOnRtnDepthMarketData@@YGXP6GHPAUCThostFtdcDepthMarketDataField@@@Z@Z", CallingConvention = CallingConvention.StdCall)]
-        //static extern void regOnRtnDepthMarketData(RtnDepthMarketData cb);
 
         RtnDepthMarketData rtnDepthMarketData;
 

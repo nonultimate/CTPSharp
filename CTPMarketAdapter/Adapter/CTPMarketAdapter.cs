@@ -340,35 +340,35 @@ namespace CTPMarketAdapter.Adapter
             {
                 InstrmentID = pDepthMarketData.InstrumentID,
                 ExchangeID = pDepthMarketData.ExchangeInstID,
-                LastPrice = (decimal)pDepthMarketData.LastPrice,
-                PreSettlementPrice = (decimal)pDepthMarketData.PreSettlementPrice,
-                PreClosePrice = (decimal)pDepthMarketData.PreClosePrice,
-                PreOpenInterest = (decimal)pDepthMarketData.PreOpenInterest,
-                OpenPrice = (decimal)pDepthMarketData.OpenPrice,
-                HighestPrice = (decimal)pDepthMarketData.HighestPrice,
-                LowestPrice = (decimal)pDepthMarketData.LowestPrice,
+                LastPrice = ConvertToDecimal(pDepthMarketData.LastPrice),
+                PreSettlementPrice = ConvertToDecimal(pDepthMarketData.PreSettlementPrice),
+                PreClosePrice = ConvertToDecimal(pDepthMarketData.PreClosePrice),
+                PreOpenInterest = ConvertToDecimal(pDepthMarketData.PreOpenInterest),
+                OpenPrice = ConvertToDecimal(pDepthMarketData.OpenPrice),
+                HighestPrice = ConvertToDecimal(pDepthMarketData.HighestPrice),
+                LowestPrice = ConvertToDecimal(pDepthMarketData.LowestPrice),
                 Volume = pDepthMarketData.Volume,
-                Turnover = (decimal)pDepthMarketData.Turnover,
-                OpenInterest = (decimal)pDepthMarketData.OpenInterest,
-                ClosePrice = (decimal)pDepthMarketData.ClosePrice,
-                SettlementPrice = (decimal)pDepthMarketData.SettlementPrice,
-                UpperLimitPrice = (decimal)pDepthMarketData.UpperLimitPrice,
-                LowerLimitPrice = (decimal)pDepthMarketData.LowerLimitPrice,
-                BidPrice1 = (decimal)pDepthMarketData.BidPrice1,
-                BidPrice2 = (decimal)pDepthMarketData.BidPrice2,
-                BidPrice3 = (decimal)pDepthMarketData.BidPrice3,
-                BidPrice4 = (decimal)pDepthMarketData.BidPrice4,
-                BidPrice5 = (decimal)pDepthMarketData.BidPrice5,
+                Turnover = ConvertToDecimal(pDepthMarketData.Turnover),
+                OpenInterest = ConvertToDecimal(pDepthMarketData.OpenInterest),
+                ClosePrice = ConvertToDecimal(pDepthMarketData.ClosePrice),
+                SettlementPrice = ConvertToDecimal(pDepthMarketData.SettlementPrice),
+                UpperLimitPrice = ConvertToDecimal(pDepthMarketData.UpperLimitPrice),
+                LowerLimitPrice = ConvertToDecimal(pDepthMarketData.LowerLimitPrice),
+                BidPrice1 = ConvertToDecimal(pDepthMarketData.BidPrice1),
+                BidPrice2 = ConvertToDecimal(pDepthMarketData.BidPrice2),
+                BidPrice3 = ConvertToDecimal(pDepthMarketData.BidPrice3),
+                BidPrice4 = ConvertToDecimal(pDepthMarketData.BidPrice4),
+                BidPrice5 = ConvertToDecimal(pDepthMarketData.BidPrice5),
                 BidVolume1 = pDepthMarketData.BidVolume1,
                 BidVolume2 = pDepthMarketData.BidVolume2,
                 BidVolume3 = pDepthMarketData.BidVolume3,
                 BidVolume4 = pDepthMarketData.BidVolume4,
                 BidVolume5 = pDepthMarketData.BidVolume5,
-                AskPrice1 = (decimal)pDepthMarketData.AskPrice1,
-                AskPrice2 = (decimal)pDepthMarketData.AskPrice2,
-                AskPrice3 = (decimal)pDepthMarketData.AskPrice3,
-                AskPrice4 = (decimal)pDepthMarketData.AskPrice4,
-                AskPrice5 = (decimal)pDepthMarketData.AskPrice5,
+                AskPrice1 = ConvertToDecimal(pDepthMarketData.AskPrice1),
+                AskPrice2 = ConvertToDecimal(pDepthMarketData.AskPrice2),
+                AskPrice3 = ConvertToDecimal(pDepthMarketData.AskPrice3),
+                AskPrice4 = ConvertToDecimal(pDepthMarketData.AskPrice4),
+                AskPrice5 = ConvertToDecimal(pDepthMarketData.AskPrice5),
                 AskVolume1 = pDepthMarketData.AskVolume1,
                 AskVolume2 = pDepthMarketData.AskVolume2,
                 AskVolume3 = pDepthMarketData.AskVolume3,
@@ -382,6 +382,19 @@ namespace CTPMarketAdapter.Adapter
                     MidpointRounding.AwayFromZero);
             }
             OnMarketDataChanged?.Invoke(marketData);
+        }
+
+        /// <summary>
+        /// 将double类型转为decimal类型
+        /// </summary>
+        /// <param name="value">数值</param>
+        /// <returns></returns>
+        private decimal ConvertToDecimal(double value)
+        {
+            decimal result = 0;
+            decimal.TryParse(value.ToString(), out result);
+
+            return result;
         }
 
         #endregion

@@ -120,6 +120,12 @@ CBRtnChangeAccountByBank cbRtnChangeAccountByBank = 0;	///银行发起变更银行账号通
 
 //===============
 
+//获取接口版本
+TRADEAPI_API const char* GetApiVersion()
+{
+	return CThostFtdcTraderApi::GetApiVersion();
+}
+
 //连接
 TRADEAPI_API void Connect(char *frontAddr, char *pszFlowPath)
 {
@@ -134,14 +140,16 @@ TRADEAPI_API void Connect(char *frontAddr, char *pszFlowPath)
 	//pUserApi->Join();
 }
 
-TRADEAPI_API const char *GetTradingDay()
-{
-	return pUserApi->GetTradingDay();
-}
 //断开
 TRADEAPI_API void DisConnect()
 {
 	pUserApi->Release();
+}
+
+//获取交易日
+TRADEAPI_API const char *GetTradingDay()
+{
+	return pUserApi->GetTradingDay();
 }
 
 //发送用户登录请求

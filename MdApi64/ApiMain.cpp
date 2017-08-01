@@ -26,6 +26,12 @@ CBOnRspSubMarketData cbOnRspSubMarketData = 0;
 CBOnRspUnSubMarketData cbOnRspUnSubMarketData = 0;
 CBOnRtnDepthMarketData cbOnRtnDepthMarketData = 0;
 
+//获取接口版本
+MDAPI_API const char* GetApiVersion()
+{
+	return CThostFtdcMdApi::GetApiVersion();
+}
+
 //连接
 MDAPI_API void Connect(char* frontAddr, char *pszFlowPath)
 {
@@ -39,10 +45,19 @@ MDAPI_API void Connect(char* frontAddr, char *pszFlowPath)
 	pUserApi->Init();
 	//	pUserApi->Join();
 }
+
+//断开连接
 MDAPI_API void DisConnect()
 {
 	pUserApi->Release();
 }
+
+//获取当前交易日:只有登录成功后,才能得到正确的交易日
+MDAPI_API const char *GetTradingDay()
+{
+	return pUserApi->GetTradingDay();
+}
+
 //登录
 MDAPI_API void ReqUserLogin(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcPasswordType password)
 {
@@ -54,7 +69,7 @@ MDAPI_API void ReqUserLogin(int requestID, TThostFtdcBrokerIDType brokerID, TTho
 	pUserApi->ReqUserLogin(&req, requestID);
 }
 
-///登出请求
+//登出请求
 MDAPI_API void ReqUserLogout(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
 	CThostFtdcUserLogoutField req;
@@ -68,15 +83,11 @@ MDAPI_API void SubMarketData(char* instrumentsID[], int nCount)
 {
 	pUserApi->SubscribeMarketData(instrumentsID, nCount);
 }
-///退订行情
+
+//退订行情
 MDAPI_API void UnSubscribeMarketData(char *ppInstrumentID[], int nCount)
 {
 	pUserApi->UnSubscribeMarketData(ppInstrumentID, nCount);
-}
-///获取当前交易日:只有登录成功后,才能得到正确的交易日
-MDAPI_API const char *GetTradingDay()
-{
-	return pUserApi->GetTradingDay();
 }
 
 //============================================ 回调 函数注册 ===========================================
