@@ -2,17 +2,12 @@
 # 此 .gitignore 文件已由 Microsoft(R) Visual Studio 自动创建。
 ################################################################################
 
-/CTPCore/bin
-/CTPCore/obj
-/CTPMarketAdapter/bin
-/CTPMarketAdapter/obj
-/CTPMarketApi/bin
-/CTPMarketApi/obj
-/CTPTradeAdapter/bin
-/CTPTradeAdapter/obj
-/CTPTradeApi/bin
-/CTPTradeApi/obj
-/Debug
-/ipch
-/Release
-/x64
+*.user
+*/obj
+*/Debug
+*/ipch
+*/Release
+*/x64
+/.vs
+/CTPSharp.VC.db
+/CTPSharp.VC.VC.opendb

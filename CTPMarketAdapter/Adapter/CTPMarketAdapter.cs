@@ -381,7 +381,10 @@ namespace CTPMarketAdapter.Adapter
                 marketData.AdvanceDecline = Math.Round(marketData.AdvanceDeclineAmount / marketData.PreClosePrice, 4,
                     MidpointRounding.AwayFromZero);
             }
-            OnMarketDataChanged?.Invoke(marketData);
+            if (OnMarketDataChanged != null)
+            {
+                OnMarketDataChanged.Invoke(marketData);
+            }
         }
 
         /// <summary>
