@@ -56,6 +56,12 @@
     <Compile Include="MarketApiTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CTPMarketApi\CTPMarketApi.csproj">
+      <Project>{4AF5D751-19D1-4A9D-B439-A021928EC486}</Project>
+      <Name>CTPMarketApi</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

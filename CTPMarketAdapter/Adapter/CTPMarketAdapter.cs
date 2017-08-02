@@ -244,7 +244,7 @@ namespace CTPMarketAdapter.Adapter
         /// <param name="pRspInfo">错误信息</param>
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
-        private void OnRspError(ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast)
+        private void OnRspError(ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
             if (_dataCallbackDict.ContainsKey(nRequestID))
             {
@@ -291,7 +291,7 @@ namespace CTPMarketAdapter.Adapter
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
         private void OnRspUserLogin(ref CThostFtdcRspUserLoginField pRspUserLogin, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, bool bIsLast)
+            int nRequestID, byte bIsLast)
         {
             DataResult result = new DataResult();
             if (pRspInfo.ErrorID > 0)
@@ -316,7 +316,7 @@ namespace CTPMarketAdapter.Adapter
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
         private void OnRspUserLogout(ref CThostFtdcUserLogoutField pUserLogout, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, bool bIsLast)
+            int nRequestID, byte bIsLast)
         {
             DataResult result = new DataResult();
             if (pRspInfo.ErrorID > 0)

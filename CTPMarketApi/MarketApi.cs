@@ -304,7 +304,7 @@ namespace CTPMarketApi
         /// <summary>
         /// 错误应答委托
         /// </summary>
-        public delegate void RspError(ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast);
+        public delegate void RspError(ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
         /// <summary>
         /// 错误应答
@@ -385,7 +385,7 @@ namespace CTPMarketApi
         /// 登入请求应答委托
         /// </summary>
         public delegate void RspUserLogin(ref CThostFtdcRspUserLoginField pRspUserLogin,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast);
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
         
         /// <summary>
         /// 登入请求应答
@@ -410,7 +410,7 @@ namespace CTPMarketApi
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
         public delegate void RspUserLogout(ref CThostFtdcUserLogoutField pUserLogout,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast);
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
         
         /// <summary>
         /// 登出请求应答
@@ -435,7 +435,7 @@ namespace CTPMarketApi
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
         public delegate void RspSubMarketData(ref CThostFtdcSpecificInstrumentField pSpecificInstrument,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast);
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
         
         /// <summary>
         /// 订阅行情应答
@@ -460,7 +460,7 @@ namespace CTPMarketApi
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
         public delegate void RspUnSubMarketData(ref CThostFtdcSpecificInstrumentField pSpecificInstrument,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast);
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
         
         /// <summary>
         /// 退订请求应答
