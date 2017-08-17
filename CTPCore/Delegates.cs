@@ -7,6 +7,12 @@
     public delegate void DataCallback(DataResult result);
 
     /// <summary>
+    /// 数据回调委托
+    /// </summary>
+    /// <param name="result"></param>
+    public delegate void DataCallback<T>(DataResult<T> result);
+
+    /// <summary>
     /// 数据列表回调委托
     /// </summary>
     /// <typeparam name="T">列表元素类型</typeparam>

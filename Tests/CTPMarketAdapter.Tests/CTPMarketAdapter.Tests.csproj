@@ -57,9 +57,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CTPCore\CTPCore.csproj">
+      <Project>{CB7E978D-69B6-458A-9AEC-40490647DDD3}</Project>
+      <Name>CTPCore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CTPMarketAdapter\CTPMarketAdapter.csproj">
       <Project>{A7090927-6F3D-4283-8CAD-95E19713B94A}</Project>
       <Name>CTPMarketAdapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CTPMarketApi\CTPMarketApi.csproj">
+      <Project>{4AF5D751-19D1-4A9D-B439-A021928EC486}</Project>
+      <Name>CTPMarketApi</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

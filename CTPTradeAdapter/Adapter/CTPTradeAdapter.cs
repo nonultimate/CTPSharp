@@ -59,6 +59,7 @@ namespace CTPTradeAdapter.Adapter
             _api.OnDisconnected += OnDisConnected;
             _api.OnRspUserLogin += OnRspUserLogin;
             _api.OnRspUserLogout += OnRspUserLogout;
+            _api.OnRtnOrder += OnRtnOrder;
             _api.OnRspOrderInsert += OnRspOrderInsert;
             _api.OnRspOrderAction += OnRspOrderAction;
             _api.OnRspQryOrder += OnRspQryOrder;
@@ -69,6 +70,7 @@ namespace CTPTradeAdapter.Adapter
             _api.OnRspParkedOrderAction += OnRspParkedOrderAction;
             _api.OnRspQryParkedOrder += OnRspQryParkedOrder;
             _api.OnRspQryParkedOrderAction += OnRspQryParkedOrderAction;
+            _api.OnRspUserPasswordUpdate += OnRspUserPasswordUpdate;
         }
 
         #endregion
@@ -120,7 +122,7 @@ namespace CTPTradeAdapter.Adapter
         {
             AddCallback(callback, -2);
             _api.Disconnect();
-        }        
+        }
 
         /// <summary>
         /// 用户登录
@@ -130,7 +132,7 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="password">密码</param>
         public void UserLogin(DataCallback callback, string investorID, string password)
         {
-            int requestID = AddCallback(callback);
+            int requestID = AddCallback(callback, -3);
             _api.UserLogin(requestID, investorID, password);
         }
 
@@ -140,7 +142,7 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="callback">登出回调</param>
         public void UserLogout(DataCallback callback)
         {
-            int requestID = AddCallback(callback);
+            int requestID = AddCallback(callback, -4);
             _api.UserLogout(requestID);
         }
 
@@ -170,7 +172,7 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         /// <param name="callback">报单回调</param>
         /// <param name="parameter">报单参数</param>
-        public void InsertOrder(DataCallback callback, OrderParameter parameter)
+        public void InsertOrder(DataCallback<OrderInfo> callback, OrderParameter parameter)
         {
             int requestID = AddCallback(callback);
             CThostFtdcInputOrderField req = ConvertToInputOrderField(parameter);
@@ -183,7 +185,7 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         /// <param name="callback">撤单回调</param>
         /// <param name="parameter">撤单参数</param>
-        public void CancelOrder(DataCallback callback, CancelOrderParameter parameter)
+        public void CancelOrder(DataCallback<OrderInfo> callback, CancelOrderParameter parameter)
         {
             int requestID = AddCallback(callback);
             CThostFtdcInputOrderActionField req = ConvertToInputOrderActionField(parameter);
@@ -195,7 +197,7 @@ namespace CTPTradeAdapter.Adapter
         /// 查询资金账户
         /// </summary>
         /// <param name="callback">查询回调</param>
-        public void QueryAccount(DataCallback callback)
+        public void QueryAccount(DataCallback<AccountInfo> callback)
         {
             int requestID = AddCallback(callback);
             _api.QueryTradingAccount(requestID);
@@ -236,7 +238,7 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         /// <param name="callback">报单回调</param>
         /// <param name="parameter">预埋单参数</param>
-        public void InsertParkedOrder(DataCallback callback, OrderParameter parameter)
+        public void InsertParkedOrder(DataCallback<ParkedOrderInfo> callback, OrderParameter parameter)
         {
             int requestID = AddCallback(callback);
             CThostFtdcParkedOrderField req = ConvertToParkedOrderField(parameter);
@@ -249,7 +251,7 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         /// <param name="callback">撤单回调</param>
         /// <param name="parameter">预埋单撤单参数</param>
-        public void CancelParkedOrder(DataCallback callback, CancelOrderParameter parameter)
+        public void CancelParkedOrder(DataCallback<ParkedOrderInfo> callback, CancelOrderParameter parameter)
         {
             int requestID = AddCallback(callback);
             CThostFtdcParkedOrderActionField req = ConvertToParkedOrderActionField(parameter);
@@ -338,6 +340,27 @@ namespace CTPTradeAdapter.Adapter
         }
 
         /// <summary>
+        /// 执行回调方法
+        /// </summary>
+        /// <typeparam name="T">结果对象类型</typeparam>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="dataResult">返回结果</param>
+        private void ExecuteCallback<T>(int requestID, DataResult<T> dataResult)
+        {
+            if (_dataCallbackDict.ContainsKey(requestID))
+            {
+                object callback;
+                if (_dataCallbackDict.TryRemove(requestID, out callback))
+                {
+                    if (callback != null)
+                    {
+                        ((DataCallback<T>)callback)(dataResult);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// 执行集合回调方法
         /// </summary>
         /// <typeparam name="T">结果列表对象类型</typeparam>
@@ -373,6 +396,19 @@ namespace CTPTradeAdapter.Adapter
         /// <summary>
         /// 设置错误信息
         /// </summary>
+        /// <typeparam name="T">结果对象类型</typeparam>
+        /// <param name="result">返回结果</param>
+        /// <param name="pRspInfo">错误信息</param>
+        private void SetError<T>(DataResult<T> result, CThostFtdcRspInfoField pRspInfo)
+        {
+            result.ErrorCode = pRspInfo.ErrorID.ToString();
+            result.Error = pRspInfo.ErrorMsg;
+            result.IsSuccess = false;
+        }
+
+        /// <summary>
+        /// 设置错误信息
+        /// </summary>
         /// <typeparam name="T">返回对象类型</typeparam>
         /// <param name="result">返回结果</param>
         /// <param name="pRspInfo">错误信息</param>
@@ -396,43 +432,9 @@ namespace CTPTradeAdapter.Adapter
                 var callback = _dataCallbackDict[nRequestID];
                 if (callback != null)
                 {
-                    Type type = callback.GetType();
-                    if (type == typeof(DataListCallback<OrderInfo>)) //查询委托
-                    {
-                        DataListResult<OrderInfo> result = new DataListResult<OrderInfo>();
-                        SetError<OrderInfo>(result, pRspInfo);
-                        ExecuteCallback<OrderInfo>(nRequestID, result);
-                    }
-                    else if (type == typeof(DataListCallback<TradeInfo>)) //查询成交
-                    {
-                        DataListResult<TradeInfo> result = new DataListResult<TradeInfo>();
-                        SetError<TradeInfo>(result, pRspInfo);
-                        ExecuteCallback<TradeInfo>(nRequestID, result);
-                    }
-                    else if (type == typeof(DataListCallback<PositionInfo>)) //查询持仓
-                    {
-                        DataListResult<PositionInfo> result = new DataListResult<PositionInfo>();
-                        SetError<PositionInfo>(result, pRspInfo);
-                        ExecuteCallback<PositionInfo>(nRequestID, result);
-                    }
-                    else if (type == typeof(DataListCallback<ParkedOrderInfo>)) //查询预埋单
-                    {
-                        DataListResult<ParkedOrderInfo> result = new DataListResult<ParkedOrderInfo>();
-                        SetError<ParkedOrderInfo>(result, pRspInfo);
-                        ExecuteCallback<ParkedOrderInfo>(nRequestID, result);
-                    }
-                    else if (type == typeof(DataListCallback<ParkedCanelOrderInfo>)) //查询预埋撤单
-                    {
-                        DataListResult<ParkedCanelOrderInfo> result = new DataListResult<ParkedCanelOrderInfo>();
-                        SetError<ParkedCanelOrderInfo>(result, pRspInfo);
-                        ExecuteCallback<ParkedCanelOrderInfo>(nRequestID, result);
-                    }
-                    else
-                    {
-                        DataResult result = new DataResult();
-                        SetError(result, pRspInfo);
-                        ExecuteCallback(nRequestID, result);
-                    }
+                    DataResult result = new DataResult();
+                    SetError(result, pRspInfo);
+                    ExecuteCallback(nRequestID, result);
                 }
             }
         }
@@ -517,7 +519,52 @@ namespace CTPTradeAdapter.Adapter
         }
 
         /// <summary>
-        /// 报单回调
+        /// 更新用户口令
+        /// </summary>
+        private void OnRspUserPasswordUpdate(ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
+        {
+            DataResult result = new DataResult();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = true;
+            }
+            ExecuteCallback(nRequestID, result);
+        }
+
+        /// <summary>
+        /// 报单通知
+        /// </summary>
+        private void OnRtnOrder(ref CThostFtdcOrderField pOrder)
+        {
+            DataResult<OrderInfo> result = new DataResult<OrderInfo>();
+            result.IsSuccess = true;
+            result.Result = new OrderInfo()
+            {
+                InvestorID = pOrder.InvestorID,
+                InstrumentID = pOrder.InstrumentID,
+                ExchangeID = pOrder.ExchangeID,
+                OrderRef = pOrder.OrderRef,
+                OrderSysID = pOrder.OrderSysID,
+                OrderLocalID = pOrder.OrderLocalID,
+                Direction = ConvertToDirectionType(pOrder.Direction),
+                OrderPrice = (decimal)pOrder.LimitPrice,
+                OrderQuantity = pOrder.VolumeTotalOriginal,
+                OrderStatus = ConvertToOrderStatus(pOrder.OrderStatus),
+                StatusMessage = pOrder.StatusMsg,
+                OrderDate = pOrder.InsertDate,
+                OrderTime = pOrder.InsertTime,
+                SequenceNo = pOrder.SequenceNo,
+            };
+            ExecuteCallback<OrderInfo>(pOrder.RequestID, result);
+        }
+
+        /// <summary>
+        /// 报单错误回调
         /// </summary>
         /// <param name="pInputOrder">报单信息</param>
         /// <param name="pRspInfo">错误信息</param>
@@ -526,12 +573,9 @@ namespace CTPTradeAdapter.Adapter
         private void OnRspOrderInsert(ref CThostFtdcInputOrderField pInputOrder, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast)
         {
-            DataResult result = new DataResult();
-            result.IsSuccess = true;
-            OrderInfo order = new OrderInfo();
-
-            result.Result = order;
-            ExecuteCallback(nRequestID, result);
+            DataResult<OrderInfo> result = new DataResult<OrderInfo>();
+            SetError(result, pRspInfo);
+            ExecuteCallback<OrderInfo>(nRequestID, result);
         }
 
         /// <summary>
@@ -545,10 +589,7 @@ namespace CTPTradeAdapter.Adapter
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
             DataResult result = new DataResult();
-            result.IsSuccess = true;
-            OrderParameter parameter = new OrderParameter();
-
-            result.Result = parameter;
+            SetError(result, pRspInfo);
             ExecuteCallback(nRequestID, result);
         }
 
@@ -634,29 +675,16 @@ namespace CTPTradeAdapter.Adapter
         private void OnRspQryTradingAccount(ref CThostFtdcTradingAccountField pTradingAccount,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
-            DataListResult<AccountInfo> result;
-            if (_dataDict.ContainsKey(nRequestID))
-            {
-                result = (DataListResult<AccountInfo>)_dataDict[nRequestID];
-            }
-            else
-            {
-                result = new DataListResult<AccountInfo>();
-                _dataDict.TryAdd(nRequestID, result);
-            }
+            DataResult<AccountInfo> result = new DataResult<AccountInfo>();
             if (pRspInfo.ErrorID > 0)
             {
-                SetError<AccountInfo>(result, pRspInfo);
+                SetError(result, pRspInfo);
             }
             else
             {
-                AccountInfo account = ConvertToAccount(pTradingAccount);
-                result.Result.Add(account);
-                if (bIsLast == 1)
-                {
-                    result.IsSuccess = true;
-                    ExecuteCallback<AccountInfo>(nRequestID, result);
-                }
+                result.Result = ConvertToAccount(pTradingAccount);
+                result.IsSuccess = true;
+                ExecuteCallback<AccountInfo>(nRequestID, result);
             }
         }
 
@@ -895,6 +923,28 @@ namespace CTPTradeAdapter.Adapter
         }
 
         /// <summary>
+        /// 有效期类型转换
+        /// </summary>
+        /// <param name="timeCondition"></param>
+        /// <returns></returns>
+        private TThostFtdcTimeConditionType ConvertToTimeCondition(TimeConditionType timeCondition)
+        {
+            return (TThostFtdcTimeConditionType)Enum.Parse(typeof(TThostFtdcTimeConditionType),
+                timeCondition.ToString());
+        }
+
+        /// <summary>
+        /// 强平原因类型转换
+        /// </summary>
+        /// <param name="forceCloseReason"></param>
+        /// <returns></returns>
+        private TThostFtdcForceCloseReasonType ConvertToForceCloseReason(ForceCloseReasonType forceCloseReason)
+        {
+            return (TThostFtdcForceCloseReasonType)Enum.Parse(typeof(TThostFtdcForceCloseReasonType),
+                forceCloseReason.ToString());
+        }
+
+        /// <summary>
         /// 报单转换
         /// </summary>
         /// <param name="parameter">报单参数</param>
@@ -903,11 +953,13 @@ namespace CTPTradeAdapter.Adapter
         {
             CThostFtdcInputOrderField result = new CThostFtdcInputOrderField();
             result.BrokerID = _api.BrokerID;
-            result.UserID = _api.InvestorID;
+            result.InvestorID = _api.InvestorID;
+            result.UserID = _api.InvestorID; ;
             result.InstrumentID = parameter.InstrumentID;
             result.ExchangeID = parameter.ExchangeID;
             result.OrderRef = parameter.OrderRef;
             result.VolumeTotalOriginal = (int)parameter.Quantity;
+            result.TimeCondition = ConvertToTimeCondition(parameter.TimeCondition);
             result.LimitPrice = (double)parameter.Price;
             result.StopPrice = (double)parameter.StopPrice;
             result.Direction = ConvertToDirectionType(parameter.Direction);
@@ -917,6 +969,7 @@ namespace CTPTradeAdapter.Adapter
             result.VolumeCondition = ConvertToVolumeCondition(parameter.VolumeCondition);
             result.MinVolume = (int)parameter.MinVolume;
             result.ContingentCondition = ConvertToContingentCondition(parameter.ContingentCondition);
+            result.ForceCloseReason = ConvertToForceCloseReason(parameter.ForceCloseReason);
             result.GTDDate = parameter.GTDDate;
             result.IsAutoSuspend = parameter.IsAutoSuspend;
             result.UserForceClose = parameter.UserForceClose;
@@ -943,6 +996,8 @@ namespace CTPTradeAdapter.Adapter
             result.LimitPrice = (double)parameter.Price;
             result.VolumeChange = (int)parameter.Quantity;
             result.ActionFlag = ConvertToActionFlag(parameter.ActionFlag);
+            result.FrontID = _api.FrontID;
+            result.SessionID = _api.SessionID;
 
             return result;
         }
@@ -956,6 +1011,7 @@ namespace CTPTradeAdapter.Adapter
         {
             CThostFtdcParkedOrderField result = new CThostFtdcParkedOrderField();
             result.BrokerID = _api.BrokerID;
+            result.InvestorID = _api.InvestorID;
             result.UserID = _api.InvestorID;
             result.InstrumentID = parameter.InstrumentID;
             result.ExchangeID = parameter.ExchangeID;
@@ -997,6 +1053,8 @@ namespace CTPTradeAdapter.Adapter
             result.ParkedOrderActionID = parameter.ParkedOrderActionID;
             result.ActionFlag = ConvertToActionFlag(parameter.ActionFlag);
             result.Status = ConvertToParkedOrderStatus(parameter.Status);
+            result.FrontID = _api.FrontID;
+            result.SessionID = _api.SessionID;
 
             return result;
         }

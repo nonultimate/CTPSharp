@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CTPCore;
+using System.Threading;
+using CTPTradeAdapter.Model;
 
 namespace CTPTradeAdapter.Adapter.Tests
 {
@@ -14,12 +17,75 @@ namespace CTPTradeAdapter.Adapter.Tests
     public class CTPTradeAdapterTest
     {
         /// <summary>
+        /// 交易接口实例
+        /// </summary>
+        private CTPTradeAdapter _api;
+
+        /// <summary>
+        /// 交易服务器地址
+        /// </summary>
+        private string _frontAddr = "tcp://180.168.146.187:10000";
+
+        /// <summary>
+        /// 经纪商代码
+        /// </summary>
+        private string _brokerID = "9999";
+
+        /// <summary>
+        /// 投资者账号
+        /// </summary>
+        private string _investorID = "081081";
+
+        /// <summary>
+        /// 密码
+        /// </summary>
+        private string _password = "test1234";
+
+        /// <summary>
+        /// 是否连接
+        /// </summary>
+        private bool _isConnected;
+
+        /// <summary>
+        /// 是否登录
+        /// </summary>
+        private bool _isLogin;
+
+        /// <summary>
         /// 初始化测试用例
         /// </summary>
         [TestInitialize()]
         public void Initialize()
         {
-
+            _api = new CTPTradeAdapter("");
+            var connectCallback = new DataCallback((DataResult result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    _isConnected = true;
+                    //登录行情服务器
+                    var loginCallback = new DataCallback((DataResult loginResult) =>
+                    {
+                        if (loginResult.IsSuccess)
+                        {
+                            _isLogin = true;
+                        }
+                        else
+                        {
+                            Console.WriteLine("登录失败:{0}", loginResult.Error);
+                        }
+                    });
+                    _api.UserLogin(loginCallback, _investorID, _password);
+                    Thread.Sleep(100);
+                }
+                else
+                {
+                    Console.WriteLine("连接失败:{0}", result.Error);
+                }
+            });
+            //连接行情服务器
+            _api.Connect(connectCallback, _brokerID, _frontAddr);
+            Thread.Sleep(100);
         }
 
         /// <summary>
@@ -28,115 +94,375 @@ namespace CTPTradeAdapter.Adapter.Tests
         [TestCleanup()]
         public void Cleanup()
         {
-
+            if (_isLogin)
+            {
+                var logoutCallback = new DataCallback((DataResult logoutResult) =>
+                {
+                    if (logoutResult.IsSuccess)
+                    {
+                        _isLogin = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine("登出失败:{0}", logoutResult.Error);
+                    }
+                });
+                _api.UserLogout(logoutCallback);
+                Thread.Sleep(100);
+            }
+            else if (_isConnected)
+            {
+                var disconnectCallback = new DataCallback((DataResult disconnectResult) =>
+                {
+                    if (disconnectResult.IsSuccess)
+                    {
+                        _isConnected = false;
+                    }
+                    else
+                    {
+                        Console.WriteLine("登出失败:{0}", disconnectResult.Error);
+                    }
+                });
+                _api.Disconnect(disconnectCallback);
+                Thread.Sleep(100);
+            }
         }
 
-        [TestMethod()]
-        public void TestCTPTradeAdapter()
-        {
-
-        }
-
-        [TestMethod()]
-        public void TestIsConnected()
-        {
-
-        }
-
-        [TestMethod()]
-        public void TestConnect()
-        {
-
-        }
-
-        [TestMethod()]
-        public void TestDisconnect()
-        {
-
-        }
-
-        [TestMethod()]
-        public void TestUserLogin()
-        {
-
-        }
-
-        [TestMethod()]
-        public void TestUserLogout()
-        {
-
-        }
-
+        /// <summary>
+        /// 测试获取交易日
+        /// </summary>
         [TestMethod()]
         public void TestGetTradingDay()
         {
-
+            string result = _api.GetTradingDay();
+            Assert.AreEqual(8, result.Length);
+            Thread.Sleep(100);
         }
 
+        /// <summary>
+        /// 测试更新用户口令
+        /// </summary>
         [TestMethod()]
         public void TestUpdateUserPassword()
         {
-
+            var updUserPasswCallback = new DataCallback((DataResult result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    Console.WriteLine("更新用户口令成功。");
+                }
+                Assert.IsFalse(result.IsSuccess);
+            });
+            string newPassword = "asde34562";
+            _api.UpdateUserPassword(updUserPasswCallback, _password, newPassword);
+            Thread.Sleep(100);
+            _api.UpdateUserPassword(updUserPasswCallback, newPassword, _password);
+            Thread.Sleep(100);
         }
 
+        /// <summary>
+        /// 测试下单
+        /// </summary>
         [TestMethod()]
         public void TestInsertOrder()
         {
+            var insertOrderCallback = new DataCallback<OrderInfo>((DataResult<OrderInfo> result) =>
+            {
+                OrderInfo orderInfo = new OrderInfo();
+                orderInfo = result.Result;
+                if (result.IsSuccess)
+                {
+                    Console.WriteLine("下单成功, OrderRef: {0}, OrderSysID: {1}", orderInfo.OrderRef, orderInfo.OrderSysID);
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            OrderParameter order = new OrderParameter();
+            order.InstrumentID = "TF1709";
+            order.OrderRef = "1";
+            order.Direction = DirectionType.Buy;
+            order.PriceType = OrderPriceType.LimitPrice;
+            order.OpenCloseFlag = OpenCloseFlag.Open;
+            order.HedgeFlag = HedgeFlag.Speculation;
+            order.Price = 97.260M;
+            order.Quantity = 1;
+            order.TimeCondition = TimeConditionType.GFD;
+            order.VolumeCondition = VolumeConditionType.AV;
+            order.MinVolume = 1;
+            order.ContingentCondition = ContingentConditionType.Immediately;
+            order.ForceCloseReason = ForceCloseReasonType.NotForceClose;
+            order.IsAutoSuspend = 0;
+            order.UserForceClose = 0;
 
+            _api.InsertOrder(insertOrderCallback, order);
+            Thread.Sleep(100);
         }
 
+        /// <summary>
+        /// 测试撤单
+        /// </summary>
         [TestMethod()]
         public void TestCancelOrder()
         {
+            var insertOrderCallback = new DataCallback<OrderInfo>((DataResult<OrderInfo> result) =>
+            {
+                OrderInfo orderInfo = new OrderInfo();
+                orderInfo = result.Result;
+                if (result.IsSuccess)
+                {
+                    var cancelOrderCallback = new DataCallback<OrderInfo>((DataResult<OrderInfo> cancelOrderResult) =>
+                    {
+                        orderInfo = cancelOrderResult.Result;
+                        if (cancelOrderResult.IsSuccess)
+                        {
+                            Console.WriteLine("撤单成功, OrderRef: {0}, InstrumentID: {1}", orderInfo.OrderRef, orderInfo.InstrumentID);
+                        }
+                        Assert.IsTrue(cancelOrderResult.IsSuccess);
+                    });
+                    CancelOrderParameter field = new CancelOrderParameter();
+                    field.ActionFlag = ActionFlag.Delete;
+                    field.InstrumentID = "TF1709";
+                    field.OrderRef = orderInfo.OrderRef;
+                    field.ExchangeID = orderInfo.ExchangeID;
+                    field.OrderSysID = new string('\0', 21 - orderInfo.OrderSysID.Length) + orderInfo.OrderSysID;
 
+                    _api.CancelOrder(cancelOrderCallback, field);
+                    Thread.Sleep(50);
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            OrderParameter order = new OrderParameter();
+            order.InstrumentID = "TF1709";
+            order.OrderRef = "1";
+            order.Direction = DirectionType.Buy;
+            order.PriceType = OrderPriceType.LimitPrice;
+            order.OpenCloseFlag = OpenCloseFlag.Open;
+            order.HedgeFlag = HedgeFlag.Speculation;
+            order.Price = 97.270M;
+            order.Quantity = 1;
+            order.TimeCondition = TimeConditionType.GFD;
+            order.VolumeCondition = VolumeConditionType.AV;
+            order.MinVolume = 1;
+            order.ContingentCondition = ContingentConditionType.Immediately;
+            order.ForceCloseReason = ForceCloseReasonType.NotForceClose;
+            order.IsAutoSuspend = 0;
+            order.UserForceClose = 0;
+
+            _api.InsertOrder(insertOrderCallback, order);
+            Thread.Sleep(200);
         }
 
+        /// <summary>
+        /// 测试查询资金账户
+        /// </summary>
         [TestMethod()]
         public void TestQueryAccount()
         {
-
+            var queryAccountCallback = new DataCallback<AccountInfo>((DataResult<AccountInfo> result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    Console.WriteLine("帐户资金查询成功, Available: {0}", result.Result.Available);
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            _api.QueryAccount(queryAccountCallback);
+            Thread.Sleep(100);
         }
 
+        /// <summary>
+        /// 测试查询投资者持仓
+        /// </summary>
         [TestMethod()]
         public void TestQueryPosition()
         {
-
+            var queryPositionCallback = new DataListCallback<PositionInfo>((DataListResult<PositionInfo> result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    foreach (PositionInfo positionInfo in result.Result)
+                    {
+                        Console.WriteLine("投资者持仓查询成功, InstrumentID: {0}", positionInfo.InstrumentID);
+                    }
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            _api.QueryPosition(queryPositionCallback);
+            Thread.Sleep(100);
         }
 
+        /// <summary>
+        /// 测试查询报单
+        /// </summary>
         [TestMethod()]
         public void TestQueryOrder()
         {
-
+            var queryOrderCallback = new DataListCallback<OrderInfo>((DataListResult<OrderInfo> result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    foreach (OrderInfo orderInfo in result.Result)
+                    {
+                        Console.WriteLine("报单查询成功, OrderSysID: {0},OrderRef: {1},ExchangeID: {2}", orderInfo.OrderSysID, orderInfo.OrderRef, orderInfo.ExchangeID);
+                    }
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            _api.QueryOrder(queryOrderCallback);
+            Thread.Sleep(100);
         }
 
+        /// <summary>
+        /// 测试查询成交
+        /// </summary>
         [TestMethod()]
         public void TestQueryTrade()
         {
-
+            var queryPositionCallback = new DataListCallback<TradeInfo>((DataListResult<TradeInfo> result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    foreach (TradeInfo tradeInfo in result.Result)
+                    {
+                        Console.WriteLine("成交查询成功, TradeID: {0}", tradeInfo.TradeID);
+                    }
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            _api.QueryTrade(queryPositionCallback);
+            Thread.Sleep(100);
         }
 
+        /// <summary>
+        /// 测试预埋单录入
+        /// </summary>
         [TestMethod()]
         public void TestInsertParkedOrder()
         {
+            var insertParkedOrderCallback = new DataCallback<ParkedOrderInfo>((DataResult<ParkedOrderInfo> result) =>
+            {
+                ParkedOrderInfo pParkedOrder = new ParkedOrderInfo();
+                pParkedOrder = result.Result;
+                if (result.IsSuccess)
+                {
+                    Console.WriteLine("预埋单录入成功, ParkedOrderID: {0}", pParkedOrder.ParkedOrderID);
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            OrderParameter field = new OrderParameter();
+            field.InstrumentID = "TF1709";
+            field.OrderRef = "1";
+            field.Direction = DirectionType.Buy;
+            field.PriceType = OrderPriceType.LimitPrice;
+            field.OpenCloseFlag = OpenCloseFlag.Open;
+            field.HedgeFlag = HedgeFlag.Speculation;
+            field.Price = 97.010M;
+            field.Quantity = 1;
+            field.TimeCondition = TimeConditionType.GFD;
+            field.VolumeCondition = VolumeConditionType.AV;
+            field.MinVolume = 1;
+            field.ContingentCondition = ContingentConditionType.Immediately;
+            field.ForceCloseReason = ForceCloseReasonType.NotForceClose;
+            field.IsAutoSuspend = 0;
+            field.UserForceClose = 0;
 
+            _api.InsertParkedOrder(insertParkedOrderCallback, field);
+            Thread.Sleep(200);
         }
 
+        /// <summary>
+        /// 测试预埋撤单录入
+        /// </summary>
         [TestMethod()]
         public void TestCancelParkedOrder()
         {
+            var insertParkedOrderCallback = new DataCallback<ParkedOrderInfo>((DataResult<ParkedOrderInfo> result) =>
+            {
+                ParkedOrderInfo pParkedOrder = new ParkedOrderInfo();
+                pParkedOrder = result.Result;
+                if (result.IsSuccess)
+                {
+                    var cancelParkedOrderCallback = new DataCallback<ParkedOrderInfo>((DataResult<ParkedOrderInfo> cancelParkedOrderResult) =>
+                    {
+                        pParkedOrder = cancelParkedOrderResult.Result;
+                        if (cancelParkedOrderResult.IsSuccess)
+                        {
+                            Console.WriteLine("预埋撤单录入成功, ParkedOrderActionID: {0}", pParkedOrder.ParkedOrderActionID);
+                        }
+                        Assert.IsTrue(cancelParkedOrderResult.IsSuccess);
+                    });
+                    CancelOrderParameter fieldAction = new CancelOrderParameter();
+                    fieldAction.ActionFlag = ActionFlag.Delete;
+                    fieldAction.InstrumentID = pParkedOrder.InstrumentID;
+                    fieldAction.OrderRef = pParkedOrder.OrderRef;
+                    fieldAction.ExchangeID = pParkedOrder.ExchangeID;
+                    fieldAction.OrderSysID = new string('\0', 21 - pParkedOrder.OrderSysID.Length) + pParkedOrder.OrderSysID;
 
+                    _api.CancelParkedOrder(cancelParkedOrderCallback, fieldAction);
+                    Thread.Sleep(50);
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            OrderParameter field = new OrderParameter();
+            field.InstrumentID = "TF1709";
+            field.OrderRef = "1";
+            field.Direction = DirectionType.Buy;
+            field.PriceType = OrderPriceType.LimitPrice;
+            field.OpenCloseFlag = OpenCloseFlag.Open;
+            field.HedgeFlag = HedgeFlag.Speculation;
+            field.Price = 97.010M;
+            field.Quantity = 1;
+            field.TimeCondition = TimeConditionType.GFD;
+            field.VolumeCondition = VolumeConditionType.AV;
+            field.MinVolume = 1;
+            field.ContingentCondition = ContingentConditionType.Immediately;
+            field.ForceCloseReason = ForceCloseReasonType.NotForceClose;
+            field.IsAutoSuspend = 0;
+            field.UserForceClose = 0;
+
+            _api.InsertParkedOrder(insertParkedOrderCallback, field);
+            Thread.Sleep(200);
         }
 
+        /// <summary>
+        /// 测试查询预埋单
+        /// </summary
         [TestMethod()]
         public void TestQueryParkedOrder()
         {
-
+            var queryParkedOrderCallback = new DataListCallback<ParkedOrderInfo>((DataListResult<ParkedOrderInfo> result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    foreach (ParkedOrderInfo parkedOrderInfo in result.Result)
+                    {
+                        Console.WriteLine("预埋单查询成功, ParkedOrderID: {0},Status: {1}", parkedOrderInfo.ParkedOrderID, parkedOrderInfo.Status);
+                    }
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            _api.QueryParkedOrder(queryParkedOrderCallback);
+            Thread.Sleep(100);
         }
 
+        /// <summary>
+        /// 测试查询预埋撤单
+        /// </summary
         [TestMethod()]
         public void TestQueryParkedOrderAction()
         {
-
+            var queryParkedOrderActionCallback = new DataListCallback<ParkedCanelOrderInfo>((DataListResult<ParkedCanelOrderInfo> result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    foreach (ParkedCanelOrderInfo parkedCanelOrderInfo in result.Result)
+                    {
+                        Console.WriteLine("预埋撤单查询成功, parkedOrderActionID: {0},Status: {1}", parkedCanelOrderInfo.ParkedOrderActionID, parkedCanelOrderInfo.Status);
+                    }
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            _api.QueryParkedOrderAction(queryParkedOrderActionCallback);
+            Thread.Sleep(100);
         }
     }
 }

@@ -1,7 +1,14 @@
 ﻿using CTPCore;
+using CTPMarketAdapter.Model;
+using CTPMarketApi;
 
 namespace CTPMarketAdapter.Interface
 {
+    /// <summary>
+    /// 行情数据改变委托方法
+    /// </summary>
+    public delegate void MarketDataChangedHandler(CTPMarketData marketData);
+
     /// <summary>
     /// 行情接口
     /// </summary>
@@ -58,5 +65,15 @@ namespace CTPMarketAdapter.Interface
         /// </summary>
         /// <param name="instruments">合约代码，传空退订所有</param>
         void UnsubscribeMarket(params string[] instruments);
+
+        /// <summary>
+        /// 心跳超时警告
+        /// </summary>
+        event MarketApi.HeartBeatWarning OnHeartBeatWarning;
+
+        /// <summary>
+        /// 行情数据改变事件
+        /// </summary>
+        event MarketDataChangedHandler OnMarketDataChanged;
     }
 }

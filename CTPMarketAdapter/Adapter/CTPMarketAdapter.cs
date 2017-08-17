@@ -4,15 +4,9 @@ using CTPMarketAdapter.Model;
 using CTPMarketApi;
 using System;
 using System.Collections.Concurrent;
-using System.ComponentModel;
 
 namespace CTPMarketAdapter.Adapter
 {
-    /// <summary>
-    /// 行情数据改变委托方法
-    /// </summary>
-    public delegate void MarketDataChangedHandler(CTPMarketData marketData);
-
     /// <summary>
     /// CTP行情适配器
     /// </summary>
@@ -76,7 +70,6 @@ namespace CTPMarketAdapter.Adapter
         /// <summary>
         /// 行情数据改变事件
         /// </summary>
-        [Category("Behavior")]
         public event MarketDataChangedHandler OnMarketDataChanged;
 
         #endregion

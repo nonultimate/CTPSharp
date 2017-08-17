@@ -61,14 +61,14 @@ namespace CTPTradeAdapter.Interface
         /// </summary>
         /// <param name="callback">报单回调</param>
         /// <param name="parameter">报单参数</param>
-        void InsertOrder(DataCallback callback, OrderParameter parameter);
+        void InsertOrder(DataCallback<OrderInfo> callback, OrderParameter parameter);
 
         /// <summary>
         /// 撤单
         /// </summary>
         /// <param name="callback">撤单回调</param>
         /// <param name="parameter">撤单参数</param>
-        void CancelOrder(DataCallback callback, CancelOrderParameter parameter);
+        void CancelOrder(DataCallback<OrderInfo> callback, CancelOrderParameter parameter);
 
         /// <summary>
         /// 查询当日委托
@@ -86,7 +86,7 @@ namespace CTPTradeAdapter.Interface
         /// 查询资金账户
         /// </summary>
         /// <param name="callback">查询回调</param>
-        void QueryAccount(DataCallback callback);
+        void QueryAccount(DataCallback<AccountInfo> callback);
 
         /// <summary>
         /// 查询持仓
@@ -99,14 +99,14 @@ namespace CTPTradeAdapter.Interface
         /// </summary>
         /// <param name="callback">报单回调</param>
         /// <param name="parameter">预埋单参数</param>
-        void InsertParkedOrder(DataCallback callback, OrderParameter parameter);
+        void InsertParkedOrder(DataCallback<ParkedOrderInfo> callback, OrderParameter parameter);
 
         /// <summary>
         /// 预埋撤单
         /// </summary>
         /// <param name="callback">撤单回调</param>
         /// <param name="parameter"></param>
-        void CancelParkedOrder(DataCallback callback, CancelOrderParameter parameter);
+        void CancelParkedOrder(DataCallback<ParkedOrderInfo> callback, CancelOrderParameter parameter);
 
         /// <summary>
         /// 查询预埋单

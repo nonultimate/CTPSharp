@@ -57,9 +57,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CTPCore\CTPCore.csproj">
+      <Project>{CB7E978D-69B6-458A-9AEC-40490647DDD3}</Project>
+      <Name>CTPCore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CTPTradeAdapter\CTPTradeAdapter.csproj">
       <Project>{165A57E8-F8A5-4519-A587-C7D4A73D9258}</Project>
       <Name>CTPTradeAdapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CTPTradeApi\CTPTradeApi.csproj">
+      <Project>{61365BF3-4D1A-46B6-BF83-CDC4E00FC82A}</Project>
+      <Name>CTPTradeApi</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>
