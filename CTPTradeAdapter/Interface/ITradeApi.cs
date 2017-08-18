@@ -1,5 +1,6 @@
 ﻿using CTPCore;
 using CTPTradeAdapter.Model;
+using CTPTradeApi;
 
 namespace CTPTradeAdapter.Interface
 {
@@ -119,5 +120,10 @@ namespace CTPTradeAdapter.Interface
         /// </summary>
         /// <param name="callback">查询回调</param>
         void QueryParkedOrderAction(DataListCallback<ParkedCanelOrderInfo> callback);
+
+        /// <summary>
+        /// 心跳超时警告
+        /// </summary>
+        event TradeApi.HeartBeatWarning OnHeartBeatWarning;
     }
 }

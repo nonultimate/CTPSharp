@@ -9,7 +9,8 @@
     /// <summary>
     /// 数据回调委托
     /// </summary>
-    /// <param name="result"></param>
+    /// <typeparam name="T">结果对象类型</typeparam>
+    /// <param name="result">结果对象</param>
     public delegate void DataCallback<T>(DataResult<T> result);
 
     /// <summary>

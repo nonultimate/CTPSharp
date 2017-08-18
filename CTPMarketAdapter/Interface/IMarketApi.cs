@@ -1,14 +1,8 @@
 ﻿using CTPCore;
-using CTPMarketAdapter.Model;
 using CTPMarketApi;
 
 namespace CTPMarketAdapter.Interface
 {
-    /// <summary>
-    /// 行情数据改变委托方法
-    /// </summary>
-    public delegate void MarketDataChangedHandler(CTPMarketData marketData);
-
     /// <summary>
     /// 行情接口
     /// </summary>

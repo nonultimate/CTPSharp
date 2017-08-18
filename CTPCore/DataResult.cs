@@ -37,6 +37,7 @@ namespace CTPCore
     /// <summary>
     /// 返回结果
     /// </summary>
+    /// <typeparam name="T">结果对象类型</typeparam>
     [Serializable]
     public class DataResult<T>
     {

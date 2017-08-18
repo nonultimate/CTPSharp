@@ -148,10 +148,8 @@ namespace CTPMarketAdapter.Adapter.Tests
             });
 
             _api.SubscribeMarket(instrmentID);
-            Console.WriteLine("订阅{0}成功", instrmentID);
             Thread.Sleep(100);
             _api.UnsubscribeMarket(instrmentID);
-            Console.WriteLine("退订{0}成功", instrmentID);
         }
     }
 }
