@@ -1,12 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CTPTradeAdapter.Adapter;
+﻿using CTPCore;
+using CTPTradeAdapter.Model;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using CTPCore;
 using System.Threading;
-using CTPTradeAdapter.Model;
 
 namespace CTPTradeAdapter.Adapter.Tests
 {
@@ -19,7 +18,7 @@ namespace CTPTradeAdapter.Adapter.Tests
         /// <summary>
         /// 交易接口实例
         /// </summary>
-        private CTPTradeAdapter _api;
+        private TradeAdapter _api;
 
         /// <summary>
         /// 交易服务器地址
@@ -57,7 +56,7 @@ namespace CTPTradeAdapter.Adapter.Tests
         [TestInitialize()]
         public void Initialize()
         {
-            _api = new CTPTradeAdapter("");
+            _api = new TradeAdapter("");
             var connectCallback = new DataCallback((DataResult result) =>
             {
                 if (result.IsSuccess)

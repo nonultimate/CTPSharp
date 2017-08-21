@@ -71,7 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Adapter\CTPTradeAdapter.cs" />
+    <Compile Include="Adapter\TradeAdapter.cs" />
     <Compile Include="Interface\ITradeApi.cs" />
     <Compile Include="Model\AccountInfo.cs" />
     <Compile Include="Model\Enum\ContingentConditionType.cs" />

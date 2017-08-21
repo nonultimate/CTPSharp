@@ -10,7 +10,7 @@ namespace CTPMarketAdapter.Adapter
     /// <summary>
     /// CTP行情适配器
     /// </summary>
-    public class CTPMarketAdapter : IMarketApi
+    public class MarketAdapter : IMarketApi
     {
         #region 私有变量
 
@@ -45,7 +45,7 @@ namespace CTPMarketAdapter.Adapter
         /// 创建CTP行情适配器
         /// </summary>
         /// <param name="flowPath">存储订阅信息文件的目录</param>
-        public CTPMarketAdapter(string flowPath = "")
+        public MarketAdapter(string flowPath = "")
         {
             _api = new MarketApi("", "", flowPath);
             _api.OnRspError += OnRspError;

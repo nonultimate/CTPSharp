@@ -14,7 +14,7 @@ namespace CTPTradeAdapter.Adapter
     /// <summary>
     /// CTP交易适配器
     /// </summary>
-    public class CTPTradeAdapter : ITradeApi
+    public class TradeAdapter : ITradeApi
     {
         #region 私有变量
 
@@ -51,7 +51,7 @@ namespace CTPTradeAdapter.Adapter
         /// 创建CTP交易适配器
         /// </summary>
         /// <param name="flowPath">存储订阅信息文件的目录</param>
-        public CTPTradeAdapter(string flowPath = "")
+        public TradeAdapter(string flowPath = "")
         {
             _api = new TradeApi("", "", flowPath);
             _api.OnRspError += OnRspError;

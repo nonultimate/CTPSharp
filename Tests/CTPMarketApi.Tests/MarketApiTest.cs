@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CTPMarketApi;
 using System.Threading;
 
 namespace CTPMarketApi.Tests

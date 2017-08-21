@@ -63,7 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Adapter\CTPMarketAdapter.cs" />
+    <Compile Include="Adapter\MarketAdapter.cs" />
     <Compile Include="Delegates.cs" />
     <Compile Include="Interface\IMarketApi.cs" />
     <Compile Include="Model\CTPMarketData.cs" />

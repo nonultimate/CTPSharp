@@ -1,10 +1,10 @@
-﻿using System;
+﻿using CTPCore;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
-using CTPCore;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CTPTradeApi
 {
@@ -491,7 +491,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 从列表中查找入口并返回非托管方法委托
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">方法委托</param>
         /// <returns></returns>
         private T GetDelegate<T>(string name) where T : class
         {
@@ -558,6 +558,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 发送登出请求
         /// </summary>
+        /// <param name="requestID">请求编号</param>
         public int UserLogout(int requestID)
         {
             return reqUserLogout(requestID, this.BrokerID, this.InvestorID);
@@ -601,14 +602,14 @@ namespace CTPTradeApi
         /// 开平仓:限价单
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="InstrumentID">合约代码</param>
-        /// <param name="OffsetFlag">平仓:仅上期所平今时使用CloseToday/其它情况均使用Close</param>
-        /// <param name="Direction">买卖</param>
-        /// <param name="Price">价格</param>
-        /// <param name="Volume">手数</param>
+        /// <param name="instrumentID">合约代码</param>
+        /// <param name="offsetFlag">平仓:仅上期所平今时使用CloseToday/其它情况均使用Close</param>
+        /// <param name="direction">买卖</param>
+        /// <param name="price">价格</param>
+        /// <param name="volume">手数</param>
         /// <param name="orderRef">报单引用</param>
-        public int OrderInsert(int requestID, string InstrumentID, TThostFtdcOffsetFlagType OffsetFlag,
-            TThostFtdcDirectionType Direction, double Price, int Volume, string orderRef = "")
+        public int OrderInsert(int requestID, string instrumentID, TThostFtdcOffsetFlagType offsetFlag,
+            TThostFtdcDirectionType direction, double price, int volume, string orderRef = "")
         {
             CThostFtdcInputOrderField tmp = new CThostFtdcInputOrderField();
             tmp.BrokerID = this.BrokerID;
@@ -626,11 +627,11 @@ namespace CTPTradeApi
             tmp.VolumeCondition = TThostFtdcVolumeConditionType.AV;
             tmp.CombHedgeFlag = TThostFtdcHedgeFlagType.Speculation;
 
-            tmp.InstrumentID = InstrumentID;
-            tmp.CombOffsetFlag = OffsetFlag;
-            tmp.Direction = Direction;
-            tmp.LimitPrice = Price;
-            tmp.VolumeTotalOriginal = Volume;
+            tmp.InstrumentID = instrumentID;
+            tmp.CombOffsetFlag = offsetFlag;
+            tmp.Direction = direction;
+            tmp.LimitPrice = price;
+            tmp.VolumeTotalOriginal = volume;
             return reqOrderInsert(requestID, ref tmp);
         }
 
@@ -638,13 +639,13 @@ namespace CTPTradeApi
         /// 开平仓:市价单
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="InstrumentID"></param>
-        /// <param name="OffsetFlag">平仓:仅上期所平今时使用CloseToday/其它情况均使用Close</param>
-        /// <param name="Direction"></param>
-        /// <param name="Volume"></param>
+        /// <param name="instrumentID">合约代码</param>
+        /// <param name="offsetFlag">平仓:仅上期所平今时使用CloseToday/其它情况均使用Close</param>
+        /// <param name="direction">买卖方向</param>
+        /// <param name="volume">下单数量</param>
         /// <param name="orderRef">报单引用</param>
-        public int OrderInsert(int requestID, string InstrumentID, TThostFtdcOffsetFlagType OffsetFlag,
-            TThostFtdcDirectionType Direction, int Volume, string orderRef = "")
+        public int OrderInsert(int requestID, string instrumentID, TThostFtdcOffsetFlagType offsetFlag,
+            TThostFtdcDirectionType direction, int volume, string orderRef = "")
         {
             CThostFtdcInputOrderField tmp = new CThostFtdcInputOrderField();
             tmp.BrokerID = this.BrokerID;
@@ -662,11 +663,11 @@ namespace CTPTradeApi
             tmp.VolumeCondition = TThostFtdcVolumeConditionType.AV;
             tmp.CombHedgeFlag = TThostFtdcHedgeFlagType.Speculation;
 
-            tmp.InstrumentID = InstrumentID;
-            tmp.CombOffsetFlag = OffsetFlag;
-            tmp.Direction = Direction;
+            tmp.InstrumentID = instrumentID;
+            tmp.CombOffsetFlag = offsetFlag;
+            tmp.Direction = direction;
             tmp.LimitPrice = 0;
-            tmp.VolumeTotalOriginal = Volume;
+            tmp.VolumeTotalOriginal = volume;
             return reqOrderInsert(requestID, ref tmp);
         }
 
@@ -674,18 +675,18 @@ namespace CTPTradeApi
         /// 开平仓:触发单
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="InstrumentID"></param>
-        /// <param name="ConditionType">触发单类型</param>
-        /// <param name="ConditionPrice">触发价格</param>
-        /// <param name="OffsetFlag">平仓:仅上期所平今时使用CloseToday/其它情况均使用Close</param>
-        /// <param name="Direction"></param>
-        /// <param name="PriceType">下单类型</param>
-        /// <param name="Price">下单价格:仅当下单类型为LimitPrice时有效</param>
-        /// <param name="Volume"></param>
+        /// <param name="instrumentID">合约代码</param>
+        /// <param name="conditionType">触发单类型</param>
+        /// <param name="conditionPrice">触发价格</param>
+        /// <param name="offsetFlag">平仓:仅上期所平今时使用CloseToday/其它情况均使用Close</param>
+        /// <param name="direction">买卖方向</param>
+        /// <param name="priceType">下单类型</param>
+        /// <param name="price">下单价格:仅当下单类型为LimitPrice时有效</param>
+        /// <param name="volume">下单数量</param>
         /// <param name="orderRef">报单引用</param>
-        public int OrderInsert(int requestID, string InstrumentID, TThostFtdcContingentConditionType ConditionType,
-            double ConditionPrice, TThostFtdcOffsetFlagType OffsetFlag, TThostFtdcDirectionType Direction,
-            TThostFtdcOrderPriceTypeType PriceType, double Price, int Volume, string orderRef = "")
+        public int OrderInsert(int requestID, string instrumentID, TThostFtdcContingentConditionType conditionType,
+            double conditionPrice, TThostFtdcOffsetFlagType offsetFlag, TThostFtdcDirectionType direction,
+            TThostFtdcOrderPriceTypeType priceType, double price, int volume, string orderRef = "")
         {
             CThostFtdcInputOrderField tmp = new CThostFtdcInputOrderField();
             tmp.BrokerID = this.BrokerID;
@@ -701,14 +702,14 @@ namespace CTPTradeApi
             tmp.VolumeCondition = TThostFtdcVolumeConditionType.AV;
             tmp.CombHedgeFlag = TThostFtdcHedgeFlagType.Speculation;
 
-            tmp.InstrumentID = InstrumentID;
-            tmp.CombOffsetFlag = OffsetFlag;
-            tmp.Direction = Direction;
-            tmp.ContingentCondition = ConditionType;    //触发类型
-            tmp.StopPrice = Price;                      //触发价格
-            tmp.OrderPriceType = PriceType;             //下单类型
-            tmp.LimitPrice = Price;                     //下单价格:Price = LimitPrice 时有效
-            tmp.VolumeTotalOriginal = Volume;
+            tmp.InstrumentID = instrumentID;
+            tmp.CombOffsetFlag = offsetFlag;
+            tmp.Direction = direction;
+            tmp.ContingentCondition = conditionType;    //触发类型
+            tmp.StopPrice = price;                      //触发价格
+            tmp.OrderPriceType = priceType;             //下单类型
+            tmp.LimitPrice = price;                     //下单价格:Price = LimitPrice 时有效
+            tmp.VolumeTotalOriginal = volume;
             return reqOrderInsert(requestID, ref tmp);
         }
 
@@ -801,11 +802,11 @@ namespace CTPTradeApi
         /// 请求查询成交:不填-查所有
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="timeStart"></param>
-        /// <param name="timeEnd"></param>
-        /// <param name="instrumentID"></param>
-        /// <param name="exchangeID"></param>
-        /// <param name="tradeID"></param>
+        /// <param name="timeStart">开始时间</param>
+        /// <param name="timeEnd">结束时间</param>
+        /// <param name="instrumentID">合约代码</param>
+        /// <param name="exchangeID">交易所代码</param>
+        /// <param name="tradeID">成交编号</param>
         /// <returns></returns>
         public int QueryTrade(int requestID, string timeStart = null, string timeEnd = null,
             string instrumentID = null, string exchangeID = null, string tradeID = null)
@@ -891,7 +892,7 @@ namespace CTPTradeApi
         /// 请求查询交易所
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="exchangeID"></param>
+        /// <param name="exchangeID">交易所代码</param>
         /// <returns></returns>
         public int QueryExchange(int requestID, string exchangeID)
         {
@@ -1019,7 +1020,7 @@ namespace CTPTradeApi
         /// 预埋单录入请求
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="field"></param>
+        /// <param name="field">预埋单</param>
         /// <returns></returns>
         public int ParkedOrderInsert(int requestID, CThostFtdcParkedOrderField field)
         {
@@ -1030,15 +1031,15 @@ namespace CTPTradeApi
         /// 预埋单录入请求
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="InstrumentID"></param>
-        /// <param name="OffsetFlag"></param>
-        /// <param name="Direction"></param>
-        /// <param name="Price"></param>
-        /// <param name="Volume"></param>
-        /// <param name="orderRef"></param>
+        /// <param name="instrumentID">合约代码</param>
+        /// <param name="offsetFlag">组合开平标志</param>
+        /// <param name="direction">买卖方向</param>
+        /// <param name="price">价格</param>
+        /// <param name="volume">数量</param>
+        /// <param name="orderRef">报单引用</param>
         /// <returns></returns>
-        public int ParkedOrderInsert(int requestID, string InstrumentID, TThostFtdcOffsetFlagType OffsetFlag,
-            TThostFtdcDirectionType Direction, double Price, int Volume, string orderRef = "")
+        public int ParkedOrderInsert(int requestID, string instrumentID, TThostFtdcOffsetFlagType offsetFlag,
+            TThostFtdcDirectionType direction, double price, int volume, string orderRef = "")
         {
             CThostFtdcParkedOrderField tmp = new CThostFtdcParkedOrderField();
             tmp.BrokerID = this.BrokerID;
@@ -1056,11 +1057,11 @@ namespace CTPTradeApi
             tmp.VolumeCondition = TThostFtdcVolumeConditionType.AV;
             tmp.CombHedgeFlag = TThostFtdcHedgeFlagType.Speculation;
 
-            tmp.InstrumentID = InstrumentID;
-            tmp.CombOffsetFlag = OffsetFlag;
-            tmp.Direction = Direction;
-            tmp.LimitPrice = Price;
-            tmp.VolumeTotalOriginal = Volume;
+            tmp.InstrumentID = instrumentID;
+            tmp.CombOffsetFlag = offsetFlag;
+            tmp.Direction = direction;
+            tmp.LimitPrice = price;
+            tmp.VolumeTotalOriginal = volume;
             return reqParkedOrderInsert(requestID, ref tmp);
         }
 
@@ -1068,7 +1069,7 @@ namespace CTPTradeApi
         /// 预埋撤单录入请求
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="field"></param>
+        /// <param name="field">输入预埋单</param>
         /// <returns></returns>
         public int ParkedOrderAction(int requestID, CThostFtdcParkedOrderActionField field)
         {
@@ -1079,30 +1080,30 @@ namespace CTPTradeApi
         /// 预埋撤单录入请求
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="InstrumentID"></param>
-        /// <param name="FrontID"></param>
-        /// <param name="SessionID"></param>
-        /// <param name="OrderRef"></param>
-        /// <param name="ExchangeID"></param>
-        /// <param name="OrderSysID"></param>
+        /// <param name="instrumentID">合约代码</param>
+        /// <param name="frontID">前置编号</param>
+        /// <param name="sessionID">会话编号</param>
+        /// <param name="orderRef">报单引用</param>
+        /// <param name="exchangeID">交易所代码</param>
+        /// <param name="orderSysID">报单编号</param>
         /// <returns></returns>
-		public int ParkedOrderAction(int requestID, string InstrumentID, int FrontID, int SessionID, string OrderRef,
-            string ExchangeID = null, string OrderSysID = null)
+		public int ParkedOrderAction(int requestID, string instrumentID, int frontID, int sessionID, string orderRef,
+            string exchangeID = null, string orderSysID = null)
         {
             CThostFtdcParkedOrderActionField tmp = new CThostFtdcParkedOrderActionField();
             tmp.ActionFlag = TThostFtdcActionFlagType.Delete;
             tmp.BrokerID = this.BrokerID;
             tmp.InvestorID = this.InvestorID;
             //tmp.UserID = this.InvestorID;
-            tmp.InstrumentID = InstrumentID;
+            tmp.InstrumentID = instrumentID;
             //tmp.VolumeChange = int.Parse(lvi.SubItems["VolumeTotalOriginal"].Text);
 
-            tmp.FrontID = FrontID;
-            tmp.SessionID = SessionID;
-            tmp.OrderRef = OrderRef;
-            tmp.ExchangeID = ExchangeID;
-            if (OrderSysID != null)
-                tmp.OrderSysID = new string('\0', 21 - OrderSysID.Length) + OrderSysID; //OrderSysID右对齐
+            tmp.FrontID = frontID;
+            tmp.SessionID = sessionID;
+            tmp.OrderRef = orderRef;
+            tmp.ExchangeID = exchangeID;
+            if (orderSysID != null)
+                tmp.OrderSysID = new string('\0', 21 - orderSysID.Length) + orderSysID; //OrderSysID右对齐
             return reqParkedOrderAction(requestID, ref tmp);
         }
 
@@ -1144,7 +1145,7 @@ namespace CTPTradeApi
         /// 请求查询转帐流水
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="bankID"></param>
+        /// <param name="bankID">银行编号</param>
         /// <returns></returns>
         public int QueryTransferSerial(int requestID, string bankID)
         {
@@ -1155,7 +1156,7 @@ namespace CTPTradeApi
         /// 请求查询银期签约关系
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="bankID"></param>
+        /// <param name="bankID">银行编号</param>
         /// <returns></returns>
         public int QueryAccountregister(int requestID, string bankID)
         {
@@ -1200,7 +1201,7 @@ namespace CTPTradeApi
         /// 期货发起银行资金转期货请求
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="field"></param>
+        /// <param name="field">转账请求</param>
         /// <returns></returns>
         public int FromBankToFutureByFuture(int requestID, CThostFtdcReqTransferField field)
         {
@@ -1211,7 +1212,7 @@ namespace CTPTradeApi
         /// 期货发起期货资金转银行请求
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="field"></param>
+        /// <param name="field">转账请求</param>
         /// <returns></returns>
         public int FromFutureToBankByFuture(int requestID, CThostFtdcReqTransferField field)
         {
@@ -1222,7 +1223,7 @@ namespace CTPTradeApi
         /// 期货发起查询银行余额请求
         /// </summary>
         /// <param name="requestID">请求编号</param>
-        /// <param name="field"></param>
+        /// <param name="field">查询账户信息请求</param>
         /// <returns></returns>
         public int QueryBankAccountMoneyByFuture(int requestID, CThostFtdcReqQueryAccountField field)
         {
@@ -1256,7 +1257,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 断开连接委托
         /// </summary>
-        /// <param name="reason"></param>
+        /// <param name="reason">失败原因</param>
         public delegate void Disconnected(int reason);
 
         /// <summary>
@@ -1277,7 +1278,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 心跳超时警告委托
         /// </summary>
-        /// <param name="pTimeLapes"></param>
+        /// <param name="pTimeLapes">超时时间</param>
         public delegate void HeartBeatWarning(int pTimeLapes);
 
         /// <summary>
@@ -1298,8 +1299,8 @@ namespace CTPTradeApi
         /// <summary>
         /// 期货发起银行资金转期货错误回报委托
         /// </summary>
-        /// <param name="pReqTransfer"></param>
-        /// <param name="pRspInfo"></param>
+        /// <param name="pReqTransfer">转账请求</param>
+        /// <param name="pRspInfo">响应信息</param>
 		public delegate void ErrRtnBankToFutureByFuture(ref CThostFtdcReqTransferField pReqTransfer,
             ref CThostFtdcRspInfoField pRspInfo);
 
@@ -1321,8 +1322,8 @@ namespace CTPTradeApi
         /// <summary>
         /// 期货发起期货资金转银行错误回报委托
         /// </summary>
-        /// <param name="pReqTransfer"></param>
-        /// <param name="pRspInfo"></param>
+        /// <param name="pReqTransfer">转账请求</param>
+        /// <param name="pRspInfo">响应信息</param>
 		public delegate void ErrRtnFutureToBankByFuture(ref CThostFtdcReqTransferField pReqTransfer,
             ref CThostFtdcRspInfoField pRspInfo);
 
@@ -1344,8 +1345,8 @@ namespace CTPTradeApi
         /// <summary>
         /// 报单操作错误回报委托
         /// </summary>
-        /// <param name="pOrderAction"></param>
-        /// <param name="pRspInfo"></param>
+        /// <param name="pOrderAction">报单操作</param>
+        /// <param name="pRspInfo">响应信息</param>
 		public delegate void ErrRtnOrderAction(ref CThostFtdcOrderActionField pOrderAction,
             ref CThostFtdcRspInfoField pRspInfo);
 
@@ -1367,8 +1368,8 @@ namespace CTPTradeApi
         /// <summary>
         /// 报单录入错误回报委托
         /// </summary>
-        /// <param name="pInputOrder"></param>
-        /// <param name="pRspInfo"></param>
+        /// <param name="pInputOrder">输入报单</param>
+        /// <param name="pRspInfo">响应信息</param>
 		public delegate void ErrRtnOrderInsert(ref CThostFtdcInputOrderField pInputOrder,
             ref CThostFtdcRspInfoField pRspInfo);
 
@@ -1390,8 +1391,8 @@ namespace CTPTradeApi
         /// <summary>
         /// 期货发起查询银行余额错误回报委托
         /// </summary>
-        /// <param name="pReqQueryAccount"></param>
-        /// <param name="pRspInfo"></param>
+        /// <param name="pReqQueryAccount">查询账户信息请求</param>
+        /// <param name="pRspInfo">响应信息</param>
 		public delegate void ErrRtnQueryBankBalanceByFuture(ref CThostFtdcReqQueryAccountField pReqQueryAccount,
             ref CThostFtdcRspInfoField pRspInfo);
 
@@ -1421,9 +1422,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 系统运行时期货端手工发起冲正银行转期货错误回报委托
         /// </summary>
-        /// <param name="pReqRepeal"></param>
-        /// <param name="pRspInfo"></param>
-		public delegate void ErrRtnRepealBankToFutureByFutureManual(ref CThostFtdcReqRepealField pReqRepeal, ref CThostFtdcRspInfoField pRspInfo);
+        /// <param name="pReqRepeal">冲正请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+		public delegate void ErrRtnRepealBankToFutureByFutureManual(ref CThostFtdcReqRepealField pReqRepeal,
+            ref CThostFtdcRspInfoField pRspInfo);
 
         /// <summary>
         /// 系统运行时期货端手工发起冲正银行转期货错误回报
@@ -1451,8 +1453,8 @@ namespace CTPTradeApi
         /// <summary>
         /// 系统运行时期货端手工发起冲正期货转银行错误回报委托
         /// </summary>
-        /// <param name="pReqRepeal"></param>
-        /// <param name="pRspInfo"></param>
+        /// <param name="pReqRepeal">冲正请求</param>
+        /// <param name="pRspInfo">响应信息</param>
 		public delegate void ErrRtnRepealFutureToBankByFutureManual(ref CThostFtdcReqRepealField pReqRepeal,
             ref CThostFtdcRspInfoField pRspInfo);
 
@@ -1482,9 +1484,9 @@ namespace CTPTradeApi
         /// <summary>
         /// 错误应答委托
         /// </summary>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspError(ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
         /// <summary>
@@ -1513,10 +1515,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 期货发起银行资金转期货应答委托
         /// </summary>
-        /// <param name="pReqTransfer"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pReqTransfer">转账请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspFromBankToFutureByFuture(ref CThostFtdcReqTransferField pReqTransfer,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -1546,10 +1548,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 期货发起期货资金转银行应答委托
         /// </summary>
-        /// <param name="pReqTransfer"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pReqTransfer">转账请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspFromFutureToBankByFuture(ref CThostFtdcReqTransferField pReqTransfer,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -1579,10 +1581,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 报单操作请求响应委托
         /// </summary>
-        /// <param name="pInputOrderAction"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pInputOrderAction">输入报单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspOrderAction(ref CThostFtdcInputOrderActionField pInputOrderAction,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -1612,12 +1614,12 @@ namespace CTPTradeApi
         /// <summary>
         /// 报单录入请求响应委托
         /// </summary>
-        /// <param name="pInputOrder"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
-		public delegate void RspOrderInsert(ref CThostFtdcInputOrderField pInputOrder, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
+        /// <param name="pInputOrder">输入报单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspOrderInsert(ref CThostFtdcInputOrderField pInputOrder,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
         /// <summary>
         /// 报单录入请求响应
@@ -1645,10 +1647,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 预埋撤单录入请求响应委托
         /// </summary>
-        /// <param name="pParkedOrderAction"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pParkedOrderAction">录入预埋单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspParkedOrderAction(ref CThostFtdcParkedOrderActionField pParkedOrderAction,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -1678,10 +1680,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 预埋单录入请求响应委托
         /// </summary>
-        /// <param name="pParkedOrder"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pParkedOrder">预埋单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspParkedOrderInsert(ref CThostFtdcParkedOrderField pParkedOrder,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -1711,11 +1713,12 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询经纪公司交易算法响应委托
         /// </summary>
-        /// <param name="pBrokerTradingAlgos"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
-		public delegate void RspQryBrokerTradingAlgos(ref CThostFtdcBrokerTradingAlgosField pBrokerTradingAlgos, ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+        /// <param name="pBrokerTradingAlgos">经纪公司交易算法</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryBrokerTradingAlgos(ref CThostFtdcBrokerTradingAlgosField pBrokerTradingAlgos,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
         /// <summary>
         /// 请求查询经纪公司交易算法响应
@@ -1743,10 +1746,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询经纪公司交易参数响应委托
         /// </summary>
-        /// <param name="pBrokerTradingParams"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pBrokerTradingParams">经纪公司交易参数</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryBrokerTradingParams(ref CThostFtdcBrokerTradingParamsField pBrokerTradingParams,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -1776,11 +1779,12 @@ namespace CTPTradeApi
         /// <summary>
         /// 查询保证金监管系统经纪公司资金账户密钥响应委托
         /// </summary>
-        /// <param name="pCFMMCTradingAccountKey"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
-		public delegate void RspQryCFMMCTradingAccountKey(ref CThostFtdcCFMMCTradingAccountKeyField pCFMMCTradingAccountKey,
+        /// <param name="pCFMMCTradingAccountKey">保证金监管系统经纪公司资金账户密钥</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryCFMMCTradingAccountKey(
+            ref CThostFtdcCFMMCTradingAccountKeyField pCFMMCTradingAccountKey,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
         /// <summary>
@@ -1809,10 +1813,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询签约银行响应委托
         /// </summary>
-        /// <param name="pContractBank"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pContractBank">查询签约银行响应</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryContractBank(ref CThostFtdcContractBankField pContractBank,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -1842,10 +1846,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询行情响应委托
         /// </summary>
-        /// <param name="pDepthMarketData"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pDepthMarketData">深度行情</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryDepthMarketData(ref CThostFtdcDepthMarketDataField pDepthMarketData,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -1875,10 +1879,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询交易所响应委托
         /// </summary>
-        /// <param name="pExchange"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pExchange">交易所</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryExchange(ref CThostFtdcExchangeField pExchange, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast);
 
@@ -1908,10 +1912,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询合约响应委托
         /// </summary>
-        /// <param name="pInstrument"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pInstrument">合约</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryInstrument(ref CThostFtdcInstrumentField pInstrument,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -1941,10 +1945,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询合约手续费率响应委托
         /// </summary>
-        /// <param name="pInstrumentCommissionRate"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pInstrumentCommissionRate">合约手续费率</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryInstrumentCommissionRate(
             ref CThostFtdcInstrumentCommissionRateField pInstrumentCommissionRate, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast);
@@ -1975,10 +1979,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询合约保证金率响应委托
         /// </summary>
-        /// <param name="pInstrumentMarginRate"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pInstrumentMarginRate">合约保证金率</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryInstrumentMarginRate(ref CThostFtdcInstrumentMarginRateField pInstrumentMarginRate,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2008,10 +2012,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询投资者响应委托
         /// </summary>
-        /// <param name="pInvestor"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pInvestor">投资者</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryInvestor(ref CThostFtdcInvestorField pInvestor, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast);
 
@@ -2041,10 +2045,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询投资者持仓响应委托
         /// </summary>
-        /// <param name="pInvestorPosition"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pInvestorPosition">投资者持仓</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryInvestorPosition(ref CThostFtdcInvestorPositionField pInvestorPosition,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2074,10 +2078,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询投资者持仓明细响应委托
         /// </summary>
-        /// <param name="pInvestorPositionCombineDetail"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pInvestorPositionCombineDetail">投资者组合持仓明细</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryInvestorPositionCombineDetail(
             ref CThostFtdcInvestorPositionCombineDetailField pInvestorPositionCombineDetail,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
@@ -2108,10 +2112,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询投资者持仓明细响应委托
         /// </summary>
-        /// <param name="pInvestorPositionDetail"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pInvestorPositionDetail">投资者持仓明细</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryInvestorPositionDetail(
             ref CThostFtdcInvestorPositionDetailField pInvestorPositionDetail, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast);
@@ -2142,10 +2146,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询客户通知响应委托
         /// </summary>
-        /// <param name="pNotice"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pNotice">客户通知</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryNotice(ref CThostFtdcNoticeField pNotice, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast);
 
@@ -2175,10 +2179,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询报单响应委托
         /// </summary>
-        /// <param name="pOrder"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pOrder">报单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryOrder(ref CThostFtdcOrderField pOrder, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast);
 
@@ -2208,10 +2212,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询预埋单响应委托
         /// </summary>
-        /// <param name="pParkedOrder"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pParkedOrder">预埋单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryParkedOrder(ref CThostFtdcParkedOrderField pParkedOrder,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2241,10 +2245,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询预埋撤单响应委托
         /// </summary>
-        /// <param name="pParkedOrderAction"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pParkedOrderAction">输入预埋单操作</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryParkedOrderAction(ref CThostFtdcParkedOrderActionField pParkedOrderAction,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2274,10 +2278,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询投资者结算结果响应委托
         /// </summary>
-        /// <param name="pSettlementInfo"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pSettlementInfo">投资者结算结果</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQrySettlementInfo(ref CThostFtdcSettlementInfoField pSettlementInfo,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2307,10 +2311,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询结算信息确认响应委托
         /// </summary>
-        /// <param name="pSettlementInfoConfirm"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pSettlementInfoConfirm">投资者结算结果确认信息</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQrySettlementInfoConfirm(
             ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast);
@@ -2340,10 +2344,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询成交响应委托
         /// </summary>
-        /// <param name="pTrade"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pTrade">成交</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryTrade(ref CThostFtdcTradeField pTrade, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast);
 
@@ -2372,10 +2376,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询资金账户响应委托
         /// </summary>
-        /// <param name="pTradingAccount"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pTradingAccount">资金账户</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryTradingAccount(ref CThostFtdcTradingAccountField pTradingAccount,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2405,10 +2409,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询交易编码响应委托
         /// </summary>
-        /// <param name="pTradingCode"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pTradingCode">交易编码</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryTradingCode(ref CThostFtdcTradingCodeField pTradingCode,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2437,10 +2441,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询交易通知响应委托
         /// </summary>
-        /// <param name="pTradingNotice"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pTradingNotice">用户事件通知</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryTradingNotice(ref CThostFtdcTradingNoticeField pTradingNotice,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2469,10 +2473,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询转帐银行响应委托
         /// </summary>
-        /// <param name="pTransferBank"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pTransferBank">转帐银行</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryTransferBank(ref CThostFtdcTransferBankField pTransferBank,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
         /// <summary>
@@ -2501,10 +2505,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询转帐流水响应委托
         /// </summary>
-        /// <param name="pTransferSerial"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pTransferSerial">银期转账交易流水表</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQryTransferSerial(ref CThostFtdcTransferSerialField pTransferSerial,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2534,10 +2538,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 请求查询银期签约关系响应委托
         /// </summary>
-        /// <param name="pAccountregister"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pAccountregister">客户开销户信息表</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
         public delegate void RspQryAccountregister(ref CThostFtdcAccountregisterField pAccountregister,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2567,10 +2571,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 期货发起查询银行余额应答委托
         /// </summary>
-        /// <param name="pReqQueryAccount"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pReqQueryAccount">查询账户信息请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQueryBankAccountMoneyByFuture(ref CThostFtdcReqQueryAccountField pReqQueryAccount,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2600,10 +2604,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 查询最大报单数量响应委托
         /// </summary>
-        /// <param name="pQueryMaxOrderVolume"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pQueryMaxOrderVolume">查询最大报单数量</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspQueryMaxOrderVolume(ref CThostFtdcQueryMaxOrderVolumeField pQueryMaxOrderVolume,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2633,10 +2637,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 删除预埋单响应委托
         /// </summary>
-        /// <param name="pRemoveParkedOrder"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pRemoveParkedOrder">删除预埋单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspRemoveParkedOrder(ref CThostFtdcRemoveParkedOrderField pRemoveParkedOrder,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2666,10 +2670,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 删除预埋撤单响应委托
         /// </summary>
-        /// <param name="pRemoveParkedOrderAction"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pRemoveParkedOrderAction">删除预埋撤单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspRemoveParkedOrderAction(
             ref CThostFtdcRemoveParkedOrderActionField pRemoveParkedOrderAction, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast);
@@ -2700,10 +2704,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 投资者结算结果确认响应委托
         /// </summary>
-        /// <param name="pSettlementInfoConfirm"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pSettlementInfoConfirm">投资者结算结果确认信息</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspSettlementInfoConfirm(ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2733,10 +2737,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 资金账户口令更新请求响应委托
         /// </summary>
-        /// <param name="pTradingAccountPasswordUpdate"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pTradingAccountPasswordUpdate">资金账户口令变更域</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspTradingAccountPasswordUpdate(
             ref CThostFtdcTradingAccountPasswordUpdateField pTradingAccountPasswordUpdate,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
@@ -2767,10 +2771,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 登录请求响应委托
         /// </summary>
-        /// <param name="pRspUserLogin"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pRspUserLogin">用户登录应答</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspUserLogin(ref CThostFtdcRspUserLoginField pRspUserLogin,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2800,10 +2804,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 登出请求响应委托
         /// </summary>
-        /// <param name="pUserLogout"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pUserLogout">用户登出请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspUserLogout(ref CThostFtdcUserLogoutField pUserLogout,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2833,10 +2837,10 @@ namespace CTPTradeApi
         /// <summary>
         /// 用户口令更新请求响应委托
         /// </summary>
-        /// <param name="pUserPasswordUpdate"></param>
-        /// <param name="pRspInfo"></param>
-        /// <param name="nRequestID"></param>
-        /// <param name="bIsLast"></param>
+        /// <param name="pUserPasswordUpdate">用户口令变更</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
 		public delegate void RspUserPasswordUpdate(ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
 
@@ -2866,7 +2870,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 提示条件单校验错误委托
         /// </summary>
-        /// <param name="pErrorConditionalOrder"></param>
+        /// <param name="pErrorConditionalOrder">查询错误报单操作</param>
 		public delegate void RtnErrorConditionalOrder(ref CThostFtdcErrorConditionalOrderField pErrorConditionalOrder);
 
         /// <summary>
@@ -2895,7 +2899,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 银行发起银行资金转期货通知委托
         /// </summary>
-        /// <param name="pRspTransfer"></param>
+        /// <param name="pRspTransfer">银行发起银行资金转期货响应</param>
 		public delegate void RtnFromBankToFutureByBank(ref CThostFtdcRspTransferField pRspTransfer);
 
         /// <summary>
@@ -2924,7 +2928,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 期货发起银行资金转期货通知委托
         /// </summary>
-        /// <param name="pRspTransfer"></param>
+        /// <param name="pRspTransfer">银行发起银行资金转期货响应</param>
 		public delegate void RtnFromBankToFutureByFuture(ref CThostFtdcRspTransferField pRspTransfer);
 
         /// <summary>
@@ -2953,7 +2957,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 银行发起期货资金转银行通知委托
         /// </summary>
-        /// <param name="pRspTransfer"></param>
+        /// <param name="pRspTransfer">银行发起银行资金转期货响应</param>
 		public delegate void RtnFromFutureToBankByBank(ref CThostFtdcRspTransferField pRspTransfer);
 
         /// <summary>
@@ -2982,7 +2986,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 期货发起期货资金转银行通知委托
         /// </summary>
-        /// <param name="pRspTransfer"></param>
+        /// <param name="pRspTransfer">期货发起期货资金转银行响应</param>
 		public delegate void RtnFromFutureToBankByFuture(ref CThostFtdcRspTransferField pRspTransfer);
 
         /// <summary>
@@ -3011,7 +3015,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 合约交易状态通知委托
         /// </summary>
-        /// <param name="pInstrumentStatus"></param>
+        /// <param name="pInstrumentStatus">合约状态</param>
 		public delegate void RtnInstrumentStatus(ref CThostFtdcInstrumentStatusField pInstrumentStatus);
 
         /// <summary>
@@ -3040,7 +3044,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 报单通知委托
         /// </summary>
-        /// <param name="pOrder"></param>
+        /// <param name="pOrder">报单</param>
 		public delegate void RtnOrder(ref CThostFtdcOrderField pOrder);
 
         /// <summary>
@@ -3069,7 +3073,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 期货发起查询银行余额通知委托
         /// </summary>
-        /// <param name="pNotifyQueryAccount"></param>
+        /// <param name="pNotifyQueryAccount">查询账户信息通知</param>
 		public delegate void RtnQueryBankBalanceByFuture(ref CThostFtdcNotifyQueryAccountField pNotifyQueryAccount);
 
         /// <summary>
@@ -3098,7 +3102,7 @@ namespace CTPTradeApi
         /// <summary>
         /// 银行发起冲正银行转期货通知委托
         /// </summary>
-        /// <param name="pRspRepeal"></param>
+        /// <param name="pRspRepeal">冲正响应</param>
 		public delegate void RtnRepealFromBankToFutureByBank(ref CThostFtdcRspRepealField pRspRepeal);
 
         /// <summary>
@@ -3125,8 +3129,9 @@ namespace CTPTradeApi
         RtnRepealFromBankToFutureByFuture rtnRepealFromBankToFutureByFuture;
 
         /// <summary>
-		/// 期货发起冲正银行转期货请求，银行处理完毕后报盘发回的通知委托
-		/// </summary>
+        /// 期货发起冲正银行转期货请求，银行处理完毕后报盘发回的通知委托
+        /// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
 		public delegate void RtnRepealFromBankToFutureByFuture(ref CThostFtdcRspRepealField pRspRepeal);
 
         /// <summary>
@@ -3152,8 +3157,9 @@ namespace CTPTradeApi
         RtnRepealFromBankToFutureByFutureManual rtnRepealFromBankToFutureByFutureManual;
 
         /// <summary>
-		/// 系统运行时期货端手工发起冲正银行转期货请求，银行处理完毕后报盘发回的通知委托
-		/// </summary>
+        /// 系统运行时期货端手工发起冲正银行转期货请求，银行处理完毕后报盘发回的通知委托
+        /// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
 		public delegate void RtnRepealFromBankToFutureByFutureManual(ref CThostFtdcRspRepealField pRspRepeal);
 
         /// <summary>
@@ -3180,8 +3186,9 @@ namespace CTPTradeApi
         RtnRepealFromFutureToBankByBank rtnRepealFromFutureToBankByBank;
 
         /// <summary>
-		/// 银行发起冲正期货转银行通知委托
-		/// </summary>
+        /// 银行发起冲正期货转银行通知委托
+        /// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
 		public delegate void RtnRepealFromFutureToBankByBank(ref CThostFtdcRspRepealField pRspRepeal);
 
         /// <summary>
@@ -3208,8 +3215,9 @@ namespace CTPTradeApi
         RtnRepealFromFutureToBankByFuture rtnRepealFromFutureToBankByFuture;
 
         /// <summary>
-		/// 期货发起冲正期货转银行请求，银行处理完毕后报盘发回的通知委托
-		/// </summary>
+        /// 期货发起冲正期货转银行请求，银行处理完毕后报盘发回的通知委托
+        /// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
 		public delegate void RtnRepealFromFutureToBankByFuture(ref CThostFtdcRspRepealField pRspRepeal);
 
         /// <summary>
@@ -3238,6 +3246,7 @@ namespace CTPTradeApi
         /// <summary>
 		/// 系统运行时期货端手工发起冲正期货转银行请求，银行处理完毕后报盘发回的通知委托
 		/// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
 		public delegate void RtnRepealFromFutureToBankByFutureManual(ref CThostFtdcRspRepealField pRspRepeal);
 
         /// <summary>
@@ -3264,8 +3273,9 @@ namespace CTPTradeApi
         RtnTrade rtnTrade;
 
         /// <summary>
-		/// 成交通知委托
-		/// </summary>
+        /// 成交通知委托
+        /// </summary>
+        /// <param name="pTrade">成交</param>
 		public delegate void RtnTrade(ref CThostFtdcTradeField pTrade);
 
         /// <summary>
@@ -3292,8 +3302,9 @@ namespace CTPTradeApi
         RtnTradingNotice rtnTradingNotice;
 
         /// <summary>
-		/// 交易通知委托
-		/// </summary>
+        /// 交易通知委托
+        /// </summary>
+        /// <param name="pTradingNoticeInfo">用户事件通知消息</param>
 		public delegate void RtnTradingNotice(ref CThostFtdcTradingNoticeInfoField pTradingNoticeInfo);
 
         /// <summary>

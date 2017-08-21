@@ -15,7 +15,7 @@ namespace CTPMarketAdapter.Adapter.Tests
         /// <summary>
         /// 行情适配器接口实例
         /// </summary>
-        private CTPMarketAdapter _api;
+        private MarketAdapter _api;
 
         /// <summary>
         /// 连接地址
@@ -53,7 +53,7 @@ namespace CTPMarketAdapter.Adapter.Tests
         [TestInitialize]
         public void Initialize()
         {
-            _api = new CTPMarketAdapter("");
+            _api = new MarketAdapter("");
             var connectCallback = new DataCallback((DataResult result) =>
             {
                 if (result.IsSuccess)
