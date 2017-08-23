@@ -130,20 +130,20 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="callback">登录回调</param>
         /// <param name="investorID">投资者账号</param>
         /// <param name="password">密码</param>
-        public void UserLogin(DataCallback callback, string investorID, string password)
+        public int UserLogin(DataCallback callback, string investorID, string password)
         {
             int requestID = AddCallback(callback, -3);
-            _api.UserLogin(requestID, investorID, password);
+            return _api.UserLogin(requestID, investorID, password);
         }
 
         /// <summary>
         /// 用户登出
         /// </summary>
         /// <param name="callback">登出回调</param>
-        public void UserLogout(DataCallback callback)
+        public int UserLogout(DataCallback callback)
         {
             int requestID = AddCallback(callback, -4);
-            _api.UserLogout(requestID);
+            return _api.UserLogout(requestID);
         }
 
         /// <summary>
@@ -161,10 +161,10 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="callback">更新回调</param>
         /// <param name="oldPassword">原密码</param>
         /// <param name="newPassword">新密码</param>
-        public void UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword)
+        public int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword)
         {
             int requestID = AddCallback(callback);
-            _api.UserPasswordupdate(requestID, _api.InvestorID, oldPassword, newPassword);
+            return _api.UserPasswordupdate(requestID, _api.InvestorID, oldPassword, newPassword);
         }
 
         /// <summary>
@@ -172,12 +172,12 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         /// <param name="callback">报单回调</param>
         /// <param name="parameter">报单参数</param>
-        public void InsertOrder(DataCallback<OrderInfo> callback, OrderParameter parameter)
+        public int InsertOrder(DataCallback<OrderInfo> callback, OrderParameter parameter)
         {
             int requestID = AddCallback(callback);
             CThostFtdcInputOrderField req = ConvertToInputOrderField(parameter);
             req.RequestID = requestID;
-            _api.OrderInsert(requestID, req);
+            return _api.OrderInsert(requestID, req);
         }
 
         /// <summary>
@@ -185,52 +185,52 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         /// <param name="callback">撤单回调</param>
         /// <param name="parameter">撤单参数</param>
-        public void CancelOrder(DataCallback<OrderInfo> callback, CancelOrderParameter parameter)
+        public int CancelOrder(DataCallback<OrderInfo> callback, CancelOrderParameter parameter)
         {
             int requestID = AddCallback(callback);
             CThostFtdcInputOrderActionField req = ConvertToInputOrderActionField(parameter);
             req.RequestID = requestID;
-            _api.OrderAction(requestID, req);
+            return _api.OrderAction(requestID, req);
         }
 
         /// <summary>
         /// 查询资金账户
         /// </summary>
         /// <param name="callback">查询回调</param>
-        public void QueryAccount(DataCallback<AccountInfo> callback)
+        public int QueryAccount(DataCallback<AccountInfo> callback)
         {
             int requestID = AddCallback(callback);
-            _api.QueryTradingAccount(requestID);
+            return _api.QueryTradingAccount(requestID);
         }
 
         /// <summary>
         /// 查询持仓
         /// </summary>
         /// <param name="callback">查询回调</param>
-        public void QueryPosition(DataListCallback<PositionInfo> callback)
+        public int QueryPosition(DataListCallback<PositionInfo> callback)
         {
             int requestID = AddCallback(callback);
-            _api.QueryInvestorPosition(requestID);
+            return _api.QueryInvestorPosition(requestID);
         }
 
         /// <summary>
         /// 查询当日委托
         /// </summary>
         /// <param name="callback">查询回调</param>
-        public void QueryOrder(DataListCallback<OrderInfo> callback)
+        public int QueryOrder(DataListCallback<OrderInfo> callback)
         {
             int requestID = AddCallback(callback);
-            _api.QueryOrder(requestID);
+            return _api.QueryOrder(requestID);
         }
 
         /// <summary>
         /// 查询当日成交
         /// </summary>
         /// <param name="callback">查询回调</param>
-        public void QueryTrade(DataListCallback<TradeInfo> callback)
+        public int QueryTrade(DataListCallback<TradeInfo> callback)
         {
             int requestID = AddCallback(callback);
-            _api.QueryTrade(requestID);
+            return _api.QueryTrade(requestID);
         }
 
         /// <summary>
@@ -238,12 +238,12 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         /// <param name="callback">报单回调</param>
         /// <param name="parameter">预埋单参数</param>
-        public void InsertParkedOrder(DataCallback<ParkedOrderInfo> callback, OrderParameter parameter)
+        public int InsertParkedOrder(DataCallback<ParkedOrderInfo> callback, OrderParameter parameter)
         {
             int requestID = AddCallback(callback);
             CThostFtdcParkedOrderField req = ConvertToParkedOrderField(parameter);
             req.RequestID = requestID;
-            _api.ParkedOrderInsert(requestID, req);
+            return _api.ParkedOrderInsert(requestID, req);
         }
 
         /// <summary>
@@ -251,32 +251,32 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         /// <param name="callback">撤单回调</param>
         /// <param name="parameter">预埋单撤单参数</param>
-        public void CancelParkedOrder(DataCallback<ParkedOrderInfo> callback, CancelOrderParameter parameter)
+        public int CancelParkedOrder(DataCallback<ParkedOrderInfo> callback, CancelOrderParameter parameter)
         {
             int requestID = AddCallback(callback);
             CThostFtdcParkedOrderActionField req = ConvertToParkedOrderActionField(parameter);
             req.RequestID = requestID;
-            _api.ParkedOrderAction(requestID, req);
+            return _api.ParkedOrderAction(requestID, req);
         }
 
         /// <summary>
         /// 查询预埋单
         /// </summary>
         /// <param name="callback">查询回调</param>
-        public void QueryParkedOrder(DataListCallback<ParkedOrderInfo> callback)
+        public int QueryParkedOrder(DataListCallback<ParkedOrderInfo> callback)
         {
             int requestID = AddCallback(callback);
-            _api.QueryParkedOrder(requestID);
+            return _api.QueryParkedOrder(requestID);
         }
 
         /// <summary>
         /// 查询预埋撤单
         /// </summary>
         /// <param name="callback">查询回调</param>
-        public void QueryParkedOrderAction(DataListCallback<ParkedCanelOrderInfo> callback)
+        public int QueryParkedOrderAction(DataListCallback<ParkedCanelOrderInfo> callback)
         {
             int requestID = AddCallback(callback);
-            _api.QueryParkedOrderAction(requestID);
+            return _api.QueryParkedOrderAction(requestID);
         }
 
         #endregion
