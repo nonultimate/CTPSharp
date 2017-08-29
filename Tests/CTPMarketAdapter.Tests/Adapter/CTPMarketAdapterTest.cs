@@ -30,12 +30,12 @@ namespace CTPMarketAdapter.Adapter.Tests
         /// <summary>
         /// 投资者账号
         /// </summary>
-        private string _investor = "097921";
+        private string _investor = "081081";
 
         /// <summary>
         /// 密码
         /// </summary>
-        private string _password = "520530";
+        private string _password = "test1234";
 
         /// <summary>
         /// 是否连接
@@ -81,7 +81,7 @@ namespace CTPMarketAdapter.Adapter.Tests
             });
             //连接行情服务器
             _api.Connect(connectCallback, _brokerID, _frontAddr);
-            Thread.Sleep(100);
+            Thread.Sleep(200);
         }
 
         /// <summary>

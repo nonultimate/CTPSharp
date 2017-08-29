@@ -118,7 +118,7 @@ namespace CTPMarketAdapter.Adapter
         /// <param name="password">密码</param>
         public void UserLogin(DataCallback callback, string investorID, string password)
         {
-            int requestID = AddCallback(callback);
+            int requestID = AddCallback(callback, -3);
             _api.UserLogin(requestID, investorID, password);
         }
 
@@ -128,7 +128,7 @@ namespace CTPMarketAdapter.Adapter
         /// <param name="callback">登出回调</param>
         public void UserLogout(DataCallback callback)
         {
-            int requestID = AddCallback(callback);
+            int requestID = AddCallback(callback, -4);
             _api.UserLogout(requestID);
         }
 
@@ -298,7 +298,7 @@ namespace CTPMarketAdapter.Adapter
                 _api.MaxOrderRef = pRspUserLogin.MaxOrderRef;
                 result.IsSuccess = true;
             }
-            ExecuteCallback(nRequestID, result);
+            ExecuteCallback(-3, result);
         }
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace CTPMarketAdapter.Adapter
             {
                 result.IsSuccess = true;
             }
-            ExecuteCallback(nRequestID, result);
+            ExecuteCallback(-4, result);
         }
 
         /// <summary>
