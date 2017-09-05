@@ -18,7 +18,7 @@ namespace CTPTradeAdapter.Adapter.Tests
         /// <summary>
         /// 交易接口实例
         /// </summary>
-        private TradeAdapter _api;
+        private TradeAdapter _adapter;
 
         /// <summary>
         /// 交易服务器地址
@@ -56,7 +56,7 @@ namespace CTPTradeAdapter.Adapter.Tests
         [TestInitialize()]
         public void Initialize()
         {
-            _api = new TradeAdapter("");
+            _adapter = new TradeAdapter("");
             var connectCallback = new DataCallback((DataResult result) =>
             {
                 if (result.IsSuccess)
@@ -74,7 +74,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                             Console.WriteLine("登录失败:{0}", loginResult.Error);
                         }
                     });
-                    _api.UserLogin(loginCallback, _investorID, _password);
+                    _adapter.UserLogin(loginCallback, _investorID, _password);
                     Thread.Sleep(100);
                 }
                 else
@@ -83,7 +83,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                 }
             });
             //连接行情服务器
-            _api.Connect(connectCallback, _brokerID, _frontAddr);
+            _adapter.Connect(connectCallback, _brokerID, _frontAddr);
             Thread.Sleep(100);
         }
 
@@ -106,7 +106,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                         Console.WriteLine("登出失败:{0}", logoutResult.Error);
                     }
                 });
-                _api.UserLogout(logoutCallback);
+                _adapter.UserLogout(logoutCallback);
                 Thread.Sleep(100);
             }
             else if (_isConnected)
@@ -122,7 +122,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                         Console.WriteLine("登出失败:{0}", disconnectResult.Error);
                     }
                 });
-                _api.Disconnect(disconnectCallback);
+                _adapter.Disconnect(disconnectCallback);
                 Thread.Sleep(100);
             }
         }
@@ -133,7 +133,7 @@ namespace CTPTradeAdapter.Adapter.Tests
         [TestMethod()]
         public void TestGetTradingDay()
         {
-            string result = _api.GetTradingDay();
+            string result = _adapter.GetTradingDay();
             Assert.AreEqual(8, result.Length);
             Thread.Sleep(100);
         }
@@ -153,9 +153,9 @@ namespace CTPTradeAdapter.Adapter.Tests
                 Assert.IsFalse(result.IsSuccess);
             });
             string newPassword = "asde34562";
-            _api.UpdateUserPassword(updUserPasswCallback, _password, newPassword);
+            _adapter.UpdateUserPassword(updUserPasswCallback, _password, newPassword);
             Thread.Sleep(100);
-            _api.UpdateUserPassword(updUserPasswCallback, newPassword, _password);
+            _adapter.UpdateUserPassword(updUserPasswCallback, newPassword, _password);
             Thread.Sleep(100);
         }
 
@@ -192,7 +192,7 @@ namespace CTPTradeAdapter.Adapter.Tests
             order.IsAutoSuspend = 0;
             order.UserForceClose = 0;
 
-            _api.InsertOrder(insertOrderCallback, order);
+            _adapter.InsertOrder(insertOrderCallback, order);
             Thread.Sleep(100);
         }
 
@@ -224,7 +224,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                     field.ExchangeID = orderInfo.ExchangeID;
                     field.OrderSysID = new string('\0', 21 - orderInfo.OrderSysID.Length) + orderInfo.OrderSysID;
 
-                    _api.CancelOrder(cancelOrderCallback, field);
+                    _adapter.CancelOrder(cancelOrderCallback, field);
                     Thread.Sleep(50);
                 }
                 Assert.IsTrue(result.IsSuccess);
@@ -246,7 +246,7 @@ namespace CTPTradeAdapter.Adapter.Tests
             order.IsAutoSuspend = 0;
             order.UserForceClose = 0;
 
-            _api.InsertOrder(insertOrderCallback, order);
+            _adapter.InsertOrder(insertOrderCallback, order);
             Thread.Sleep(200);
         }
 
@@ -264,7 +264,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
-            _api.QueryAccount(queryAccountCallback);
+            _adapter.QueryAccount(queryAccountCallback);
             Thread.Sleep(100);
         }
 
@@ -285,7 +285,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
-            _api.QueryPosition(queryPositionCallback);
+            _adapter.QueryPosition(queryPositionCallback);
             Thread.Sleep(100);
         }
 
@@ -306,7 +306,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
-            _api.QueryOrder(queryOrderCallback);
+            _adapter.QueryOrder(queryOrderCallback);
             Thread.Sleep(100);
         }
 
@@ -327,7 +327,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
-            _api.QueryTrade(queryPositionCallback);
+            _adapter.QueryTrade(queryPositionCallback);
             Thread.Sleep(100);
         }
 
@@ -364,7 +364,7 @@ namespace CTPTradeAdapter.Adapter.Tests
             field.IsAutoSuspend = 0;
             field.UserForceClose = 0;
 
-            _api.InsertParkedOrder(insertParkedOrderCallback, field);
+            _adapter.InsertParkedOrder(insertParkedOrderCallback, field);
             Thread.Sleep(200);
         }
 
@@ -396,7 +396,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                     fieldAction.ExchangeID = pParkedOrder.ExchangeID;
                     fieldAction.OrderSysID = new string('\0', 21 - pParkedOrder.OrderSysID.Length) + pParkedOrder.OrderSysID;
 
-                    _api.CancelParkedOrder(cancelParkedOrderCallback, fieldAction);
+                    _adapter.CancelParkedOrder(cancelParkedOrderCallback, fieldAction);
                     Thread.Sleep(50);
                 }
                 Assert.IsTrue(result.IsSuccess);
@@ -418,7 +418,7 @@ namespace CTPTradeAdapter.Adapter.Tests
             field.IsAutoSuspend = 0;
             field.UserForceClose = 0;
 
-            _api.InsertParkedOrder(insertParkedOrderCallback, field);
+            _adapter.InsertParkedOrder(insertParkedOrderCallback, field);
             Thread.Sleep(200);
         }
 
@@ -428,18 +428,15 @@ namespace CTPTradeAdapter.Adapter.Tests
         [TestMethod()]
         public void TestQueryParkedOrder()
         {
-            var queryParkedOrderCallback = new DataListCallback<ParkedOrderInfo>((DataListResult<ParkedOrderInfo> result) =>
+            var callback = new DataListCallback<ParkedOrderInfo>((DataListResult<ParkedOrderInfo> result) =>
             {
                 if (result.IsSuccess)
                 {
-                    foreach (ParkedOrderInfo parkedOrderInfo in result.Result)
-                    {
-                        Console.WriteLine("预埋单查询成功, ParkedOrderID: {0},Status: {1}", parkedOrderInfo.ParkedOrderID, parkedOrderInfo.Status);
-                    }
+                    Console.WriteLine("预埋单条数：" + result.Result.Count);
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
-            _api.QueryParkedOrder(queryParkedOrderCallback);
+            _adapter.QueryParkedOrder(callback);
             Thread.Sleep(100);
         }
 
@@ -449,19 +446,34 @@ namespace CTPTradeAdapter.Adapter.Tests
         [TestMethod()]
         public void TestQueryParkedOrderAction()
         {
-            var queryParkedOrderActionCallback = new DataListCallback<ParkedCanelOrderInfo>((DataListResult<ParkedCanelOrderInfo> result) =>
+            var callback = new DataListCallback<ParkedCanelOrderInfo>((DataListResult<ParkedCanelOrderInfo> result) =>
             {
                 if (result.IsSuccess)
                 {
-                    foreach (ParkedCanelOrderInfo parkedCanelOrderInfo in result.Result)
-                    {
-                        Console.WriteLine("预埋撤单查询成功, parkedOrderActionID: {0},Status: {1}", parkedCanelOrderInfo.ParkedOrderActionID, parkedCanelOrderInfo.Status);
-                    }
+                    Console.WriteLine("预埋撤单条数：" + result.Result.Count);
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
-            _api.QueryParkedOrderAction(queryParkedOrderActionCallback);
+            _adapter.QueryParkedOrderAction(callback);
             Thread.Sleep(100);
+        }
+
+        /// <summary>
+        /// 测试查询合约列表
+        /// </summary>
+        [TestMethod()]
+        public void TestQueryInstrument()
+        {
+            var callback = new DataListCallback<InstrumentInfo>((DataListResult<InstrumentInfo> result) => 
+            {
+                if (result.IsSuccess)
+                {
+                    Console.WriteLine("合约条数：" + result.Result.Count);
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            _adapter.QueryInstrument(callback, null);
+            Thread.Sleep(500);
         }
     }
 }

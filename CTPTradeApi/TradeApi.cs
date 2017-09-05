@@ -916,7 +916,7 @@ namespace CTPTradeApi
         /// <param name="requestID">请求编号</param>
         /// <param name="instrumentID">合约代码</param>
         /// <returns></returns>
-        public int QryDepthMarketData(int requestID, string instrumentID)
+        public int QueryMarketData(int requestID, string instrumentID)
         {
             return reqQryDepthMarketData(requestID, instrumentID);
         }
@@ -969,7 +969,7 @@ namespace CTPTradeApi
         /// <param name="requestID">请求编号</param>
         /// <param name="instrumentID">合约代码:不填-查所有</param>
         /// <returns></returns>
-        public int QueryInvestorPositionCombinaDetail(int requestID, string instrumentID = null)
+        public int QueryInvestorPositionCombineDetail(int requestID, string instrumentID = null)
         {
             return reqQryInvestorPositionCombineDetail(requestID, this.BrokerID, this.InvestorID, instrumentID);
         }

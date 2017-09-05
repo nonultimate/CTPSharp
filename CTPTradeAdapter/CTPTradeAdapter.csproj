@@ -79,13 +79,16 @@
     <Compile Include="Model\Enum\DirectionType.cs" />
     <Compile Include="Model\Enum\ForceCloseReasonType.cs" />
     <Compile Include="Model\Enum\HedgeFlag.cs" />
+    <Compile Include="Model\Enum\InstrumentLifePhaseType.cs" />
     <Compile Include="Model\Enum\OrderStatusType.cs" />
     <Compile Include="Model\Enum\PositionDateType.cs" />
     <Compile Include="Model\Enum\PositionDirectionType.cs" />
     <Compile Include="Model\Enum\PriceSourceType.cs" />
+    <Compile Include="Model\Enum\InstrumentProductClassType.cs" />
     <Compile Include="Model\Enum\TradeType.cs" />
     <Compile Include="Model\Input\CancelOrderParameter.cs" />
     <Compile Include="Model\Enum\OpenCloseFlag.cs" />
+    <Compile Include="Model\InstrumentInfo.cs" />
     <Compile Include="Model\OrderInfo.cs" />
     <Compile Include="Model\Input\OrderParameter.cs" />
     <Compile Include="Model\Enum\OrderPriceType.cs" />

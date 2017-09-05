@@ -55,22 +55,23 @@ namespace CTPTradeAdapter.Adapter
         {
             _api = new TradeApi("", "", flowPath);
             _api.OnRspError += OnRspError;
-            _api.OnFrontConnect += OnFrontConnect;
-            _api.OnDisconnected += OnDisConnected;
+            _api.OnFrontConnect += OnConnected;
+            _api.OnDisconnected += OnDisconnected;
             _api.OnRspUserLogin += OnRspUserLogin;
             _api.OnRspUserLogout += OnRspUserLogout;
             _api.OnRtnOrder += OnRtnOrder;
             _api.OnRspOrderInsert += OnRspOrderInsert;
             _api.OnRspOrderAction += OnRspOrderAction;
-            _api.OnRspQryOrder += OnRspQryOrder;
-            _api.OnRspQryTrade += OnRspQryTrade;
-            _api.OnRspQryTradingAccount += OnRspQryTradingAccount;
-            _api.OnRspQryInvestorPosition += OnRspQryInvestorPosition;
+            _api.OnRspQryOrder += OnRspQueryOrder;
+            _api.OnRspQryTrade += OnRspQueryTrade;
+            _api.OnRspQryTradingAccount += OnRspQueryTradingAccount;
+            _api.OnRspQryInvestorPosition += OnRspQueryInvestorPosition;
             _api.OnRspParkedOrderInsert += OnRspParkedOrderInsert;
             _api.OnRspParkedOrderAction += OnRspParkedOrderAction;
-            _api.OnRspQryParkedOrder += OnRspQryParkedOrder;
-            _api.OnRspQryParkedOrderAction += OnRspQryParkedOrderAction;
+            _api.OnRspQryParkedOrder += OnRspQueryParkedOrder;
+            _api.OnRspQryParkedOrderAction += OnRspQueryParkedOrderAction;
             _api.OnRspUserPasswordUpdate += OnRspUserPasswordUpdate;
+            _api.OnRspQryInstrument += OnRspQueryInstrument;
         }
 
         #endregion
@@ -279,6 +280,18 @@ namespace CTPTradeAdapter.Adapter
             return _api.QueryParkedOrderAction(requestID);
         }
 
+        /// <summary>
+        /// 查询合约列表
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <param name="instrumentID">指定合约</param>
+        /// <returns></returns>
+        public int QueryInstrument(DataListCallback<InstrumentInfo> callback, string instrumentID)
+        {
+            int requestID = AddCallback(callback);
+            return _api.QueryInstrument(requestID, instrumentID);
+        }
+
         #endregion
 
         #region 回调方法
@@ -442,7 +455,7 @@ namespace CTPTradeAdapter.Adapter
         /// <summary>
         /// 连接成功回调
         /// </summary>
-        private void OnFrontConnect()
+        private void OnConnected()
         {
             ExecuteCallback(-1, new DataResult()
             {
@@ -455,7 +468,7 @@ namespace CTPTradeAdapter.Adapter
         /// 断开连接回调
         /// </summary>
         /// <param name="reason">原因</param>
-        private void OnDisConnected(int reason)
+        private void OnDisconnected(int reason)
         {
             ExecuteCallback(-2, new DataResult()
             {
@@ -600,7 +613,7 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="pRspInfo">错误信息</param>
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
-        private void OnRspQryOrder(ref CThostFtdcOrderField pOrder, ref CThostFtdcRspInfoField pRspInfo,
+        private void OnRspQueryOrder(ref CThostFtdcOrderField pOrder, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast)
         {
             DataListResult<OrderInfo> result;
@@ -636,7 +649,7 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="pRspInfo">错误信息</param>
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
-        private void OnRspQryTrade(ref CThostFtdcTradeField pTrade, ref CThostFtdcRspInfoField pRspInfo,
+        private void OnRspQueryTrade(ref CThostFtdcTradeField pTrade, ref CThostFtdcRspInfoField pRspInfo,
             int nRequestID, byte bIsLast)
         {
             DataListResult<TradeInfo> result;
@@ -672,7 +685,7 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="pRspInfo">错误信息</param>
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
-        private void OnRspQryTradingAccount(ref CThostFtdcTradingAccountField pTradingAccount,
+        private void OnRspQueryTradingAccount(ref CThostFtdcTradingAccountField pTradingAccount,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
             DataResult<AccountInfo> result = new DataResult<AccountInfo>();
@@ -695,7 +708,7 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="pRspInfo">错误信息</param>
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
-        private void OnRspQryInvestorPosition(ref CThostFtdcInvestorPositionField pInvestorPosition,
+        private void OnRspQueryInvestorPosition(ref CThostFtdcInvestorPositionField pInvestorPosition,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
             DataListResult<PositionInfo> result;
@@ -767,7 +780,7 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="pRspInfo">错误信息</param>
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
-        private void OnRspQryParkedOrder(ref CThostFtdcParkedOrderField pParkedOrder,
+        private void OnRspQueryParkedOrder(ref CThostFtdcParkedOrderField pParkedOrder,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
             DataListResult<ParkedOrderInfo> result;
@@ -803,7 +816,7 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="pRspInfo">错误信息</param>
         /// <param name="nRequestID">请求编号</param>
         /// <param name="bIsLast">是否为最后一条数据</param>
-        private void OnRspQryParkedOrderAction(ref CThostFtdcParkedOrderActionField pParkedOrderAction,
+        private void OnRspQueryParkedOrderAction(ref CThostFtdcParkedOrderActionField pParkedOrderAction,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
             DataListResult<ParkedCanelOrderInfo> result;
@@ -828,6 +841,42 @@ namespace CTPTradeAdapter.Adapter
                 {
                     result.IsSuccess = true;
                     ExecuteCallback<ParkedCanelOrderInfo>(nRequestID, result);
+                }
+            }
+        }
+        
+        /// <summary>
+        /// 查询合约列表回调
+        /// </summary>
+        /// <param name="pInstrument">合约信息</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnRspQueryInstrument(ref CThostFtdcInstrumentField pInstrument,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
+        {
+            DataListResult<InstrumentInfo> result;
+            if (_dataDict.ContainsKey(nRequestID))
+            {
+                result = (DataListResult<InstrumentInfo>)_dataDict[nRequestID];
+            }
+            else
+            {
+                result = new DataListResult<InstrumentInfo>();
+                _dataDict.TryAdd(nRequestID, result);
+            }
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError<InstrumentInfo>(result, pRspInfo);
+            }
+            else
+            {
+                InstrumentInfo instrument = ConvertToInstrumentInfo(pInstrument);
+                result.Result.Add(instrument);
+                if (bIsLast == 1)
+                {
+                    result.IsSuccess = true;
+                    ExecuteCallback<InstrumentInfo>(nRequestID, result);
                 }
             }
         }
@@ -1163,6 +1212,26 @@ namespace CTPTradeAdapter.Adapter
             return (PositionDateType)Enum.Parse(typeof(PositionDateType), positionDate.ToString());
         }
 
+        /// <summary>
+        /// 合约产品类型转换
+        /// </summary>
+        /// <param name="productClass">合约产品类型</param>
+        /// <returns></returns>
+        private InstrumentProductClassType ConvertToInstrumentProductClass(TThostFtdcProductClassType productClass)
+        {
+            return (InstrumentProductClassType)Enum.Parse(typeof(InstrumentProductClassType), productClass.ToString());
+        }
+
+        /// <summary>
+        /// 合约生命周期状态类型转换
+        /// </summary>
+        /// <param name="lifePhase"></param>
+        /// <returns></returns>
+        private InstrumentLifePhaseType ConvertToInstrumentLifePhase(TThostFtdcInstLifePhaseType lifePhase)
+        {
+            return (InstrumentLifePhaseType)Enum.Parse(typeof(InstrumentLifePhaseType), lifePhase.ToString());
+        }
+
         #endregion
 
         #region 结构体转通用实体
@@ -1328,6 +1397,38 @@ namespace CTPTradeAdapter.Adapter
                 OrderSysID = pParkedOrderAction.OrderSysID,
                 ParkedOrderActionID = pParkedOrderAction.ParkedOrderActionID,
                 Status = ConvertToParkedOrderStatus(pParkedOrderAction.Status),
+            };
+
+            return result;
+        }
+
+        /// <summary>
+        /// 合约类型转换
+        /// </summary>
+        /// <param name="pInstrument"></param>
+        /// <returns></returns>
+        private InstrumentInfo ConvertToInstrumentInfo(CThostFtdcInstrumentField pInstrument)
+        {
+            InstrumentInfo result = new InstrumentInfo()
+            {
+                InstrumentID = pInstrument.InstrumentID,
+                InstrumentName = pInstrument.InstrumentName,
+                ExchangeID = pInstrument.ExchangeID,
+                ProductID = pInstrument.ProductID,
+                ProductType = ConvertToInstrumentProductClass(pInstrument.ProductClass),
+                MaxMarketOrderVolume = pInstrument.MaxMarketOrderVolume,
+                MinMarketOrderVolume = pInstrument.MinMarketOrderVolume,
+                MaxLimitOrderVolume = pInstrument.MaxLimitOrderVolume,
+                MinLimitOrderVolume = pInstrument.MinLimitOrderVolume,
+                PriceTick = (decimal)pInstrument.PriceTick,
+                CreateDate = pInstrument.CreateDate,
+                OpenDate = pInstrument.OpenDate,
+                ExpireDate = pInstrument.ExpireDate,
+                StartDelivDate = pInstrument.StartDelivDate,
+                EndDelivDate = pInstrument.EndDelivDate,
+                LifePhaseType = ConvertToInstrumentLifePhase(pInstrument.InstLifePhase),
+                LongMarginRatio = (decimal)pInstrument.LongMarginRatio,
+                ShortMarginRatio = (decimal)pInstrument.ShortMarginRatio,
             };
 
             return result;

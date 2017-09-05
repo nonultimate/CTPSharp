@@ -616,7 +616,7 @@ namespace CTPTradeApi.Tests
                 }
                 Assert.IsTrue(pRspInfo.ErrorID == 0);
             });
-            _api.QryDepthMarketData(1, "bu1712");
+            _api.QueryMarketData(1, "bu1712");
             Thread.Sleep(200);
         }
 
@@ -731,7 +731,7 @@ namespace CTPTradeApi.Tests
                 }
                 Assert.IsTrue(pRspInfo.ErrorID == 0);
             });
-            _api.QueryInvestorPositionCombinaDetail(1);
+            _api.QueryInvestorPositionCombineDetail(1);
             Thread.Sleep(200);
         }
 

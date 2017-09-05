@@ -122,6 +122,14 @@ namespace CTPTradeAdapter.Interface
         int QueryParkedOrderAction(DataListCallback<ParkedCanelOrderInfo> callback);
 
         /// <summary>
+        /// 查询合约列表
+        /// </summary>
+        /// <param name="callback"></param>
+        /// <param name="instrumentID">指定合约，null查询所有</param>
+        /// <returns></returns>
+        int QueryInstrument(DataListCallback<InstrumentInfo> callback, string instrumentID);
+
+        /// <summary>
         /// 心跳超时警告
         /// </summary>
         event TradeApi.HeartBeatWarning OnHeartBeatWarning;
