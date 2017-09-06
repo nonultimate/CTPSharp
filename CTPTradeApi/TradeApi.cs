@@ -76,7 +76,7 @@ namespace CTPTradeApi
         delegate void DelegateDisconnect();
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQryExchange(int requestID, string exchangeID);
+        delegate int DelegateReqQueryExchange(int requestID, string exchangeID);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqAccount(int requestID, string brokerID, string investorID);
@@ -99,13 +99,13 @@ namespace CTPTradeApi
             ref CThostFtdcQueryMaxOrderVolumeField pMaxOrderVolume);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQryOrder(int requestID, ref CThostFtdcQryOrderField pQryOrder);
+        delegate int DelegateReqQueryOrder(int requestID, ref CThostFtdcQryOrderField pQryOrder);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQryTrade(int requestID, ref CThostFtdcQryTradeField pQryTrade);
+        delegate int DelegateReqQueryTrade(int requestID, ref CThostFtdcQryTradeField pQryTrade);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQryInstrumentMarginRate(int requestID, string brokerID, string investorID,
+        delegate int DelegateReqQueryInstrumentMarginRate(int requestID, string brokerID, string investorID,
             string instrumentID, TThostFtdcHedgeFlagType hedgeFlag);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -138,32 +138,32 @@ namespace CTPTradeApi
         delegate void DelegateRegRspOrderInsert(RspOrderInsert cb);
         delegate void DelegateRegRspParkedOrderAction(RspParkedOrderAction cb);
         delegate void DelegateRegRspParkedOrderInsert(RspParkedOrderInsert cb);
-        delegate void DelegateRegRspQryBrokerTradingAlgos(RspQryBrokerTradingAlgos cb);
-        delegate void DelegateRegRspQryBrokerTradingParams(RspQryBrokerTradingParams cb);
-        delegate void DelegateRegRspQryCFMMCTradingAccountKey(RspQryCFMMCTradingAccountKey cb);
-        delegate void DelegateRegRspQryContractBank(RspQryContractBank cb);
-        delegate void DelegateRegRspQryDepthMarketData(RspQryDepthMarketData cb);
-        delegate void DelegateRegRspQryExchange(RspQryExchange cb);
-        delegate void DelegateRegRspQryInstrument(RspQryInstrument cb);
-        delegate void DelegateRegRspQryInstrumentCommissionRate(RspQryInstrumentCommissionRate cb);
-        delegate void DelegateRegRspQryInstrumentMarginRate(RspQryInstrumentMarginRate cb);
-        delegate void DelegateRegRspQryInvestor(RspQryInvestor cb);
-        delegate void DelegateRegRspQryInvestorPosition(RspQryInvestorPosition cb);
-        delegate void DelegateRegRspQryInvestorPositionCombineDetail(RspQryInvestorPositionCombineDetail cb);
-        delegate void DelegateRegRspQryInvestorPositionDetail(RspQryInvestorPositionDetail cb);
-        delegate void DelegateRegRspQryNotice(RspQryNotice cb);
-        delegate void DelegateRegRspQryOrder(RspQryOrder cb);
-        delegate void DelegateRegRspQryParkedOrder(RspQryParkedOrder cb);
-        delegate void DelegateRegRspQryParkedOrderAction(RspQryParkedOrderAction cb);
-        delegate void DelegateRegRspQrySettlementInfo(RspQrySettlementInfo cb);
-        delegate void DelegateRegRspQrySettlementInfoConfirm(RspQrySettlementInfoConfirm cb);
-        delegate void DelegateRegRspQryTrade(RspQryTrade cb);
-        delegate void DelegateRegRspQryTradingAccount(RspQryTradingAccount cb);
-        delegate void DelegateRegRspQryTradingCode(RspQryTradingCode cb);
-        delegate void DelegateRegRspQryTradingNotice(RspQryTradingNotice cb);
-        delegate void DelegateRegRspQryTransferBank(RspQryTransferBank cb);
-        delegate void DelegateRegRspQryTransferSerial(RspQryTransferSerial cb);
-        delegate void DelegateRegRspQryAccountregister(RspQryAccountregister cb);
+        delegate void DelegateRegRspQueryBrokerTradingAlgos(RspQryBrokerTradingAlgos cb);
+        delegate void DelegateRegRspQueryBrokerTradingParams(RspQryBrokerTradingParams cb);
+        delegate void DelegateRegRspQueryCFMMCTradingAccountKey(RspQryCFMMCTradingAccountKey cb);
+        delegate void DelegateRegRspQueryContractBank(RspQryContractBank cb);
+        delegate void DelegateRegRspQueryDepthMarketData(RspQryDepthMarketData cb);
+        delegate void DelegateRegRspQueryExchange(RspQryExchange cb);
+        delegate void DelegateRegRspQueryInstrument(RspQryInstrument cb);
+        delegate void DelegateRegRspQueryInstrumentCommissionRate(RspQryInstrumentCommissionRate cb);
+        delegate void DelegateRegRspQueryInstrumentMarginRate(RspQryInstrumentMarginRate cb);
+        delegate void DelegateRegRspQueryInvestor(RspQryInvestor cb);
+        delegate void DelegateRegRspQueryInvestorPosition(RspQryInvestorPosition cb);
+        delegate void DelegateRegRspQueryInvestorPositionCombineDetail(RspQryInvestorPositionCombineDetail cb);
+        delegate void DelegateRegRspQueryInvestorPositionDetail(RspQryInvestorPositionDetail cb);
+        delegate void DelegateRegRspQueryNotice(RspQryNotice cb);
+        delegate void DelegateRegRspQueryOrder(RspQryOrder cb);
+        delegate void DelegateRegRspQueryParkedOrder(RspQryParkedOrder cb);
+        delegate void DelegateRegRspQueryParkedOrderAction(RspQryParkedOrderAction cb);
+        delegate void DelegateRegRspQuerySettlementInfo(RspQrySettlementInfo cb);
+        delegate void DelegateRegRspQuerySettlementInfoConfirm(RspQrySettlementInfoConfirm cb);
+        delegate void DelegateRegRspQueryTrade(RspQryTrade cb);
+        delegate void DelegateRegRspQueryTradingAccount(RspQryTradingAccount cb);
+        delegate void DelegateRegRspQueryTradingCode(RspQryTradingCode cb);
+        delegate void DelegateRegRspQueryTradingNotice(RspQryTradingNotice cb);
+        delegate void DelegateRegRspQueryTransferBank(RspQryTransferBank cb);
+        delegate void DelegateRegRspQueryTransferSerial(RspQryTransferSerial cb);
+        delegate void DelegateRegRspQueryAccountregister(RspQryAccountregister cb);
         delegate void DelegateRegRspQueryBankAccountMoneyByFuture(RspQueryBankAccountMoneyByFuture cb);
         delegate void DelegateRegRspQueryMaxOrderVolume(RspQueryMaxOrderVolume cb);
         delegate void DelegateRegRspRemoveParkedOrder(RspRemoveParkedOrder cb);
@@ -202,36 +202,36 @@ namespace CTPTradeApi
         DelegateReqOrderAction reqOrderAction;
         DelegateReqQueryMaxOrderVolume reqQueryMaxOrderVolume;
         DelegateReqAccount reqSettlementInfoConfirm;
-        DelegateReqQryOrder reqQryOrder;
-        DelegateReqQryTrade reqQryTrade;
-        DelegateReqUser reqQryInvestorPosition;
-        DelegateReqAccount reqQryTradingAccount;
-        DelegateReqAccount reqQryInvestor;
-        DelegateReqUserUpdate reqQryTradingCode;
-        DelegateReqQryInstrumentMarginRate reqQryInstrumentMarginRate;
-        DelegateReqUser reqQryInstrumentCommissionRate;
-        DelegateReqQryExchange reqQryExchange;
-        DelegateReqQryExchange reqQryInstrument;
-        DelegateReqQryExchange reqQryDepthMarketData;
-        DelegateReqUser reqQrySettlementInfo;
-        DelegateReqUser reqQryInvestorPositionDetail;
-        DelegateReqQryExchange reqQryNotice;
-        DelegateReqAccount reqQrySettlementInfoConfirm;
-        DelegateReqUser reqQryInvestorPositionCombineDetail;
-        DelegateReqAccount reqQryCFMMCTradingAccountKey;
-        DelegateReqAccount reqQryTradingNotice;
-        DelegateReqAccount reqQryBrokerTradingParams;
-        DelegateReqUser reqQryBrokerTradingAlgos;
+        DelegateReqQueryOrder reqQueryOrder;
+        DelegateReqQueryTrade reqQueryTrade;
+        DelegateReqUser reqQueryInvestorPosition;
+        DelegateReqAccount reqQueryTradingAccount;
+        DelegateReqAccount reqQueryInvestor;
+        DelegateReqUserUpdate reqQueryTradingCode;
+        DelegateReqQueryInstrumentMarginRate reqQueryInstrumentMarginRate;
+        DelegateReqUser reqQueryInstrumentCommissionRate;
+        DelegateReqQueryExchange reqQueryExchange;
+        DelegateReqQueryExchange reqQueryInstrument;
+        DelegateReqQueryExchange reqQueryDepthMarketData;
+        DelegateReqUser reqQuerySettlementInfo;
+        DelegateReqUser reqQueryInvestorPositionDetail;
+        DelegateReqQueryExchange reqQueryNotice;
+        DelegateReqAccount reqQuerySettlementInfoConfirm;
+        DelegateReqUser reqQueryInvestorPositionCombineDetail;
+        DelegateReqAccount reqQueryCFMMCTradingAccountKey;
+        DelegateReqAccount reqQueryTradingNotice;
+        DelegateReqAccount reqQueryBrokerTradingParams;
+        DelegateReqUser reqQueryBrokerTradingAlgos;
         DelegateReqParkedOrderInsert reqParkedOrderInsert;
         DelegateReqParkedOrderAction reqParkedOrderAction;
         DelegateReqUser reqRemoveParkedOrder;
         DelegateReqUser reqRemoveParkedOrderAction;
-        DelegateReqAccount reqQryTransferBank;
-        DelegateReqUser reqQryTransferSerial;
-        DelegateReqUser reqQryAccountregister;
-        DelegateReqUser reqQryContractBank;
-        DelegateReqUserUpdate reqQryParkedOrder;
-        DelegateReqUserUpdate reqQryParkedOrderAction;
+        DelegateReqAccount reqQueryTransferBank;
+        DelegateReqUser reqQueryTransferSerial;
+        DelegateReqUser reqQueryAccountregister;
+        DelegateReqUser reqQueryContractBank;
+        DelegateReqUserUpdate reqQueryParkedOrder;
+        DelegateReqUserUpdate reqQueryParkedOrderAction;
         DelegateReqBankAndFuture reqFromBankToFutureByFuture;
         DelegateReqBankAndFuture reqFromFutureToBankByFuture;
         DelegateReqQueryBankAccountMoney reqQueryBankAccountMoneyByFuture;
@@ -253,32 +253,32 @@ namespace CTPTradeApi
         DelegateRegRspOrderInsert regRspOrderInsert;
         DelegateRegRspParkedOrderAction regRspParkedOrderAction;
         DelegateRegRspParkedOrderInsert regRspParkedOrderInsert;
-        DelegateRegRspQryBrokerTradingAlgos regRspQryBrokerTradingAlgos;
-        DelegateRegRspQryBrokerTradingParams regRspQryBrokerTradingParams;
-        DelegateRegRspQryCFMMCTradingAccountKey regRspQryCFMMCTradingAccountKey;
-        DelegateRegRspQryContractBank regRspQryContractBank;
-        DelegateRegRspQryDepthMarketData regRspQryDepthMarketData;
-        DelegateRegRspQryExchange regRspQryExchange;
-        DelegateRegRspQryInstrument regRspQryInstrument;
-        DelegateRegRspQryInstrumentCommissionRate regRspQryInstrumentCommissionRate;
-        DelegateRegRspQryInstrumentMarginRate regRspQryInstrumentMarginRate;
-        DelegateRegRspQryInvestor regRspQryInvestor;
-        DelegateRegRspQryInvestorPosition regRspQryInvestorPosition;
-        DelegateRegRspQryInvestorPositionCombineDetail regRspQryInvestorPositionCombineDetail;
-        DelegateRegRspQryInvestorPositionDetail regRspQryInvestorPositionDetail;
-        DelegateRegRspQryNotice regRspQryNotice;
-        DelegateRegRspQryOrder regRspQryOrder;
-        DelegateRegRspQryParkedOrder regRspQryParkedOrder;
-        DelegateRegRspQryParkedOrderAction regRspQryParkedOrderAction;
-        DelegateRegRspQrySettlementInfo regRspQrySettlementInfo;
-        DelegateRegRspQrySettlementInfoConfirm regRspQrySettlementInfoConfirm;
-        DelegateRegRspQryTrade regRspQryTrade;
-        DelegateRegRspQryTradingAccount regRspQryTradingAccount;
-        DelegateRegRspQryTradingCode regRspQryTradingCode;
-        DelegateRegRspQryTradingNotice regRspQryTradingNotice;
-        DelegateRegRspQryTransferBank regRspQryTransferBank;
-        DelegateRegRspQryTransferSerial regRspQryTransferSerial;
-        DelegateRegRspQryAccountregister regRspQryAccountregister;
+        DelegateRegRspQueryBrokerTradingAlgos regRspQueryBrokerTradingAlgos;
+        DelegateRegRspQueryBrokerTradingParams regRspQueryBrokerTradingParams;
+        DelegateRegRspQueryCFMMCTradingAccountKey regRspQueryCFMMCTradingAccountKey;
+        DelegateRegRspQueryContractBank regRspQueryContractBank;
+        DelegateRegRspQueryDepthMarketData regRspQueryDepthMarketData;
+        DelegateRegRspQueryExchange regRspQueryExchange;
+        DelegateRegRspQueryInstrument regRspQueryInstrument;
+        DelegateRegRspQueryInstrumentCommissionRate regRspQueryInstrumentCommissionRate;
+        DelegateRegRspQueryInstrumentMarginRate regRspQueryInstrumentMarginRate;
+        DelegateRegRspQueryInvestor regRspQueryInvestor;
+        DelegateRegRspQueryInvestorPosition regRspQueryInvestorPosition;
+        DelegateRegRspQueryInvestorPositionCombineDetail regRspQueryInvestorPositionCombineDetail;
+        DelegateRegRspQueryInvestorPositionDetail regRspQueryInvestorPositionDetail;
+        DelegateRegRspQueryNotice regRspQueryNotice;
+        DelegateRegRspQueryOrder regRspQueryOrder;
+        DelegateRegRspQueryParkedOrder regRspQueryParkedOrder;
+        DelegateRegRspQueryParkedOrderAction regRspQueryParkedOrderAction;
+        DelegateRegRspQuerySettlementInfo regRspQuerySettlementInfo;
+        DelegateRegRspQuerySettlementInfoConfirm regRspQuerySettlementInfoConfirm;
+        DelegateRegRspQueryTrade regRspQueryTrade;
+        DelegateRegRspQueryTradingAccount regRspQueryTradingAccount;
+        DelegateRegRspQueryTradingCode regRspQueryTradingCode;
+        DelegateRegRspQueryTradingNotice regRspQueryTradingNotice;
+        DelegateRegRspQueryTransferBank regRspQueryTransferBank;
+        DelegateRegRspQueryTransferSerial regRspQueryTransferSerial;
+        DelegateRegRspQueryAccountregister regRspQueryAccountregister;
         DelegateRegRspQueryBankAccountMoneyByFuture regRspQueryBankAccountMoneyByFuture;
         DelegateRegRspQueryMaxOrderVolume regRspQueryMaxOrderVolume;
         DelegateRegRspRemoveParkedOrder regRspRemoveParkedOrder;
@@ -377,36 +377,36 @@ namespace CTPTradeApi
                 reqOrderAction = GetDelegate<DelegateReqOrderAction>("?ReqOrderAction");
                 reqQueryMaxOrderVolume = GetDelegate<DelegateReqQueryMaxOrderVolume>("?ReqQueryMaxOrderVolume");
                 reqSettlementInfoConfirm = GetDelegate<DelegateReqAccount>("?ReqSettlementInfoConfirm");
-                reqQryOrder = GetDelegate<DelegateReqQryOrder>("?ReqQryOrder");
-                reqQryTrade = GetDelegate<DelegateReqQryTrade>("?ReqQryTrade");
-                reqQryInvestorPosition = GetDelegate<DelegateReqUser>("?ReqQryInvestorPosition");
-                reqQryTradingAccount = GetDelegate<DelegateReqAccount>("?ReqQryTradingAccount");
-                reqQryInvestor = GetDelegate<DelegateReqAccount>("?ReqQryInvestor");
-                reqQryTradingCode = GetDelegate<DelegateReqUserUpdate>("?ReqQryTradingCode");
-                reqQryInstrumentMarginRate = GetDelegate<DelegateReqQryInstrumentMarginRate>("?ReqQryInstrumentMarginRate");
-                reqQryInstrumentCommissionRate = GetDelegate<DelegateReqUser>("?ReqQryInstrumentCommissionRate");
-                reqQryExchange = GetDelegate<DelegateReqQryExchange>("?ReqQryExchange");
-                reqQryInstrument = GetDelegate<DelegateReqQryExchange>("?ReqQryInstrument");
-                reqQryDepthMarketData = GetDelegate<DelegateReqQryExchange>("?ReqQryDepthMarketData");
-                reqQrySettlementInfo = GetDelegate<DelegateReqUser>("?ReqQrySettlementInfo");
-                reqQryInvestorPositionDetail = GetDelegate<DelegateReqUser>("?ReqQryInvestorPositionDetail");
-                reqQryNotice = GetDelegate<DelegateReqQryExchange>("?ReqQryNotice");
-                reqQrySettlementInfoConfirm = GetDelegate<DelegateReqAccount>("?ReqQrySettlementInfoConfirm");
-                reqQryInvestorPositionCombineDetail = GetDelegate<DelegateReqUser>("?ReqQryInvestorPositionCombineDetail");
-                reqQryCFMMCTradingAccountKey = GetDelegate<DelegateReqAccount>("?ReqQryCFMMCTradingAccountKey");
-                reqQryTradingNotice = GetDelegate<DelegateReqAccount>("?ReqQryTradingNotice");
-                reqQryBrokerTradingParams = GetDelegate<DelegateReqAccount>("?ReqQryBrokerTradingParams");
-                reqQryBrokerTradingAlgos = GetDelegate<DelegateReqUser>("?ReqQryBrokerTradingAlgos");
+                reqQueryOrder = GetDelegate<DelegateReqQueryOrder>("?ReqQryOrder");
+                reqQueryTrade = GetDelegate<DelegateReqQueryTrade>("?ReqQryTrade");
+                reqQueryInvestorPosition = GetDelegate<DelegateReqUser>("?ReqQryInvestorPosition");
+                reqQueryTradingAccount = GetDelegate<DelegateReqAccount>("?ReqQryTradingAccount");
+                reqQueryInvestor = GetDelegate<DelegateReqAccount>("?ReqQryInvestor");
+                reqQueryTradingCode = GetDelegate<DelegateReqUserUpdate>("?ReqQryTradingCode");
+                reqQueryInstrumentMarginRate = GetDelegate<DelegateReqQueryInstrumentMarginRate>("?ReqQryInstrumentMarginRate");
+                reqQueryInstrumentCommissionRate = GetDelegate<DelegateReqUser>("?ReqQryInstrumentCommissionRate");
+                reqQueryExchange = GetDelegate<DelegateReqQueryExchange>("?ReqQryExchange");
+                reqQueryInstrument = GetDelegate<DelegateReqQueryExchange>("?ReqQryInstrument");
+                reqQueryDepthMarketData = GetDelegate<DelegateReqQueryExchange>("?ReqQryDepthMarketData");
+                reqQuerySettlementInfo = GetDelegate<DelegateReqUser>("?ReqQrySettlementInfo");
+                reqQueryInvestorPositionDetail = GetDelegate<DelegateReqUser>("?ReqQryInvestorPositionDetail");
+                reqQueryNotice = GetDelegate<DelegateReqQueryExchange>("?ReqQryNotice");
+                reqQuerySettlementInfoConfirm = GetDelegate<DelegateReqAccount>("?ReqQrySettlementInfoConfirm");
+                reqQueryInvestorPositionCombineDetail = GetDelegate<DelegateReqUser>("?ReqQryInvestorPositionCombineDetail");
+                reqQueryCFMMCTradingAccountKey = GetDelegate<DelegateReqAccount>("?ReqQryCFMMCTradingAccountKey");
+                reqQueryTradingNotice = GetDelegate<DelegateReqAccount>("?ReqQryTradingNotice");
+                reqQueryBrokerTradingParams = GetDelegate<DelegateReqAccount>("?ReqQryBrokerTradingParams");
+                reqQueryBrokerTradingAlgos = GetDelegate<DelegateReqUser>("?ReqQryBrokerTradingAlgos");
                 reqParkedOrderInsert = GetDelegate<DelegateReqParkedOrderInsert>("?ReqParkedOrderInsert");
                 reqParkedOrderAction = GetDelegate<DelegateReqParkedOrderAction>("?ReqParkedOrderAction");
                 reqRemoveParkedOrder = GetDelegate<DelegateReqUser>("?ReqRemoveParkedOrder");
                 reqRemoveParkedOrderAction = GetDelegate<DelegateReqUser>("?ReqRemoveParkedOrderAction");
-                reqQryTransferBank = GetDelegate<DelegateReqAccount>("?ReqQryTransferBank");
-                reqQryTransferSerial = GetDelegate<DelegateReqUser>("?ReqQryTransferSerial");
-                reqQryAccountregister = GetDelegate<DelegateReqUser>("?ReqQryAccountregister");
-                reqQryContractBank = GetDelegate<DelegateReqUser>("?ReqQryContractBank");
-                reqQryParkedOrder = GetDelegate<DelegateReqUserUpdate>("?ReqQryParkedOrder");
-                reqQryParkedOrderAction = GetDelegate<DelegateReqUserUpdate>("?ReqQryParkedOrderAction");
+                reqQueryTransferBank = GetDelegate<DelegateReqAccount>("?ReqQryTransferBank");
+                reqQueryTransferSerial = GetDelegate<DelegateReqUser>("?ReqQryTransferSerial");
+                reqQueryAccountregister = GetDelegate<DelegateReqUser>("?ReqQryAccountregister");
+                reqQueryContractBank = GetDelegate<DelegateReqUser>("?ReqQryContractBank");
+                reqQueryParkedOrder = GetDelegate<DelegateReqUserUpdate>("?ReqQryParkedOrder");
+                reqQueryParkedOrderAction = GetDelegate<DelegateReqUserUpdate>("?ReqQryParkedOrderAction");
                 reqFromBankToFutureByFuture = GetDelegate<DelegateReqBankAndFuture>("?ReqFromBankToFutureByFuture");
                 reqFromFutureToBankByFuture = GetDelegate<DelegateReqBankAndFuture>("?ReqFromFutureToBankByFuture");
                 reqQueryBankAccountMoneyByFuture = GetDelegate<DelegateReqQueryBankAccountMoney>("?ReqQueryBankAccountMoneyByFuture");
@@ -428,32 +428,32 @@ namespace CTPTradeApi
                 regRspOrderInsert = GetDelegate<DelegateRegRspOrderInsert>("?RegRspOrderInsert");
                 regRspParkedOrderAction = GetDelegate<DelegateRegRspParkedOrderAction>("?RegRspParkedOrderAction");
                 regRspParkedOrderInsert = GetDelegate<DelegateRegRspParkedOrderInsert>("?RegRspParkedOrderInsert");
-                regRspQryBrokerTradingAlgos = GetDelegate<DelegateRegRspQryBrokerTradingAlgos>("?RegRspQryBrokerTradingAlgos");
-                regRspQryBrokerTradingParams = GetDelegate<DelegateRegRspQryBrokerTradingParams>("?RegRspQryBrokerTradingParams");
-                regRspQryCFMMCTradingAccountKey = GetDelegate<DelegateRegRspQryCFMMCTradingAccountKey>("?RegRspQryCFMMCTradingAccountKey");
-                regRspQryContractBank = GetDelegate<DelegateRegRspQryContractBank>("?RegRspQryContractBank");
-                regRspQryDepthMarketData = GetDelegate<DelegateRegRspQryDepthMarketData>("?RegRspQryDepthMarketData");
-                regRspQryExchange = GetDelegate<DelegateRegRspQryExchange>("?RegRspQryExchange");
-                regRspQryInstrument = GetDelegate<DelegateRegRspQryInstrument>("?RegRspQryInstrument");
-                regRspQryInstrumentCommissionRate = GetDelegate<DelegateRegRspQryInstrumentCommissionRate>("?RegRspQryInstrumentCommissionRate");
-                regRspQryInstrumentMarginRate = GetDelegate<DelegateRegRspQryInstrumentMarginRate>("?RegRspQryInstrumentMarginRate");
-                regRspQryInvestor = GetDelegate<DelegateRegRspQryInvestor>("?RegRspQryInvestor");
-                regRspQryInvestorPosition = GetDelegate<DelegateRegRspQryInvestorPosition>("?RegRspQryInvestorPosition");
-                regRspQryInvestorPositionCombineDetail = GetDelegate<DelegateRegRspQryInvestorPositionCombineDetail>("?RegRspQryInvestorPositionCombineDetail");
-                regRspQryInvestorPositionDetail = GetDelegate<DelegateRegRspQryInvestorPositionDetail>("?RegRspQryInvestorPositionDetail");
-                regRspQryNotice = GetDelegate<DelegateRegRspQryNotice>("?RegRspQryNotice");
-                regRspQryOrder = GetDelegate<DelegateRegRspQryOrder>("?RegRspQryOrder");
-                regRspQryParkedOrder = GetDelegate<DelegateRegRspQryParkedOrder>("?RegRspQryParkedOrder");
-                regRspQryParkedOrderAction = GetDelegate<DelegateRegRspQryParkedOrderAction>("?RegRspQryParkedOrderAction");
-                regRspQrySettlementInfo = GetDelegate<DelegateRegRspQrySettlementInfo>("?RegRspQrySettlementInfo");
-                regRspQrySettlementInfoConfirm = GetDelegate<DelegateRegRspQrySettlementInfoConfirm>("?RegRspQrySettlementInfoConfirm");
-                regRspQryTrade = GetDelegate<DelegateRegRspQryTrade>("?RegRspQryTrade");
-                regRspQryTradingAccount = GetDelegate<DelegateRegRspQryTradingAccount>("?RegRspQryTradingAccount");
-                regRspQryTradingCode = GetDelegate<DelegateRegRspQryTradingCode>("?RegRspQryTradingCode");
-                regRspQryTradingNotice = GetDelegate<DelegateRegRspQryTradingNotice>("?RegRspQryTradingNotice");
-                regRspQryTransferBank = GetDelegate<DelegateRegRspQryTransferBank>("?RegRspQryTransferBank");
-                regRspQryTransferSerial = GetDelegate<DelegateRegRspQryTransferSerial>("?RegRspQryTransferSerial");
-                regRspQryAccountregister = GetDelegate<DelegateRegRspQryAccountregister>("?RegRspQryAccountregister");
+                regRspQueryBrokerTradingAlgos = GetDelegate<DelegateRegRspQueryBrokerTradingAlgos>("?RegRspQryBrokerTradingAlgos");
+                regRspQueryBrokerTradingParams = GetDelegate<DelegateRegRspQueryBrokerTradingParams>("?RegRspQryBrokerTradingParams");
+                regRspQueryCFMMCTradingAccountKey = GetDelegate<DelegateRegRspQueryCFMMCTradingAccountKey>("?RegRspQryCFMMCTradingAccountKey");
+                regRspQueryContractBank = GetDelegate<DelegateRegRspQueryContractBank>("?RegRspQryContractBank");
+                regRspQueryDepthMarketData = GetDelegate<DelegateRegRspQueryDepthMarketData>("?RegRspQryDepthMarketData");
+                regRspQueryExchange = GetDelegate<DelegateRegRspQueryExchange>("?RegRspQryExchange");
+                regRspQueryInstrument = GetDelegate<DelegateRegRspQueryInstrument>("?RegRspQryInstrument");
+                regRspQueryInstrumentCommissionRate = GetDelegate<DelegateRegRspQueryInstrumentCommissionRate>("?RegRspQryInstrumentCommissionRate");
+                regRspQueryInstrumentMarginRate = GetDelegate<DelegateRegRspQueryInstrumentMarginRate>("?RegRspQryInstrumentMarginRate");
+                regRspQueryInvestor = GetDelegate<DelegateRegRspQueryInvestor>("?RegRspQryInvestor");
+                regRspQueryInvestorPosition = GetDelegate<DelegateRegRspQueryInvestorPosition>("?RegRspQryInvestorPosition");
+                regRspQueryInvestorPositionCombineDetail = GetDelegate<DelegateRegRspQueryInvestorPositionCombineDetail>("?RegRspQryInvestorPositionCombineDetail");
+                regRspQueryInvestorPositionDetail = GetDelegate<DelegateRegRspQueryInvestorPositionDetail>("?RegRspQryInvestorPositionDetail");
+                regRspQueryNotice = GetDelegate<DelegateRegRspQueryNotice>("?RegRspQryNotice");
+                regRspQueryOrder = GetDelegate<DelegateRegRspQueryOrder>("?RegRspQryOrder");
+                regRspQueryParkedOrder = GetDelegate<DelegateRegRspQueryParkedOrder>("?RegRspQryParkedOrder");
+                regRspQueryParkedOrderAction = GetDelegate<DelegateRegRspQueryParkedOrderAction>("?RegRspQryParkedOrderAction");
+                regRspQuerySettlementInfo = GetDelegate<DelegateRegRspQuerySettlementInfo>("?RegRspQrySettlementInfo");
+                regRspQuerySettlementInfoConfirm = GetDelegate<DelegateRegRspQuerySettlementInfoConfirm>("?RegRspQrySettlementInfoConfirm");
+                regRspQueryTrade = GetDelegate<DelegateRegRspQueryTrade>("?RegRspQryTrade");
+                regRspQueryTradingAccount = GetDelegate<DelegateRegRspQueryTradingAccount>("?RegRspQryTradingAccount");
+                regRspQueryTradingCode = GetDelegate<DelegateRegRspQueryTradingCode>("?RegRspQryTradingCode");
+                regRspQueryTradingNotice = GetDelegate<DelegateRegRspQueryTradingNotice>("?RegRspQryTradingNotice");
+                regRspQueryTransferBank = GetDelegate<DelegateRegRspQueryTransferBank>("?RegRspQryTransferBank");
+                regRspQueryTransferSerial = GetDelegate<DelegateRegRspQueryTransferSerial>("?RegRspQryTransferSerial");
+                regRspQueryAccountregister = GetDelegate<DelegateRegRspQueryAccountregister>("?RegRspQryAccountregister");
                 regRspQueryBankAccountMoneyByFuture = GetDelegate<DelegateRegRspQueryBankAccountMoneyByFuture>("?RegRspQueryBankAccountMoneyByFuture");
                 regRspQueryMaxOrderVolume = GetDelegate<DelegateRegRspQueryMaxOrderVolume>("?RegRspQueryMaxOrderVolume");
                 regRspRemoveParkedOrder = GetDelegate<DelegateRegRspRemoveParkedOrder>("?RegRspRemoveParkedOrder");
@@ -795,7 +795,7 @@ namespace CTPTradeApi
             tmp.InsertTimeEnd = timeEnd;
             tmp.InstrumentID = instrumentID;
             tmp.OrderSysID = orderSysID;
-            return reqQryOrder(requestID, ref tmp);
+            return reqQueryOrder(requestID, ref tmp);
         }
 
         /// <summary>
@@ -819,7 +819,7 @@ namespace CTPTradeApi
             tmp.TradeTimeEnd = timeEnd;
             tmp.InstrumentID = instrumentID;
             tmp.TradeID = tradeID;
-            return reqQryTrade(requestID, ref tmp);
+            return reqQueryTrade(requestID, ref tmp);
         }
 
         /// <summary>
@@ -829,7 +829,7 @@ namespace CTPTradeApi
         /// <param name="instrument">合约代码:不填-查所有</param>
         public int QueryInvestorPosition(int requestID, string instrument = null)
         {
-            return reqQryInvestorPosition(requestID, this.BrokerID, this.InvestorID, instrument);
+            return reqQueryInvestorPosition(requestID, this.BrokerID, this.InvestorID, instrument);
         }
 
         /// <summary>
@@ -839,7 +839,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTradingAccount(int requestID)
         {
-            return reqQryTradingAccount(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryTradingAccount(requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -849,7 +849,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInvestor(int requestID)
         {
-            return reqQryInvestor(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryInvestor(requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -861,7 +861,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTradingCode(int requestID, string clientID = null, string exchangeID = null)
         {
-            return reqQryTradingCode(requestID, this.BrokerID, this.InvestorID, clientID, exchangeID);
+            return reqQueryTradingCode(requestID, this.BrokerID, this.InvestorID, clientID, exchangeID);
         }
 
         /// <summary>
@@ -874,7 +874,7 @@ namespace CTPTradeApi
         public int QueryInstrumentMarginRate(int requestID, string instrumentID,
             TThostFtdcHedgeFlagType hedgeFlag = TThostFtdcHedgeFlagType.Speculation)
         {
-            return reqQryInstrumentMarginRate(requestID, this.BrokerID, this.InvestorID, instrumentID, hedgeFlag);
+            return reqQueryInstrumentMarginRate(requestID, this.BrokerID, this.InvestorID, instrumentID, hedgeFlag);
         }
 
         /// <summary>
@@ -885,7 +885,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInstrumentCommissionRate(int requestID, string instrumentID)
         {
-            return reqQryInstrumentCommissionRate(requestID, this.BrokerID, this.InvestorID, instrumentID);
+            return reqQueryInstrumentCommissionRate(requestID, this.BrokerID, this.InvestorID, instrumentID);
         }
 
         /// <summary>
@@ -896,7 +896,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryExchange(int requestID, string exchangeID)
         {
-            return reqQryExchange(requestID, exchangeID);
+            return reqQueryExchange(requestID, exchangeID);
         }
 
         /// <summary>
@@ -907,7 +907,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInstrument(int requestID, string instrumentID = null)
         {
-            return reqQryInstrument(requestID, instrumentID);
+            return reqQueryInstrument(requestID, instrumentID);
         }
 
         /// <summary>
@@ -918,7 +918,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryMarketData(int requestID, string instrumentID)
         {
-            return reqQryDepthMarketData(requestID, instrumentID);
+            return reqQueryDepthMarketData(requestID, instrumentID);
         }
 
         /// <summary>
@@ -929,7 +929,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QuerySettlementInfo(int requestID, string date = null)
         {
-            return reqQrySettlementInfo(requestID, this.BrokerID, this.InvestorID, date);
+            return reqQuerySettlementInfo(requestID, this.BrokerID, this.InvestorID, date);
         }
 
         /// <summary>
@@ -940,7 +940,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInvestorPositionDetail(int requestID, string instrumentID = null)
         {
-            return reqQryInvestorPositionDetail(requestID, this.BrokerID, this.InvestorID, instrumentID);
+            return reqQueryInvestorPositionDetail(requestID, this.BrokerID, this.InvestorID, instrumentID);
         }
 
         /// <summary>
@@ -950,7 +950,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryNotice(int requestID)
         {
-            return reqQryNotice(requestID, this.BrokerID);
+            return reqQueryNotice(requestID, this.BrokerID);
         }
 
         /// <summary>
@@ -960,7 +960,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QuerySettlementInfoConfirm(int requestID)
         {
-            return reqQrySettlementInfoConfirm(requestID, this.BrokerID, this.InvestorID);
+            return reqQuerySettlementInfoConfirm(requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -971,7 +971,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInvestorPositionCombineDetail(int requestID, string instrumentID = null)
         {
-            return reqQryInvestorPositionCombineDetail(requestID, this.BrokerID, this.InvestorID, instrumentID);
+            return reqQueryInvestorPositionCombineDetail(requestID, this.BrokerID, this.InvestorID, instrumentID);
         }
 
         /// <summary>
@@ -981,7 +981,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryCFMMCTradingAccountKey(int requestID)
         {
-            return reqQryCFMMCTradingAccountKey(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryCFMMCTradingAccountKey(requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -991,7 +991,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTradingNotice(int requestID)
         {
-            return reqQryTradingNotice(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryTradingNotice(requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -1001,7 +1001,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryBrokerTradingParams(int requestID)
         {
-            return reqQryBrokerTradingParams(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryBrokerTradingParams(requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -1013,7 +1013,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryBrokerTradingAlgos(int requestID, string exchangeID, string instrumentID)
         {
-            return reqQryBrokerTradingAlgos(requestID, this.BrokerID, exchangeID, instrumentID);
+            return reqQueryBrokerTradingAlgos(requestID, this.BrokerID, exchangeID, instrumentID);
         }
 
         /// <summary>
@@ -1138,7 +1138,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTransferBank(int requestID, string bankID, string bankBranchID)
         {
-            return reqQryTransferBank(requestID, bankID, bankBranchID);
+            return reqQueryTransferBank(requestID, bankID, bankBranchID);
         }
 
         /// <summary>
@@ -1149,7 +1149,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTransferSerial(int requestID, string bankID)
         {
-            return reqQryTransferSerial(requestID, this.BrokerID, this.InvestorID, bankID);
+            return reqQueryTransferSerial(requestID, this.BrokerID, this.InvestorID, bankID);
         }
 
         /// <summary>
@@ -1160,7 +1160,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryAccountregister(int requestID, string bankID)
         {
-            return reqQryAccountregister(requestID, this.BrokerID, this.InvestorID, bankID);
+            return reqQueryAccountregister(requestID, this.BrokerID, this.InvestorID, bankID);
         }
 
         /// <summary>
@@ -1170,7 +1170,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryContractBank(int requestID)
         {
-            return reqQryContractBank(requestID, this.BrokerID, null, null);
+            return reqQueryContractBank(requestID, this.BrokerID, null, null);
         }
 
         /// <summary>
@@ -1182,7 +1182,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryParkedOrder(int requestID, string instrumentID = null, string exchangeID = null)
         {
-            return reqQryParkedOrder(requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
+            return reqQueryParkedOrder(requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
         }
 
         /// <summary>
@@ -1194,7 +1194,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryParkedOrderAction(int requestID, string instrumentID = null, string exchangeID = null)
         {
-            return reqQryParkedOrderAction(requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
+            return reqQueryParkedOrderAction(requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
         }
 
         /// <summary>
@@ -1728,12 +1728,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryBrokerTradingAlgos += value;
-                regRspQryBrokerTradingAlgos(rspQryBrokerTradingAlgos);
+                regRspQueryBrokerTradingAlgos(rspQryBrokerTradingAlgos);
             }
             remove
             {
                 rspQryBrokerTradingAlgos -= value;
-                regRspQryBrokerTradingAlgos(rspQryBrokerTradingAlgos);
+                regRspQueryBrokerTradingAlgos(rspQryBrokerTradingAlgos);
             }
         }
 
@@ -1761,12 +1761,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryBrokerTradingParams += value;
-                regRspQryBrokerTradingParams(rspQryBrokerTradingParams);
+                regRspQueryBrokerTradingParams(rspQryBrokerTradingParams);
             }
             remove
             {
                 rspQryBrokerTradingParams -= value;
-                regRspQryBrokerTradingParams(rspQryBrokerTradingParams);
+                regRspQueryBrokerTradingParams(rspQryBrokerTradingParams);
             }
         }
 
@@ -1795,12 +1795,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryCFMMCTradingAccountKey += value;
-                regRspQryCFMMCTradingAccountKey(rspQryCFMMCTradingAccountKey);
+                regRspQueryCFMMCTradingAccountKey(rspQryCFMMCTradingAccountKey);
             }
             remove
             {
                 rspQryCFMMCTradingAccountKey -= value;
-                regRspQryCFMMCTradingAccountKey(rspQryCFMMCTradingAccountKey);
+                regRspQueryCFMMCTradingAccountKey(rspQryCFMMCTradingAccountKey);
             }
         }
 
@@ -1828,12 +1828,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryContractBank += value;
-                regRspQryContractBank(rspQryContractBank);
+                regRspQueryContractBank(rspQryContractBank);
             }
             remove
             {
                 rspQryContractBank -= value;
-                regRspQryContractBank(rspQryContractBank);
+                regRspQueryContractBank(rspQryContractBank);
             }
         }
 
@@ -1861,12 +1861,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryDepthMarketData += value;
-                regRspQryDepthMarketData(rspQryDepthMarketData);
+                regRspQueryDepthMarketData(rspQryDepthMarketData);
             }
             remove
             {
                 rspQryDepthMarketData -= value;
-                regRspQryDepthMarketData(rspQryDepthMarketData);
+                regRspQueryDepthMarketData(rspQryDepthMarketData);
             }
         }
 
@@ -1894,12 +1894,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryExchange += value;
-                regRspQryExchange(rspQryExchange);
+                regRspQueryExchange(rspQryExchange);
             }
             remove
             {
                 rspQryExchange -= value;
-                regRspQryExchange(rspQryExchange);
+                regRspQueryExchange(rspQryExchange);
             }
         }
 
@@ -1927,12 +1927,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInstrument += value;
-                regRspQryInstrument(rspQryInstrument);
+                regRspQueryInstrument(rspQryInstrument);
             }
             remove
             {
                 rspQryInstrument -= value;
-                regRspQryInstrument(rspQryInstrument);
+                regRspQueryInstrument(rspQryInstrument);
             }
         }
 
@@ -1961,12 +1961,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInstrumentCommissionRate += value;
-                regRspQryInstrumentCommissionRate(rspQryInstrumentCommissionRate);
+                regRspQueryInstrumentCommissionRate(rspQryInstrumentCommissionRate);
             }
             remove
             {
                 rspQryInstrumentCommissionRate -= value;
-                regRspQryInstrumentCommissionRate(rspQryInstrumentCommissionRate);
+                regRspQueryInstrumentCommissionRate(rspQryInstrumentCommissionRate);
             }
         }
 
@@ -1994,12 +1994,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInstrumentMarginRate += value;
-                regRspQryInstrumentMarginRate(rspQryInstrumentMarginRate);
+                regRspQueryInstrumentMarginRate(rspQryInstrumentMarginRate);
             }
             remove
             {
                 rspQryInstrumentMarginRate -= value;
-                regRspQryInstrumentMarginRate(rspQryInstrumentMarginRate);
+                regRspQueryInstrumentMarginRate(rspQryInstrumentMarginRate);
             }
         }
 
@@ -2027,12 +2027,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInvestor += value;
-                regRspQryInvestor(rspQryInvestor);
+                regRspQueryInvestor(rspQryInvestor);
             }
             remove
             {
                 rspQryInvestor -= value;
-                regRspQryInvestor(rspQryInvestor);
+                regRspQueryInvestor(rspQryInvestor);
             }
         }
 
@@ -2060,12 +2060,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInvestorPosition += value;
-                regRspQryInvestorPosition(rspQryInvestorPosition);
+                regRspQueryInvestorPosition(rspQryInvestorPosition);
             }
             remove
             {
                 rspQryInvestorPosition -= value;
-                regRspQryInvestorPosition(rspQryInvestorPosition);
+                regRspQueryInvestorPosition(rspQryInvestorPosition);
             }
         }
 
@@ -2094,12 +2094,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInvestorPositionCombineDetail += value;
-                regRspQryInvestorPositionCombineDetail(rspQryInvestorPositionCombineDetail);
+                regRspQueryInvestorPositionCombineDetail(rspQryInvestorPositionCombineDetail);
             }
             remove
             {
                 rspQryInvestorPositionCombineDetail -= value;
-                regRspQryInvestorPositionCombineDetail(rspQryInvestorPositionCombineDetail);
+                regRspQueryInvestorPositionCombineDetail(rspQryInvestorPositionCombineDetail);
             }
         }
 
@@ -2128,12 +2128,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInvestorPositionDetail += value;
-                regRspQryInvestorPositionDetail(rspQryInvestorPositionDetail);
+                regRspQueryInvestorPositionDetail(rspQryInvestorPositionDetail);
             }
             remove
             {
                 rspQryInvestorPositionDetail -= value;
-                regRspQryInvestorPositionDetail(rspQryInvestorPositionDetail);
+                regRspQueryInvestorPositionDetail(rspQryInvestorPositionDetail);
             }
         }
 
@@ -2161,12 +2161,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryNotice += value;
-                regRspQryNotice(rspQryNotice);
+                regRspQueryNotice(rspQryNotice);
             }
             remove
             {
                 rspQryNotice -= value;
-                regRspQryNotice(rspQryNotice);
+                regRspQueryNotice(rspQryNotice);
             }
         }
 
@@ -2194,12 +2194,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryOrder += value;
-                regRspQryOrder(rspQryOrder);
+                regRspQueryOrder(rspQryOrder);
             }
             remove
             {
                 rspQryOrder -= value;
-                regRspQryOrder(rspQryOrder);
+                regRspQueryOrder(rspQryOrder);
             }
         }
 
@@ -2227,12 +2227,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryParkedOrder += value;
-                regRspQryParkedOrder(rspQryParkedOrder);
+                regRspQueryParkedOrder(rspQryParkedOrder);
             }
             remove
             {
                 rspQryParkedOrder -= value;
-                regRspQryParkedOrder(rspQryParkedOrder);
+                regRspQueryParkedOrder(rspQryParkedOrder);
             }
         }
 
@@ -2260,12 +2260,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryParkedOrderAction += value;
-                regRspQryParkedOrderAction(rspQryParkedOrderAction);
+                regRspQueryParkedOrderAction(rspQryParkedOrderAction);
             }
             remove
             {
                 rspQryParkedOrderAction -= value;
-                regRspQryParkedOrderAction(rspQryParkedOrderAction);
+                regRspQueryParkedOrderAction(rspQryParkedOrderAction);
             }
         }
 
@@ -2293,12 +2293,12 @@ namespace CTPTradeApi
             add
             {
                 rspQrySettlementInfo += value;
-                regRspQrySettlementInfo(rspQrySettlementInfo);
+                regRspQuerySettlementInfo(rspQrySettlementInfo);
             }
             remove
             {
                 rspQrySettlementInfo -= value;
-                regRspQrySettlementInfo(rspQrySettlementInfo);
+                regRspQuerySettlementInfo(rspQrySettlementInfo);
             }
         }
 
@@ -2327,12 +2327,12 @@ namespace CTPTradeApi
             add
             {
                 rspQrySettlementInfoConfirm += value;
-                regRspQrySettlementInfoConfirm(rspQrySettlementInfoConfirm);
+                regRspQuerySettlementInfoConfirm(rspQrySettlementInfoConfirm);
             }
             remove
             {
                 rspQrySettlementInfoConfirm -= value;
-                regRspQrySettlementInfoConfirm(rspQrySettlementInfoConfirm);
+                regRspQuerySettlementInfoConfirm(rspQrySettlementInfoConfirm);
             }
         }
 
@@ -2359,12 +2359,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTrade += value;
-                regRspQryTrade(rspQryTrade);
+                regRspQueryTrade(rspQryTrade);
             }
             remove
             {
                 rspQryTrade -= value;
-                regRspQryTrade(rspQryTrade);
+                regRspQueryTrade(rspQryTrade);
             }
         }
 
@@ -2391,12 +2391,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTradingAccount += value;
-                regRspQryTradingAccount(rspQryTradingAccount);
+                regRspQueryTradingAccount(rspQryTradingAccount);
             }
             remove
             {
                 rspQryTradingAccount -= value;
-                regRspQryTradingAccount(rspQryTradingAccount);
+                regRspQueryTradingAccount(rspQryTradingAccount);
             }
         }
 
@@ -2424,12 +2424,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTradingCode += value;
-                regRspQryTradingCode(rspQryTradingCode);
+                regRspQueryTradingCode(rspQryTradingCode);
             }
             remove
             {
                 rspQryTradingCode -= value;
-                regRspQryTradingCode(rspQryTradingCode);
+                regRspQueryTradingCode(rspQryTradingCode);
             }
         }
 
@@ -2456,12 +2456,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTradingNotice += value;
-                regRspQryTradingNotice(rspQryTradingNotice);
+                regRspQueryTradingNotice(rspQryTradingNotice);
             }
             remove
             {
                 rspQryTradingNotice -= value;
-                regRspQryTradingNotice(rspQryTradingNotice);
+                regRspQueryTradingNotice(rspQryTradingNotice);
             }
         }
 
@@ -2487,12 +2487,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTransferBank += value;
-                regRspQryTransferBank(rspQryTransferBank);
+                regRspQueryTransferBank(rspQryTransferBank);
             }
             remove
             {
                 rspQryTransferBank -= value;
-                regRspQryTransferBank(rspQryTransferBank);
+                regRspQueryTransferBank(rspQryTransferBank);
             }
         }
 
@@ -2520,12 +2520,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTransferSerial += value;
-                regRspQryTransferSerial(rspQryTransferSerial);
+                regRspQueryTransferSerial(rspQryTransferSerial);
             }
             remove
             {
                 rspQryTransferSerial -= value;
-                regRspQryTransferSerial(rspQryTransferSerial);
+                regRspQueryTransferSerial(rspQryTransferSerial);
             }
         }
 
@@ -2553,12 +2553,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryAccountregister += value;
-                regRspQryAccountregister(rspQryAccountregister);
+                regRspQueryAccountregister(rspQryAccountregister);
             }
             remove
             {
                 rspQryAccountregister -= value;
-                regRspQryAccountregister(rspQryAccountregister);
+                regRspQueryAccountregister(rspQryAccountregister);
             }
         }
 

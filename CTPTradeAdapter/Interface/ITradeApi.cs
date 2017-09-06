@@ -130,6 +130,25 @@ namespace CTPTradeAdapter.Interface
         int QueryInstrument(DataListCallback<InstrumentInfo> callback, string instrumentID);
 
         /// <summary>
+        /// 查询投资者
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        int QueryInvestor(DataCallback<InvestorInfo> callback);
+
+        /// <summary>
+        /// 查询投资者持仓明细
+        /// <param name="callback">查询回调</param>
+        /// <param name="instrumentID">合约代码:不填-查所有</param>
+        /// <returns></returns>
+        int QueryInvestorPositionDetail(DataListCallback<PositionDetailInfo> callback, string instrumentID);
+
+        /// <summary>
+        /// 请求查询客户通知
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        int QueryNotice(DataListCallback<NoticeInfo> callback);
+
+        /// <summary>
         /// 心跳超时警告
         /// </summary>
         event TradeApi.HeartBeatWarning OnHeartBeatWarning;

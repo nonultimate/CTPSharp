@@ -475,5 +475,61 @@ namespace CTPTradeAdapter.Adapter.Tests
             _adapter.QueryInstrument(callback, null);
             Thread.Sleep(500);
         }
+
+        /// <summary>
+        /// 测试查询投资者
+        /// </summary>
+        [TestMethod()]
+        public void TestQueryInvestor()
+        {
+            var queryInvestorInfoCallback = new DataCallback<InvestorInfo>((DataResult<InvestorInfo> result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    Console.WriteLine("投资者查询成功, InvestorID: {0}", result.Result.InvestorID);
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            _adapter.QueryInvestor(queryInvestorInfoCallback);
+            Thread.Sleep(100);
+        }
+
+        /// <summary>
+        /// 查询投资者持仓明细
+        /// </summary>
+        [TestMethod()]
+        public void TestQueryInvestorPositionDetail()
+        {
+            var queryInvestorPositionDetailCallback = new DataListCallback<PositionDetailInfo>((DataListResult<PositionDetailInfo> result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    Console.WriteLine("投资者持仓明细条数：" + result.Result.Count);
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            string InstrumentID = "TF1709";
+            _adapter.QueryInvestorPositionDetail(queryInvestorPositionDetailCallback, InstrumentID);
+            Thread.Sleep(200);
+        }
+
+        /// <summary>
+        /// 查询客户通知
+        /// </summary>
+        [TestMethod()]
+        public void TestQueryNotice()
+        {
+            var queryNoticeCallback = new DataListCallback<NoticeInfo>((DataListResult<NoticeInfo> result) =>
+            {
+                if (result.IsSuccess)
+                {
+                    Console.WriteLine("客户通知条数：" + result.Result.Count);
+                }
+                Assert.IsTrue(result.IsSuccess);
+            });
+            _adapter.QueryNotice(queryNoticeCallback);
+            Thread.Sleep(200);
+        }
+
     }
 }

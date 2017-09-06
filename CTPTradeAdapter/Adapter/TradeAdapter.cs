@@ -72,6 +72,9 @@ namespace CTPTradeAdapter.Adapter
             _api.OnRspQryParkedOrderAction += OnRspQueryParkedOrderAction;
             _api.OnRspUserPasswordUpdate += OnRspUserPasswordUpdate;
             _api.OnRspQryInstrument += OnRspQueryInstrument;
+            _api.OnRspQryInvestor += OnRspQueryInvestor;
+            _api.OnRspQryInvestorPositionDetail += OnRspQueryInvestorPositionDetail;
+            _api.OnRspQryNotice += OnRspQueryNotice;
         }
 
         #endregion
@@ -205,6 +208,16 @@ namespace CTPTradeAdapter.Adapter
         }
 
         /// <summary>
+        /// 查询投资者
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        public int QueryInvestor(DataCallback<InvestorInfo> callback)
+        {
+            int requestID = AddCallback(callback);
+            return _api.QueryInvestor(requestID);
+        }
+
+        /// <summary>
         /// 查询持仓
         /// </summary>
         /// <param name="callback">查询回调</param>
@@ -290,6 +303,29 @@ namespace CTPTradeAdapter.Adapter
         {
             int requestID = AddCallback(callback);
             return _api.QueryInstrument(requestID, instrumentID);
+        }
+
+        /// <summary>
+        /// 查询投资者持仓明细
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <param name="instrumentID">合约代码:不填-查所有</param>
+        /// <returns></returns>
+        public int QueryInvestorPositionDetail(DataListCallback<PositionDetailInfo> callback, string instrumentID)
+        {
+            int requestID = AddCallback(callback);
+            return _api.QueryInvestorPositionDetail(requestID, instrumentID);
+        }
+
+        /// <summary>
+        /// 请求查询客户通知
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <returns></returns>
+        public int QueryNotice(DataListCallback<NoticeInfo> callback)
+        {
+            int requestID = AddCallback(callback);
+            return _api.QueryNotice(requestID);
         }
 
         #endregion
@@ -881,6 +917,102 @@ namespace CTPTradeAdapter.Adapter
             }
         }
 
+        /// <summary>
+        /// 查询投资者
+        /// </summary>
+        /// <param name="pInvestor">投资者信息</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnRspQueryInvestor(ref CThostFtdcInvestorField pInvestor, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast)
+        {
+            DataResult<InvestorInfo> result = new DataResult<InvestorInfo>();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.Result = ConvertToInvestor(pInvestor);
+                result.IsSuccess = true;
+                ExecuteCallback<InvestorInfo>(nRequestID, result);
+            }
+        }
+
+        /// <summary>
+        /// 查询投资者持仓明细
+        /// </summary>
+        /// <param name="pInvestorPositionDetail">持仓明细</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnRspQueryInvestorPositionDetail(
+            ref CThostFtdcInvestorPositionDetailField pInvestorPositionDetail, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast)
+        {
+            DataListResult<PositionDetailInfo> result;
+            if (_dataDict.ContainsKey(nRequestID))
+            {
+                result = (DataListResult<PositionDetailInfo>)_dataDict[nRequestID];
+            }
+            else
+            {
+                result = new DataListResult<PositionDetailInfo>();
+                _dataDict.TryAdd(nRequestID, result);
+            }
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError<PositionDetailInfo>(result, pRspInfo);
+            }
+            else
+            {
+                PositionDetailInfo instrument = ConvertToPositionDetailInfo(pInvestorPositionDetail);
+                result.Result.Add(instrument);
+                if (bIsLast == 1)
+                {
+                    result.IsSuccess = true;
+                    ExecuteCallback<PositionDetailInfo>(nRequestID, result);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 查询客户通知
+        /// </summary>
+        /// <param name="pNotice">客户通知</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnRspQueryNotice(ref CThostFtdcNoticeField pNotice, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast)
+        {
+            DataListResult<NoticeInfo> result;
+            if (_dataDict.ContainsKey(nRequestID))
+            {
+                result = (DataListResult<NoticeInfo>)_dataDict[nRequestID];
+            }
+            else
+            {
+                result = new DataListResult<NoticeInfo>();
+                _dataDict.TryAdd(nRequestID, result);
+            }
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError<NoticeInfo>(result, pRspInfo);
+            }
+            else
+            {
+                NoticeInfo notice = ConvertToNoticeInfo(pNotice);
+                result.Result.Add(notice);
+                if (bIsLast == 1)
+                {
+                    result.IsSuccess = true;
+                    ExecuteCallback<NoticeInfo>(nRequestID, result);
+                }
+            }
+        }
+
         #endregion
 
         #region 通用类型转特定类型
@@ -1232,6 +1364,16 @@ namespace CTPTradeAdapter.Adapter
             return (InstrumentLifePhaseType)Enum.Parse(typeof(InstrumentLifePhaseType), lifePhase.ToString());
         }
 
+        /// <summary>
+        /// 证件类型转换
+        /// </summary>
+        /// <param name="idCardType">持仓多空头方向类型</param>
+        /// <returns></returns>
+        private IdCardType ConvertToIdCardTypeType(TThostFtdcIdCardTypeType idCardType)
+        {
+            return (IdCardType)Enum.Parse(typeof(IdCardType), idCardType.ToString());
+        }
+
         #endregion
 
         #region 结构体转通用实体
@@ -1317,6 +1459,33 @@ namespace CTPTradeAdapter.Adapter
                 Balance = (decimal)pTradingAccount.Balance,
                 Available = (decimal)pTradingAccount.Available,
                 WithdrawQuota = (decimal)pTradingAccount.WithdrawQuota,
+            };
+
+            return result;
+        }
+
+        /// <summary>
+        /// 投资者账号转换
+        /// </summary>
+        /// <param name="pInvestor"></param>
+        /// <returns></returns>
+        private InvestorInfo ConvertToInvestor(CThostFtdcInvestorField pInvestor)
+        {
+            InvestorInfo result = new InvestorInfo()
+            {
+                InvestorID = pInvestor.InvestorID,
+                BrokerID = pInvestor.BrokerID,
+                InvestorGroupID = pInvestor.InvestorGroupID,
+                InvestorName = pInvestor.InvestorName,
+                IdentifiedCardType = ConvertToIdCardTypeType(pInvestor.IdentifiedCardType),
+                IdentifiedCardNo = pInvestor.IdentifiedCardNo,
+                IsActive = pInvestor.IsActive,
+                Telephone = pInvestor.Telephone,
+                Address = pInvestor.Address,
+                OpenDate = pInvestor.OpenDate,
+                Mobile = pInvestor.Mobile,
+                CommModelID = pInvestor.CommModelID,
+                MarginModelID = pInvestor.MarginModelID,
             };
 
             return result;
@@ -1434,6 +1603,62 @@ namespace CTPTradeAdapter.Adapter
             return result;
         }
 
+        /// <summary>
+        /// 投资者持仓明细转换
+        /// </summary>
+        /// <param name="pInvestorPositionDetail">持仓明细结构体</param>
+        /// <returns></returns>
+        private PositionDetailInfo ConvertToPositionDetailInfo(CThostFtdcInvestorPositionDetailField pInvestorPositionDetail)
+        {
+            PositionDetailInfo result = new PositionDetailInfo()
+            {
+                BrokerID = pInvestorPositionDetail.BrokerID,
+                InvestorID = pInvestorPositionDetail.InvestorID,
+                InstrumentID = pInvestorPositionDetail.InstrumentID,
+                HedgeFlag = ConvertToHedgeFlag(pInvestorPositionDetail.HedgeFlag),
+                Direction = ConvertToDirectionType(pInvestorPositionDetail.Direction),
+                OpenDate = pInvestorPositionDetail.OpenDate,
+                TradeID = pInvestorPositionDetail.TradeID,
+                Volume = pInvestorPositionDetail.Volume,
+                OpenPrice = (decimal)pInvestorPositionDetail.OpenPrice,
+                TradingDay = pInvestorPositionDetail.TradingDay,
+                SettlementID = pInvestorPositionDetail.SettlementID,
+                TradeType = ConvertToTradeType(pInvestorPositionDetail.TradeType),
+                CombInstrumentID = pInvestorPositionDetail.CombInstrumentID,
+                ExchangeID = pInvestorPositionDetail.ExchangeID,
+                CloseProfitByDate = (decimal)pInvestorPositionDetail.CloseProfitByDate,
+                CloseProfitByTrade = (decimal)pInvestorPositionDetail.CloseProfitByTrade,
+                PositionProfitByDate = (decimal)pInvestorPositionDetail.PositionProfitByDate,
+                PositionProfitByTrade = (decimal)pInvestorPositionDetail.PositionProfitByTrade,
+                Margin = (decimal)pInvestorPositionDetail.Margin,
+                ExchangeMargin = (decimal)pInvestorPositionDetail.ExchMargin,
+                MarginRateByMoney = (decimal)pInvestorPositionDetail.MarginRateByMoney,
+                MarginRateByVolume = (decimal)pInvestorPositionDetail.MarginRateByVolume,
+                LastSettlementPrice = (decimal)pInvestorPositionDetail.LastSettlementPrice,
+                SettlementPrice = (decimal)pInvestorPositionDetail.SettlementPrice,
+                CloseVolume = (decimal)pInvestorPositionDetail.CloseVolume,
+                CloseAmount = (decimal)pInvestorPositionDetail.CloseAmount,
+            };
+
+            return result;
+        }
+
+        /// <summary>
+        /// 客户通知转换
+        /// </summary>
+        /// <param name="pNotice">客户通知结构体</param>
+        /// <returns></returns>
+        private NoticeInfo ConvertToNoticeInfo(CThostFtdcNoticeField pNotice)
+        {
+            NoticeInfo result = new NoticeInfo()
+            {
+                BrokerID = pNotice.BrokerID,
+                Content = pNotice.Content,
+                ID = pNotice.SequenceLabel,
+            };
+
+            return result;
+        }
         #endregion
     }
 }
