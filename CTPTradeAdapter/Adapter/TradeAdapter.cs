@@ -1636,7 +1636,7 @@ namespace CTPTradeAdapter.Adapter
                 MarginRateByVolume = (decimal)pInvestorPositionDetail.MarginRateByVolume,
                 LastSettlementPrice = (decimal)pInvestorPositionDetail.LastSettlementPrice,
                 SettlementPrice = (decimal)pInvestorPositionDetail.SettlementPrice,
-                CloseVolume = (decimal)pInvestorPositionDetail.CloseVolume,
+                CloseVolume = pInvestorPositionDetail.CloseVolume,
                 CloseAmount = (decimal)pInvestorPositionDetail.CloseAmount,
             };
 

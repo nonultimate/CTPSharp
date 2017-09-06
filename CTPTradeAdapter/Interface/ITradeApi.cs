@@ -137,6 +137,7 @@ namespace CTPTradeAdapter.Interface
 
         /// <summary>
         /// 查询投资者持仓明细
+        /// </summary>
         /// <param name="callback">查询回调</param>
         /// <param name="instrumentID">合约代码:不填-查所有</param>
         /// <returns></returns>
