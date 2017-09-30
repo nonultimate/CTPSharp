@@ -59,5 +59,14 @@ namespace CTPTradeAdapter.Model
         /// 预埋单状态
         /// </summary>
         public ParkedOrderStatusType Status;
+
+        /// <summary>
+        /// 撤单参数构造函数
+        /// </summary>
+        public CancelOrderParameter()
+        {
+            ActionFlag = ActionFlag.Delete;
+            Status = ParkedOrderStatusType.Deleted;
+        }
     }
 }

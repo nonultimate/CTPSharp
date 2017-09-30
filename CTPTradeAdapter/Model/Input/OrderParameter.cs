@@ -104,5 +104,16 @@ namespace CTPTradeAdapter.Model
         /// 预埋报单编号
         /// </summary>
         public string ParkedOrderID;
+
+        /// <summary>
+        /// 报单参数构造函数
+        /// </summary>
+        public OrderParameter()
+        {
+            TimeCondition = TimeConditionType.GFD;
+            VolumeCondition = VolumeConditionType.AV;
+            ContingentCondition = ContingentConditionType.Immediately;
+            ForceCloseReason = ForceCloseReasonType.NotForceClose;
+        }
     }
 }
