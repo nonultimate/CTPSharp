@@ -60,6 +60,7 @@ namespace CTPTradeAdapter.Adapter
             _api.OnRspUserLogin += OnRspUserLogin;
             _api.OnRspUserLogout += OnRspUserLogout;
             _api.OnRtnOrder += OnRtnOrder;
+            _api.OnRtnTrade += OnRtnTrade;
             _api.OnRspOrderInsert += OnRspOrderInsert;
             _api.OnRspOrderAction += OnRspOrderAction;
             _api.OnRspQryOrder += OnRspQueryOrder;
@@ -89,6 +90,16 @@ namespace CTPTradeAdapter.Adapter
             add { _api.OnHeartBeatWarning += value; }
             remove { _api.OnHeartBeatWarning -= value; }
         }
+
+        /// <summary>
+        /// 委托回报
+        /// </summary>
+        public event OrderReturnHandler OnReturnOrder;
+
+        /// <summary>
+        /// 成交回报
+        /// </summary>
+        public event TradeReturnHandler OnReturnTrade;
 
         #endregion
 
@@ -592,24 +603,25 @@ namespace CTPTradeAdapter.Adapter
         {
             DataResult<OrderInfo> result = new DataResult<OrderInfo>();
             result.IsSuccess = true;
-            result.Result = new OrderInfo()
-            {
-                InvestorID = pOrder.InvestorID,
-                InstrumentID = pOrder.InstrumentID,
-                ExchangeID = pOrder.ExchangeID,
-                OrderRef = pOrder.OrderRef,
-                OrderSysID = pOrder.OrderSysID,
-                OrderLocalID = pOrder.OrderLocalID,
-                Direction = ConvertToDirectionType(pOrder.Direction),
-                OrderPrice = (decimal)pOrder.LimitPrice,
-                OrderQuantity = pOrder.VolumeTotalOriginal,
-                OrderStatus = ConvertToOrderStatus(pOrder.OrderStatus),
-                StatusMessage = pOrder.StatusMsg,
-                OrderDate = pOrder.InsertDate,
-                OrderTime = pOrder.InsertTime,
-                SequenceNo = pOrder.SequenceNo,
-            };
+            result.Result = ConvertToOrder(pOrder);
             ExecuteCallback<OrderInfo>(pOrder.RequestID, result);
+            if (OnReturnOrder != null)
+            {
+                OnReturnOrder.Invoke(result.Result);
+            }
+        }
+
+        /// <summary>
+        /// 成交回报
+        /// </summary>
+        /// <param name="pTrade">成交信息</param>
+        private void OnRtnTrade(ref CThostFtdcTradeField pTrade)
+        {
+            if (OnReturnTrade != null)
+            {
+                var tradeInfo = ConvertToTrade(pTrade);
+                OnReturnTrade.Invoke(tradeInfo);
+            }
         }
 
         /// <summary>
