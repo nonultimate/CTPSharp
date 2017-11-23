@@ -61,11 +61,6 @@ namespace CTPMarketAdapter.Interface
         void UnsubscribeMarket(params string[] instruments);
 
         /// <summary>
-        /// 心跳超时警告
-        /// </summary>
-        event MarketApi.HeartBeatWarning OnHeartBeatWarning;
-
-        /// <summary>
         /// 行情数据改变事件
         /// </summary>
         event MarketDataChangedHandler OnMarketDataChanged;

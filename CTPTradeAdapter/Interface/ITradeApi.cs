@@ -72,30 +72,6 @@ namespace CTPTradeAdapter.Interface
         int CancelOrder(DataCallback<OrderInfo> callback, CancelOrderParameter parameter);
 
         /// <summary>
-        /// 查询当日委托
-        /// </summary>
-        /// <param name="callback">查询回调</param>
-        int QueryOrder(DataListCallback<OrderInfo> callback);
-
-        /// <summary>
-        /// 查询当日成交
-        /// </summary>
-        /// <param name="callback">查询回调</param>
-        int QueryTrade(DataListCallback<TradeInfo> callback);
-
-        /// <summary>
-        /// 查询资金账户
-        /// </summary>
-        /// <param name="callback">查询回调</param>
-        int QueryAccount(DataCallback<AccountInfo> callback);
-
-        /// <summary>
-        /// 查询持仓
-        /// </summary>
-        /// <param name="callback">查询回调</param>
-        int QueryPosition(DataListCallback<PositionInfo> callback);
-
-        /// <summary>
         /// 预埋单录入
         /// </summary>
         /// <param name="callback">报单回调</param>
@@ -110,16 +86,40 @@ namespace CTPTradeAdapter.Interface
         int CancelParkedOrder(DataCallback<ParkedOrderInfo> callback, CancelOrderParameter parameter);
 
         /// <summary>
+        /// 查询当日委托
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        void QueryOrder(DataListCallback<OrderInfo> callback);
+
+        /// <summary>
+        /// 查询当日成交
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        void QueryTrade(DataListCallback<TradeInfo> callback);
+
+        /// <summary>
+        /// 查询资金账户
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        void QueryAccount(DataCallback<AccountInfo> callback);
+
+        /// <summary>
+        /// 查询持仓
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        void QueryPosition(DataListCallback<PositionInfo> callback);
+        
+        /// <summary>
         /// 查询预埋单
         /// </summary>
         /// <param name="callback">查询回调</param>
-        int QueryParkedOrder(DataListCallback<ParkedOrderInfo> callback);
+        void QueryParkedOrder(DataListCallback<ParkedOrderInfo> callback);
 
         /// <summary>
         /// 查询预埋撤单
         /// </summary>
         /// <param name="callback">查询回调</param>
-        int QueryParkedOrderAction(DataListCallback<ParkedCanelOrderInfo> callback);
+        void QueryParkedOrderAction(DataListCallback<ParkedCanelOrderInfo> callback);
 
         /// <summary>
         /// 查询合约列表
@@ -127,13 +127,13 @@ namespace CTPTradeAdapter.Interface
         /// <param name="callback"></param>
         /// <param name="instrumentID">指定合约，null查询所有</param>
         /// <returns></returns>
-        int QueryInstrument(DataListCallback<InstrumentInfo> callback, string instrumentID);
+        void QueryInstrument(DataListCallback<InstrumentInfo> callback, string instrumentID);
 
         /// <summary>
         /// 查询投资者
         /// </summary>
         /// <param name="callback">查询回调</param>
-        int QueryInvestor(DataCallback<InvestorInfo> callback);
+        void QueryInvestor(DataCallback<InvestorInfo> callback);
 
         /// <summary>
         /// 查询投资者持仓明细
@@ -141,17 +141,12 @@ namespace CTPTradeAdapter.Interface
         /// <param name="callback">查询回调</param>
         /// <param name="instrumentID">合约代码:不填-查所有</param>
         /// <returns></returns>
-        int QueryInvestorPositionDetail(DataListCallback<PositionDetailInfo> callback, string instrumentID);
+        void QueryInvestorPositionDetail(DataListCallback<PositionDetailInfo> callback, string instrumentID);
 
         /// <summary>
         /// 请求查询客户通知
         /// </summary>
         /// <param name="callback">查询回调</param>
-        int QueryNotice(DataListCallback<NoticeInfo> callback);
-
-        /// <summary>
-        /// 心跳超时警告
-        /// </summary>
-        event TradeApi.HeartBeatWarning OnHeartBeatWarning;
+        void QueryNotice(DataListCallback<NoticeInfo> callback);
     }
 }

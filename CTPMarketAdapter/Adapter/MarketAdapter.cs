@@ -59,15 +59,6 @@ namespace CTPMarketAdapter.Adapter
         #region 回调事件
 
         /// <summary>
-        /// 心跳超时警告。当长时间未收到报文时，该方法被调用。
-        /// </summary>
-        public event MarketApi.HeartBeatWarning OnHeartBeatWarning
-        {
-            add { _api.OnHeartBeatWarning += value; }
-            remove { _api.OnHeartBeatWarning -= value; }
-        }
-
-        /// <summary>
         /// 行情数据改变事件
         /// </summary>
         public event MarketDataChangedHandler OnMarketDataChanged;

@@ -8,11 +8,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Timers;
 
 namespace CTPTradeAdapter.Adapter
 {
     /// <summary>
-    /// CTP交易适配器
+    /// CTP交易适配器，支持同时调用多个查询接口(利用任务队列解决CTP单个查询1秒限制)
     /// </summary>
     public class TradeAdapter : ITradeApi
     {
@@ -34,6 +35,11 @@ namespace CTPTradeAdapter.Adapter
         private ConcurrentDictionary<int, object> _dataCallbackDict = new ConcurrentDictionary<int, object>();
 
         /// <summary>
+        /// 查询方法字典
+        /// </summary>
+        private Dictionary<int, Action> _queryMethodDict = new Dictionary<int, Action>();
+
+        /// <summary>
         /// 请求编号
         /// </summary>
         private int _requestID;
@@ -42,6 +48,21 @@ namespace CTPTradeAdapter.Adapter
         /// 是否已连接
         /// </summary>
         private bool _isConnected;
+
+        /// <summary>
+        /// 上次查询时间
+        /// </summary>
+        private DateTime _queryTime = DateTime.MinValue;
+
+        /// <summary>
+        /// 执行失败次数
+        /// </summary>
+        private int _executeFailCount;
+
+        /// <summary>
+        /// 查询时间限制定时器
+        /// </summary>
+        private Timer _timer;
 
         #endregion
 
@@ -76,20 +97,15 @@ namespace CTPTradeAdapter.Adapter
             _api.OnRspQryInvestor += OnRspQueryInvestor;
             _api.OnRspQryInvestorPositionDetail += OnRspQueryInvestorPositionDetail;
             _api.OnRspQryNotice += OnRspQueryNotice;
+
+            _timer = new Timer();
+            _timer.Interval = 1000;
+            _timer.Elapsed += ExecuteMethod;
         }
 
         #endregion
 
         #region 回调事件
-
-        /// <summary>
-        /// 心跳超时警告。当长时间未收到报文时，该方法被调用。
-        /// </summary>
-        public event TradeApi.HeartBeatWarning OnHeartBeatWarning
-        {
-            add { _api.OnHeartBeatWarning += value; }
-            remove { _api.OnHeartBeatWarning -= value; }
-        }
 
         /// <summary>
         /// 委托回报
@@ -209,56 +225,6 @@ namespace CTPTradeAdapter.Adapter
         }
 
         /// <summary>
-        /// 查询资金账户
-        /// </summary>
-        /// <param name="callback">查询回调</param>
-        public int QueryAccount(DataCallback<AccountInfo> callback)
-        {
-            int requestID = AddCallback(callback);
-            return _api.QueryTradingAccount(requestID);
-        }
-
-        /// <summary>
-        /// 查询投资者
-        /// </summary>
-        /// <param name="callback">查询回调</param>
-        public int QueryInvestor(DataCallback<InvestorInfo> callback)
-        {
-            int requestID = AddCallback(callback);
-            return _api.QueryInvestor(requestID);
-        }
-
-        /// <summary>
-        /// 查询持仓
-        /// </summary>
-        /// <param name="callback">查询回调</param>
-        public int QueryPosition(DataListCallback<PositionInfo> callback)
-        {
-            int requestID = AddCallback(callback);
-            return _api.QueryInvestorPosition(requestID);
-        }
-
-        /// <summary>
-        /// 查询当日委托
-        /// </summary>
-        /// <param name="callback">查询回调</param>
-        public int QueryOrder(DataListCallback<OrderInfo> callback)
-        {
-            int requestID = AddCallback(callback);
-            return _api.QueryOrder(requestID);
-        }
-
-        /// <summary>
-        /// 查询当日成交
-        /// </summary>
-        /// <param name="callback">查询回调</param>
-        public int QueryTrade(DataListCallback<TradeInfo> callback)
-        {
-            int requestID = AddCallback(callback);
-            return _api.QueryTrade(requestID);
-        }
-
-        /// <summary>
         /// 预埋单录入
         /// </summary>
         /// <param name="callback">报单回调</param>
@@ -285,23 +251,101 @@ namespace CTPTradeAdapter.Adapter
         }
 
         /// <summary>
+        /// 查询资金账户
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        public void QueryAccount(DataCallback<AccountInfo> callback)
+        {
+            int requestID = AddCallback(callback);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryTradingAccount(requestID);
+                RemoveMethod(requestID, ret);
+            }));
+        }
+
+        /// <summary>
+        /// 查询投资者
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        public void QueryInvestor(DataCallback<InvestorInfo> callback)
+        {
+            int requestID = AddCallback(callback);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryInvestor(requestID);
+                RemoveMethod(requestID, ret);
+            }));
+        }
+
+        /// <summary>
+        /// 查询持仓
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        public void QueryPosition(DataListCallback<PositionInfo> callback)
+        {
+            int requestID = AddCallback(callback);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryInvestorPosition(requestID);
+                RemoveMethod(requestID, ret);
+            }));
+        }
+
+        /// <summary>
+        /// 查询当日委托
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        public void QueryOrder(DataListCallback<OrderInfo> callback)
+        {
+            int requestID = AddCallback(callback);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryOrder(requestID);
+                RemoveMethod(requestID, ret);
+            }));
+        }
+
+        /// <summary>
+        /// 查询当日成交
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        public void QueryTrade(DataListCallback<TradeInfo> callback)
+        {
+            int requestID = AddCallback(callback);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryTrade(requestID);
+                RemoveMethod(requestID, ret);
+            }));
+        }
+
+        /// <summary>
         /// 查询预埋单
         /// </summary>
         /// <param name="callback">查询回调</param>
-        public int QueryParkedOrder(DataListCallback<ParkedOrderInfo> callback)
+        public void QueryParkedOrder(DataListCallback<ParkedOrderInfo> callback)
         {
             int requestID = AddCallback(callback);
-            return _api.QueryParkedOrder(requestID);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryParkedOrder(requestID);
+                RemoveMethod(requestID, ret);
+            }));
         }
 
         /// <summary>
         /// 查询预埋撤单
         /// </summary>
         /// <param name="callback">查询回调</param>
-        public int QueryParkedOrderAction(DataListCallback<ParkedCanelOrderInfo> callback)
+        public void QueryParkedOrderAction(DataListCallback<ParkedCanelOrderInfo> callback)
         {
             int requestID = AddCallback(callback);
-            return _api.QueryParkedOrderAction(requestID);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryParkedOrderAction(requestID);
+                RemoveMethod(requestID, ret);
+            }));
         }
 
         /// <summary>
@@ -310,10 +354,14 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="callback">查询回调</param>
         /// <param name="instrumentID">指定合约</param>
         /// <returns></returns>
-        public int QueryInstrument(DataListCallback<InstrumentInfo> callback, string instrumentID)
+        public void QueryInstrument(DataListCallback<InstrumentInfo> callback, string instrumentID)
         {
             int requestID = AddCallback(callback);
-            return _api.QueryInstrument(requestID, instrumentID);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryInstrument(requestID, instrumentID);
+                RemoveMethod(requestID, ret);
+            }));
         }
 
         /// <summary>
@@ -322,10 +370,14 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="callback">查询回调</param>
         /// <param name="instrumentID">合约代码:不填-查所有</param>
         /// <returns></returns>
-        public int QueryInvestorPositionDetail(DataListCallback<PositionDetailInfo> callback, string instrumentID)
+        public void QueryInvestorPositionDetail(DataListCallback<PositionDetailInfo> callback, string instrumentID)
         {
             int requestID = AddCallback(callback);
-            return _api.QueryInvestorPositionDetail(requestID, instrumentID);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryInvestorPositionDetail(requestID, instrumentID);
+                RemoveMethod(requestID, ret);
+            }));
         }
 
         /// <summary>
@@ -333,10 +385,14 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         /// <param name="callback">查询回调</param>
         /// <returns></returns>
-        public int QueryNotice(DataListCallback<NoticeInfo> callback)
+        public void QueryNotice(DataListCallback<NoticeInfo> callback)
         {
             int requestID = AddCallback(callback);
-            return _api.QueryNotice(requestID);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QueryNotice(requestID);
+                RemoveMethod(requestID, ret);
+            }));
         }
 
         #endregion
@@ -353,6 +409,77 @@ namespace CTPTradeAdapter.Adapter
             {
                 _requestID += 1;
                 return _requestID;
+            }
+        }
+
+        /// <summary>
+        /// 添加查询委托方法
+        /// </summary>
+        /// <param name="requestID"></param>
+        /// <param name="action"></param>
+        private void AddMethod(int requestID, Action action)
+        {
+            if ((DateTime.Now - _queryTime).TotalSeconds > 1)
+            {
+                action.Invoke();
+                _queryTime = DateTime.Now;
+            }
+            else
+            {
+                lock (this)
+                {
+                    _queryMethodDict.Add(requestID, action);
+                    if (!_timer.Enabled)
+                    {
+                        _timer.Start();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 执行委托方法
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ExecuteMethod(object sender, ElapsedEventArgs e)
+        {
+            if (_queryMethodDict.Count > 0)
+            {
+                var action = _queryMethodDict.Values.FirstOrDefault();
+                action.Invoke();
+                _queryTime = DateTime.Now;
+            }
+        }
+
+        /// <summary>
+        /// 移除委托方法
+        /// </summary>
+        /// <param name="requestID"></param>
+        /// <param name="ret"></param>
+        private void RemoveMethod(int requestID, int ret)
+        {
+            lock (this)
+            {
+                if (ret == 0)
+                {
+                    _executeFailCount = 0;
+                }
+                else
+                {
+                    _executeFailCount++;
+                }
+                if (ret == 0 || _executeFailCount > 1)
+                {
+                    _queryMethodDict.Remove(requestID);
+                    if (_queryMethodDict.Count == 0)
+                    {
+                        if (_timer != null && _timer.Enabled)
+                        {
+                            _timer.Stop();
+                        }
+                    }
+                }
             }
         }
 
@@ -892,7 +1019,7 @@ namespace CTPTradeAdapter.Adapter
                 }
             }
         }
-        
+
         /// <summary>
         /// 查询合约列表回调
         /// </summary>
@@ -1601,6 +1728,7 @@ namespace CTPTradeAdapter.Adapter
                 MinMarketOrderVolume = pInstrument.MinMarketOrderVolume,
                 MaxLimitOrderVolume = pInstrument.MaxLimitOrderVolume,
                 MinLimitOrderVolume = pInstrument.MinLimitOrderVolume,
+                VolumeMultiple = pInstrument.VolumeMultiple,
                 PriceTick = (decimal)pInstrument.PriceTick,
                 CreateDate = pInstrument.CreateDate,
                 OpenDate = pInstrument.OpenDate,

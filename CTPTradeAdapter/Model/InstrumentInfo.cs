@@ -57,6 +57,11 @@ namespace CTPTradeAdapter.Model
         public int MinLimitOrderVolume { get; set; }
 
         /// <summary>
+        /// 合约数量乘数
+        /// </summary>
+        public int VolumeMultiple { get; set; }
+
+        /// <summary>
         /// 最小变动价位
         /// </summary>
         public decimal PriceTick { get; set; }
