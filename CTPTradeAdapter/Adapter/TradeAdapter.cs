@@ -15,7 +15,7 @@ namespace CTPTradeAdapter.Adapter
     /// <summary>
     /// CTP交易适配器，支持同时调用多个查询接口(利用任务队列解决CTP单个查询1秒限制)
     /// </summary>
-    public class TradeAdapter : ITradeApi
+    public class TradeAdapter : MarshalByRefObject, ITradeApi
     {
         #region 私有变量
 
@@ -71,10 +71,33 @@ namespace CTPTradeAdapter.Adapter
         /// <summary>
         /// 创建CTP交易适配器
         /// </summary>
+        public TradeAdapter()
+        {
+            _api = new TradeApi();
+
+            BindEvents();
+        }
+
+        /// <summary>
+        /// 创建CTP交易适配器
+        /// </summary>
         /// <param name="flowPath">存储订阅信息文件的目录</param>
-        public TradeAdapter(string flowPath = "")
+        public TradeAdapter(string flowPath)
         {
             _api = new TradeApi("", "", flowPath);
+
+            BindEvents();
+        }
+
+        #endregion
+
+        #region 私有方法
+
+        /// <summary>
+        /// 绑定事件
+        /// </summary>
+        private void BindEvents()
+        {
             _api.OnRspError += OnRspError;
             _api.OnFrontConnect += OnConnected;
             _api.OnDisconnected += OnDisconnected;

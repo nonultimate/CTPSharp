@@ -53,7 +53,7 @@ namespace CTPMarketAdapter.Adapter.Tests
         [TestInitialize]
         public void Initialize()
         {
-            _api = new MarketAdapter("");
+            _api = new MarketAdapter();
             var connectCallback = new DataCallback((DataResult result) =>
             {
                 if (result.IsSuccess)

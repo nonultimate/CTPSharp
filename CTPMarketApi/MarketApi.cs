@@ -18,7 +18,7 @@ namespace CTPMarketApi
         /// <summary>
         /// DLL名称
         /// </summary>
-        private const string dllName = "MdApi.dll";
+        private const string DllName = "MdApi.dll";
 
         /// <summary>
         /// 前置地址
@@ -51,7 +51,7 @@ namespace CTPMarketApi
         public string MaxOrderRef { get; set; }
 
 		private string _password;
-        private string _flowPath;
+        private string _flowPath = "";
 
         /// <summary>
         /// 类库加载类
@@ -119,22 +119,44 @@ namespace CTPMarketApi
 
         #endregion
 
+        #region 构造方法
+
+        /// <summary>
+        /// MdApi.dll, thostmduserapi.dll 放在主程序的执行文件夹中
+        /// </summary>
+        public MarketApi()
+        {
+            LoadAssembly();
+        }
+
         /// <summary>
         /// MdApi.dll, thostmduserapi.dll 放在主程序的执行文件夹中
         /// </summary>
         /// <param name="brokerID">经纪公司代码:2030-CTP模拟</param>
         /// <param name="frontAddr">前置地址，tcp://IP:Port</param>
         /// <param name="flowPath">存储订阅信息文件的目录，默认为当前目录</param>
-        public MarketApi(string brokerID = "", string frontAddr = "", string flowPath = "")
+        public MarketApi(string brokerID, string frontAddr, string flowPath = "")
         {
             this.FrontAddr = frontAddr;
             this.BrokerID = brokerID;
             this._flowPath = flowPath;
 
+            LoadAssembly();
+        }
+
+        #endregion
+
+        #region 私有方法
+
+        /// <summary>
+        /// 加载程序集
+        /// </summary>
+        private void LoadAssembly()
+        {
             try
             {
                 string path = Path.GetFullPath(string.Format("{0}\\{1}", LibraryWrapper.ProcessorArchitecture,
-                    dllName));
+                    DllName));
                 _wrapper = new LibraryWrapper(path, "thostmduserapi.dll");
 
                 #region 读取方法入口列表
@@ -218,6 +240,10 @@ namespace CTPMarketApi
             throw new Exception(string.Format("Failed to get entry point for \"{0}\"", name));
         }
 
+        #endregion
+
+        #region 接口方法
+
         /// <summary>
         /// 获取接口版本
         /// </summary>
@@ -296,6 +322,8 @@ namespace CTPMarketApi
         {
             unsubscribeMarketData(instruments, instruments == null ? 0 : instruments.Length);
         }
+
+        #endregion
 
         #region 错误响应
 

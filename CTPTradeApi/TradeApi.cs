@@ -18,7 +18,7 @@ namespace CTPTradeApi
         /// <summary>
         /// DLL名称
         /// </summary>
-        private const string dllName = "TradeApi.dll";
+        private const string DllName = "TradeApi.dll";
 
         /// <summary>
         /// 前置地址
@@ -51,7 +51,7 @@ namespace CTPTradeApi
         public string MaxOrderRef { get; set; }
 
         private string _password;
-        private string _flowPath;
+        private string _flowPath = "";
 
         /// <summary>
         /// 类库加载类
@@ -307,22 +307,44 @@ namespace CTPTradeApi
 
         #endregion
 
+        #region 构造方法
+
+        /// <summary>
+        /// TradeApi.dll,CTPTradeApi.dll,thosttraderapi.dll 放在主程序的执行文件夹中
+        /// </summary>
+        public TradeApi()
+        {
+            LoadAssembly();
+        }
+
         /// <summary>
         /// TradeApi.dll,CTPTradeApi.dll,thosttraderapi.dll 放在主程序的执行文件夹中
         /// </summary>
         /// <param name="brokerID">经纪公司代码</param>
         /// <param name="frontAddr">前置地址，tcp://IP:Port</param>
         /// <param name="flowPath">存储订阅信息文件的目录，默认为当前目录</param>
-        public TradeApi(string brokerID = "", string frontAddr = "", string flowPath = "")
+        public TradeApi(string brokerID, string frontAddr, string flowPath = "")
         {
             this.FrontAddr = frontAddr;
             this.BrokerID = brokerID;
             this._flowPath = flowPath;
 
+            LoadAssembly();
+        }
+
+        #endregion
+
+        #region 私有方法
+
+        /// <summary>
+        /// 加载程序集
+        /// </summary>
+        private void LoadAssembly()
+        {
             try
             {
                 string path = Path.GetFullPath(string.Format("{0}\\{1}", LibraryWrapper.ProcessorArchitecture,
-                    dllName));
+                    DllName));
                 _wrapper = new LibraryWrapper(path, "thosttraderapi.dll");
 
                 #region 读取方法入口列表
@@ -502,6 +524,10 @@ namespace CTPTradeApi
             }
             throw new Exception(string.Format("Failed to get entry point for \"{0}\"", name));
         }
+
+        #endregion
+
+        #region 接口方法
 
         /// <summary>
         /// 获取接口版本号
@@ -1229,6 +1255,8 @@ namespace CTPTradeApi
         {
             return reqQueryBankAccountMoneyByFuture(requestID, ref field);
         }
+
+        #endregion
 
         #region 连接响应
 

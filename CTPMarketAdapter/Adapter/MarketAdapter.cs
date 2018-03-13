@@ -10,7 +10,7 @@ namespace CTPMarketAdapter.Adapter
     /// <summary>
     /// CTP行情适配器
     /// </summary>
-    public class MarketAdapter : IMarketApi
+    public class MarketAdapter : MarshalByRefObject, IMarketApi
     {
         #region 私有变量
 
@@ -41,13 +41,38 @@ namespace CTPMarketAdapter.Adapter
 
         #endregion
 
+        #region 构造方法
+
+        /// <summary>
+        /// 创建CTP行情适配器
+        /// </summary>
+        public MarketAdapter()
+        {
+            _api = new MarketApi();
+
+            BindEvents();
+        }
+
         /// <summary>
         /// 创建CTP行情适配器
         /// </summary>
         /// <param name="flowPath">存储订阅信息文件的目录</param>
-        public MarketAdapter(string flowPath = "")
+        public MarketAdapter(string flowPath)
         {
             _api = new MarketApi("", "", flowPath);
+
+            BindEvents();
+        }
+
+        #endregion
+
+        #region 私有方法
+
+        /// <summary>
+        /// 绑定事件
+        /// </summary>
+        private void BindEvents()
+        {
             _api.OnRspError += OnRspError;
             _api.OnFrontConnected += OnFrontConnected;
             _api.OnFrontDisconnected += OnFrontDisconnected;
@@ -55,6 +80,8 @@ namespace CTPMarketAdapter.Adapter
             _api.OnRspUserLogout += OnRspUserLogout;
             _api.OnRtnDepthMarketData += OnRtnDepthMarketData;
         }
+
+        #endregion
 
         #region 回调事件
 

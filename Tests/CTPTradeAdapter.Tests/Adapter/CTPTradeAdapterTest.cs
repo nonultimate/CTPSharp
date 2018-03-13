@@ -56,7 +56,7 @@ namespace CTPTradeAdapter.Adapter.Tests
         [TestInitialize()]
         public void Initialize()
         {
-            _adapter = new TradeAdapter("");
+            _adapter = new TradeAdapter();
             var connectCallback = new DataCallback((DataResult result) =>
             {
                 if (result.IsSuccess)
