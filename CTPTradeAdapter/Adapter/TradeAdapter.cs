@@ -15,7 +15,7 @@ namespace CTPTradeAdapter.Adapter
     /// <summary>
     /// CTP交易适配器，支持同时调用多个查询接口(利用任务队列解决CTP单个查询1秒限制)
     /// </summary>
-    public class TradeAdapter : MarshalByRefObject, ITradeApi
+    public class TradeAdapter : ITradeApi
     {
         #region 私有变量
 

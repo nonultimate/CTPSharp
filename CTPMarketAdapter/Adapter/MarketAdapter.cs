@@ -10,7 +10,7 @@ namespace CTPMarketAdapter.Adapter
     /// <summary>
     /// CTP行情适配器
     /// </summary>
-    public class MarketAdapter : MarshalByRefObject, IMarketApi
+    public class MarketAdapter : IMarketApi
     {
         #region 私有变量
 
