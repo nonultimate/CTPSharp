@@ -199,23 +199,23 @@ namespace CTPMarketApi
 
                 #region 获取非托管方法
 
-                getApiVersion = GetDelegate<DelegateGetString>("?GetApiVersion");
-                getTradingDay = GetDelegate<DelegateGetString>("?GetTradingDay");
-                connect = GetDelegate<DelegateConnect>("?Connect");
-                disconnect = GetDelegate<DelegateDisconnect>("?DisConnect");
-                userLogin = GetDelegate<DelegateUserLogin>("?ReqUserLogin");
-                userLogout = GetDelegate<DelegateUserLogout>("?ReqUserLogout");
-                subscribeMarketData = GetDelegate<DelegateSubscribeMarketData>("?SubMarketData");
-                unsubscribeMarketData = GetDelegate<DelegateUnsubscribeMarketData>("?UnSubscribeMarketData");
-                regOnRspError = GetDelegate<DelegateRegOnRspError>("?RegOnRspError");
-                regOnHeartBeatWarning = GetDelegate<DelegateRegOnHeartBeatWarning>("?RegOnHeartBeatWarning");
-                regOnFrontConnected = GetDelegate<DelegateRegOnFrontConnected>("?RegOnFrontConnected");
-                regOnFrontDisconnected = GetDelegate<DelegateRegOnFrontDisconnected>("?RegOnFrontDisconnected");
-                regOnRspUserLogin = GetDelegate<DelegateRegOnRspUserLogin>("?RegOnRspUserLogin");
-                regOnRspUserLogout = GetDelegate<DelegateRegOnRspUserLogout>("?RegOnRspUserLogout");
-                regOnRspSubMarketData = GetDelegate<DelegateRegOnRspSubMarketData>("?RegOnRspSubMarketData");
-                regOnRspUnSubMarketData = GetDelegate<DelegateRegOnRspUnSubMarketData>("?RegOnRspUnSubMarketData");
-                regOnRtnDepthMarketData = GetDelegate<DelegateRegOnRtnDepthMarketData>("?RegOnRtnDepthMarketData");
+                getApiVersion = GetDelegate<DelegateGetString>("GetApiVersion");
+                getTradingDay = GetDelegate<DelegateGetString>("GetTradingDay");
+                connect = GetDelegate<DelegateConnect>("Connect");
+                disconnect = GetDelegate<DelegateDisconnect>("DisConnect");
+                userLogin = GetDelegate<DelegateUserLogin>("ReqUserLogin");
+                userLogout = GetDelegate<DelegateUserLogout>("ReqUserLogout");
+                subscribeMarketData = GetDelegate<DelegateSubscribeMarketData>("SubMarketData");
+                unsubscribeMarketData = GetDelegate<DelegateUnsubscribeMarketData>("UnSubscribeMarketData");
+                regOnRspError = GetDelegate<DelegateRegOnRspError>("RegOnRspError");
+                regOnHeartBeatWarning = GetDelegate<DelegateRegOnHeartBeatWarning>("RegOnHeartBeatWarning");
+                regOnFrontConnected = GetDelegate<DelegateRegOnFrontConnected>("RegOnFrontConnected");
+                regOnFrontDisconnected = GetDelegate<DelegateRegOnFrontDisconnected>("RegOnFrontDisconnected");
+                regOnRspUserLogin = GetDelegate<DelegateRegOnRspUserLogin>("RegOnRspUserLogin");
+                regOnRspUserLogout = GetDelegate<DelegateRegOnRspUserLogout>("RegOnRspUserLogout");
+                regOnRspSubMarketData = GetDelegate<DelegateRegOnRspSubMarketData>("RegOnRspSubMarketData");
+                regOnRspUnSubMarketData = GetDelegate<DelegateRegOnRspUnSubMarketData>("RegOnRspUnSubMarketData");
+                regOnRtnDepthMarketData = GetDelegate<DelegateRegOnRtnDepthMarketData>("RegOnRtnDepthMarketData");
 
                 #endregion
             }
@@ -224,26 +224,30 @@ namespace CTPMarketApi
                 throw ex;
             }
         }
-
         /// <summary>
-        /// 从列表中查找入口并返回非托管方法委托
+        /// 从列表中查找入口并返回非托管方法委托(注意接口前缀不能相同，否则可能找到错误的入口)
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">方法委托</param>
         /// <returns></returns>
         private T GetDelegate<T>(string name) where T : class
         {
-            string entryName = _entryList.FirstOrDefault(p => p.StartsWith(name));
-            if (!string.IsNullOrEmpty(entryName))
+            var entries = _entryList.Where(p => p.StartsWith(string.Format("?{0}@", name)));
+            int count = entries.Count();
+            if (count > 1)
             {
-                return _wrapper.GetUnmanagedFunction<T>(entryName);
+                throw new Exception(string.Format("More than one entries found with the name: \"{0}\"", name));
             }
-            throw new Exception(string.Format("Failed to get entry point for \"{0}\"", name));
+            if (count == 0)
+            {
+                throw new Exception(string.Format("Failed to get entry point for \"{0}\"", name));
+            }
+            string entryName = entries.FirstOrDefault();
+            return _wrapper.GetUnmanagedFunction<T>(entryName);
         }
 
         #endregion
 
         #region 接口方法
-
         /// <summary>
         /// 获取接口版本
         /// </summary>

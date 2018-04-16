@@ -184,10 +184,18 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="callback">登录回调</param>
         /// <param name="investorID">投资者账号</param>
         /// <param name="password">密码</param>
-        public int UserLogin(DataCallback callback, string investorID, string password)
+        /// <param name="isSafe">是否使用安全接口</param>
+        public int UserLogin(DataCallback callback, string investorID, string password, bool isSafe = false)
         {
             int requestID = AddCallback(callback, -3);
-            return _api.UserLogin(requestID, investorID, password);
+            if (isSafe)
+            {
+                return _api.UserSafeLogin(requestID, investorID, password);
+            }
+            else
+            {
+                return _api.UserLogin(requestID, investorID, password);
+            }
         }
 
         /// <summary>
@@ -215,10 +223,18 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="callback">更新回调</param>
         /// <param name="oldPassword">原密码</param>
         /// <param name="newPassword">新密码</param>
-        public int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword)
+        /// <param name="isSafe">是否使用安全接口</param>
+        public int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword, bool isSafe = false)
         {
             int requestID = AddCallback(callback);
-            return _api.UserPasswordupdate(requestID, _api.InvestorID, oldPassword, newPassword);
+            if (isSafe)
+            {
+                return _api.UserPasswordSafeUpdate(requestID, _api.InvestorID, oldPassword, newPassword);
+            }
+            else
+            {
+                return _api.UserPasswordupdate(requestID, _api.InvestorID, oldPassword, newPassword);
+            }
         }
 
         /// <summary>

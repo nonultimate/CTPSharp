@@ -18,8 +18,11 @@ namespace CTPTradeApi.Tests
 
         /// <summary>
         /// 交易服务器地址
+        /// 180.168.146.187:10000
+        /// 180.168.146.187:10001
+        /// 218.202.237.33:10002
         /// </summary>
-        private string _frontAddr = "tcp://180.168.146.187:10000";
+        private string _frontAddr = "tcp://218.202.237.33:10002";
 
         /// <summary>
         /// 经纪商代码
@@ -79,7 +82,7 @@ namespace CTPTradeApi.Tests
             });
 
             _api.Connect();
-            Thread.Sleep(100);
+            Thread.Sleep(200);
         }
 
         /// <summary>
@@ -116,7 +119,22 @@ namespace CTPTradeApi.Tests
         public void TestGetTradingDay()
         {
             string result = _api.GetTradingDay();
+            Console.WriteLine("Trading day: " + result);
             Assert.AreEqual(8, result.Length);
+        }
+
+        /// <summary>
+        /// 测试安全登录
+        /// </summary>
+        [TestMethod]
+        public void TestUserSafeLogin()
+        {
+            _api.OnRspError += new TradeApi.RspError((ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            {
+                Assert.Fail(pRspInfo.ErrorMsg);
+            });
+            _api.UserSafeLogin(1, _investorID, _password);
+            Thread.Sleep(200);
         }
 
         /// <summary>
@@ -153,6 +171,43 @@ namespace CTPTradeApi.Tests
             Thread.Sleep(100);
 
             _api.UserPasswordupdate(3, _investorID, newPassword, _password);
+            Thread.Sleep(100);
+        }
+
+        /// <summary>
+        /// 测试更新用户口令2
+        /// </summary>
+        [TestMethod()]
+        public void TestUserPasswordSafeUpdate()
+        {
+            _api.OnRspUserPasswordUpdate += new TradeApi.RspUserPasswordUpdate((ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            {
+                if (pRspInfo.ErrorID == 0)
+                {
+                    Console.WriteLine("更新用户口令成功，OldPassword: {0}, NewPassword: {1}", pUserPasswordUpdate.OldPassword, pUserPasswordUpdate.NewPassword);
+                }
+                else
+                {
+                    Console.WriteLine(pRspInfo.ErrorMsg);
+                }
+                if (nRequestID == 1)
+                {
+                    Assert.IsFalse(pRspInfo.ErrorID == 0);
+                }
+                else if (nRequestID == 2 || nRequestID == 3)
+                {
+                    Assert.IsTrue(pRspInfo.ErrorID == 0);
+                }
+            });
+            string newPassword = "asde34562";
+            _api.UserPasswordSafeUpdate(1, _investorID, newPassword, newPassword);
+            Thread.Sleep(100);
+
+            _api.UserPasswordSafeUpdate(2, _investorID, _password, newPassword);
+            Thread.Sleep(100);
+
+            _api.UserPasswordSafeUpdate(3, _investorID, newPassword, _password);
             Thread.Sleep(100);
         }
 
@@ -215,7 +270,7 @@ namespace CTPTradeApi.Tests
             CThostFtdcInputOrderField order = new CThostFtdcInputOrderField();
             order.BrokerID = _brokerID;
             order.InvestorID = _investorID;
-            order.InstrumentID = "TF1709";
+            order.InstrumentID = "TF1809";
             order.OrderRef = "1";
             order.UserID = _investorID;
             order.OrderPriceType = TThostFtdcOrderPriceTypeType.LimitPrice;
@@ -264,7 +319,7 @@ namespace CTPTradeApi.Tests
                     field.ActionFlag = TThostFtdcActionFlagType.Delete;
                     field.BrokerID = _brokerID;
                     field.InvestorID = _investorID;
-                    field.InstrumentID = "TF1709";
+                    field.InstrumentID = "TF1809";
                     if (pOrder.FrontID != 0)
                         field.FrontID = pOrder.FrontID;
                     if (pOrder.SessionID != 0)
@@ -291,7 +346,7 @@ namespace CTPTradeApi.Tests
             CThostFtdcInputOrderField order = new CThostFtdcInputOrderField();
             order.BrokerID = _brokerID;
             order.InvestorID = _investorID;
-            order.InstrumentID = "TF1709";
+            order.InstrumentID = "TF1809";
             order.OrderRef = "1";
             order.UserID = _investorID;
             order.OrderPriceType = TThostFtdcOrderPriceTypeType.LimitPrice;
@@ -861,7 +916,7 @@ namespace CTPTradeApi.Tests
             field.UserID = _investorID;
             field.VolumeCondition = TThostFtdcVolumeConditionType.AV;
             field.CombHedgeFlag = TThostFtdcHedgeFlagType.Speculation;
-            field.InstrumentID = "TF1709";
+            field.InstrumentID = "TF1809";
             field.CombOffsetFlag = TThostFtdcOffsetFlagType.Open;
             field.Direction = TThostFtdcDirectionType.Buy;
             field.LimitPrice = 97.080;
@@ -892,13 +947,13 @@ namespace CTPTradeApi.Tests
             CThostFtdcParkedOrderActionField field = new CThostFtdcParkedOrderActionField();
             field.BrokerID = _brokerID;
             field.InvestorID = _investorID;
-            field.InstrumentID = "TF1709";
+            field.InstrumentID = "TF1809";
             field.ActionFlag = TThostFtdcActionFlagType.Delete;
             field.FrontID = 1;
             field.SessionID = 574058695;
             field.OrderRef = "1";
             field.ExchangeID = "CFFEX";
-            string OrderSysID = "225324";
+            string OrderSysID = "132984";
             field.OrderSysID = new string('\0', 21 - OrderSysID.Length) + OrderSysID;
             _api.ParkedOrderAction(1, field);
             Thread.Sleep(500);
@@ -941,7 +996,7 @@ namespace CTPTradeApi.Tests
             CThostFtdcParkedOrderField field = new CThostFtdcParkedOrderField();
             field.BrokerID = _brokerID;
             field.InvestorID = _investorID;
-            field.InstrumentID = "TF1709";
+            field.InstrumentID = "TF1809";
             field.OrderRef = "";
             field.UserID = _investorID;
             field.OrderPriceType = TThostFtdcOrderPriceTypeType.LimitPrice;
@@ -999,12 +1054,12 @@ namespace CTPTradeApi.Tests
             field.ActionFlag = TThostFtdcActionFlagType.Delete;
             field.BrokerID = _brokerID;
             field.InvestorID = _investorID;
-            field.InstrumentID = "TF1709";
+            field.InstrumentID = "TF1809";
             field.FrontID = 1;
             field.SessionID = -1253843411;
             field.OrderRef = "1";
             field.ExchangeID = "CFFEX";
-            string OrderSysID = "233797";
+            string OrderSysID = "132984";
             field.OrderSysID = new string('\0', 21 - OrderSysID.Length) + OrderSysID;
             _api.ParkedOrderAction(1, field);
             Thread.Sleep(200);

@@ -35,7 +35,8 @@ namespace CTPTradeAdapter.Interface
         /// <param name="callback">登录回调</param>
         /// <param name="investorID">投资者账号</param>
         /// <param name="password">密码</param>
-        int UserLogin(DataCallback callback, string investorID, string password);
+        /// <param name="isSafe">是否使用安全接口</param>
+        int UserLogin(DataCallback callback, string investorID, string password, bool isSafe = false);
 
         /// <summary>
         /// 用户登出
@@ -55,7 +56,8 @@ namespace CTPTradeAdapter.Interface
         /// <param name="callback">更新回调</param>
         /// <param name="oldPassword">原密码</param>
         /// <param name="newPassword">新密码</param>
-        int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword);
+        /// <param name="isSafe">是否使用安全接口</param>
+        int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword, bool isSafe = false);
 
         /// <summary>
         /// 报单

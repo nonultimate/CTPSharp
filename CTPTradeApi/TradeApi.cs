@@ -198,6 +198,8 @@ namespace CTPTradeApi
         DelegateReqAccount reqUserLogout;
         DelegateReqUserUpdate reqUserPasswordUpdate;
         DelegateReqUserUpdate reqTradingAccountPasswordUpdate;
+        DelegateReqUser reqUserSafeLogin;
+        DelegateReqUserUpdate reqUserPasswordSafeUpdate;
         DelegateReqOrderInsert reqOrderInsert;
         DelegateReqOrderAction reqOrderAction;
         DelegateReqQueryMaxOrderVolume reqQueryMaxOrderVolume;
@@ -387,120 +389,122 @@ namespace CTPTradeApi
 
                 #region 获取非托管方法
 
-                getApiVersion = GetDelegate<DelegateGetString>("?GetApiVersion");
-                getTradingDay = GetDelegate<DelegateGetString>("?GetTradingDay");
-                connect = GetDelegate<DelegateConnect>("?Connect");
-                disconnect = GetDelegate<DelegateDisconnect>("?DisConnect");
-                reqUserLogin = GetDelegate<DelegateReqUser>("?ReqUserLogin");
-                reqUserLogout = GetDelegate<DelegateReqAccount>("?ReqUserLogout");
-                reqUserPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("?ReqUserPasswordUpdate");
-                reqTradingAccountPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("?ReqTradingAccountPasswordUpdate");
-                reqOrderInsert = GetDelegate<DelegateReqOrderInsert>("?ReqOrderInsert");
-                reqOrderAction = GetDelegate<DelegateReqOrderAction>("?ReqOrderAction");
-                reqQueryMaxOrderVolume = GetDelegate<DelegateReqQueryMaxOrderVolume>("?ReqQueryMaxOrderVolume");
-                reqSettlementInfoConfirm = GetDelegate<DelegateReqAccount>("?ReqSettlementInfoConfirm");
-                reqQueryOrder = GetDelegate<DelegateReqQueryOrder>("?ReqQryOrder");
-                reqQueryTrade = GetDelegate<DelegateReqQueryTrade>("?ReqQryTrade");
-                reqQueryInvestorPosition = GetDelegate<DelegateReqUser>("?ReqQryInvestorPosition");
-                reqQueryTradingAccount = GetDelegate<DelegateReqAccount>("?ReqQryTradingAccount");
-                reqQueryInvestor = GetDelegate<DelegateReqAccount>("?ReqQryInvestor");
-                reqQueryTradingCode = GetDelegate<DelegateReqUserUpdate>("?ReqQryTradingCode");
-                reqQueryInstrumentMarginRate = GetDelegate<DelegateReqQueryInstrumentMarginRate>("?ReqQryInstrumentMarginRate");
-                reqQueryInstrumentCommissionRate = GetDelegate<DelegateReqUser>("?ReqQryInstrumentCommissionRate");
-                reqQueryExchange = GetDelegate<DelegateReqQueryExchange>("?ReqQryExchange");
-                reqQueryInstrument = GetDelegate<DelegateReqQueryExchange>("?ReqQryInstrument");
-                reqQueryDepthMarketData = GetDelegate<DelegateReqQueryExchange>("?ReqQryDepthMarketData");
-                reqQuerySettlementInfo = GetDelegate<DelegateReqUser>("?ReqQrySettlementInfo");
-                reqQueryInvestorPositionDetail = GetDelegate<DelegateReqUser>("?ReqQryInvestorPositionDetail");
-                reqQueryNotice = GetDelegate<DelegateReqQueryExchange>("?ReqQryNotice");
-                reqQuerySettlementInfoConfirm = GetDelegate<DelegateReqAccount>("?ReqQrySettlementInfoConfirm");
-                reqQueryInvestorPositionCombineDetail = GetDelegate<DelegateReqUser>("?ReqQryInvestorPositionCombineDetail");
-                reqQueryCFMMCTradingAccountKey = GetDelegate<DelegateReqAccount>("?ReqQryCFMMCTradingAccountKey");
-                reqQueryTradingNotice = GetDelegate<DelegateReqAccount>("?ReqQryTradingNotice");
-                reqQueryBrokerTradingParams = GetDelegate<DelegateReqAccount>("?ReqQryBrokerTradingParams");
-                reqQueryBrokerTradingAlgos = GetDelegate<DelegateReqUser>("?ReqQryBrokerTradingAlgos");
-                reqParkedOrderInsert = GetDelegate<DelegateReqParkedOrderInsert>("?ReqParkedOrderInsert");
-                reqParkedOrderAction = GetDelegate<DelegateReqParkedOrderAction>("?ReqParkedOrderAction");
-                reqRemoveParkedOrder = GetDelegate<DelegateReqUser>("?ReqRemoveParkedOrder");
-                reqRemoveParkedOrderAction = GetDelegate<DelegateReqUser>("?ReqRemoveParkedOrderAction");
-                reqQueryTransferBank = GetDelegate<DelegateReqAccount>("?ReqQryTransferBank");
-                reqQueryTransferSerial = GetDelegate<DelegateReqUser>("?ReqQryTransferSerial");
-                reqQueryAccountregister = GetDelegate<DelegateReqUser>("?ReqQryAccountregister");
-                reqQueryContractBank = GetDelegate<DelegateReqUser>("?ReqQryContractBank");
-                reqQueryParkedOrder = GetDelegate<DelegateReqUserUpdate>("?ReqQryParkedOrder");
-                reqQueryParkedOrderAction = GetDelegate<DelegateReqUserUpdate>("?ReqQryParkedOrderAction");
-                reqFromBankToFutureByFuture = GetDelegate<DelegateReqBankAndFuture>("?ReqFromBankToFutureByFuture");
-                reqFromFutureToBankByFuture = GetDelegate<DelegateReqBankAndFuture>("?ReqFromFutureToBankByFuture");
-                reqQueryBankAccountMoneyByFuture = GetDelegate<DelegateReqQueryBankAccountMoney>("?ReqQueryBankAccountMoneyByFuture");
+                getApiVersion = GetDelegate<DelegateGetString>("GetApiVersion");
+                getTradingDay = GetDelegate<DelegateGetString>("GetTradingDay");
+                connect = GetDelegate<DelegateConnect>("Connect");
+                disconnect = GetDelegate<DelegateDisconnect>("DisConnect");
+                reqUserLogin = GetDelegate<DelegateReqUser>("ReqUserLogin");
+                reqUserLogout = GetDelegate<DelegateReqAccount>("ReqUserLogout");
+                reqUserPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordUpdate");
+                reqTradingAccountPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqTradingAccountPasswordUpdate");
+                reqUserSafeLogin = GetDelegate<DelegateReqUser>("ReqUserSafeLogin");
+                reqUserPasswordSafeUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordSafeUpdate");
+                reqOrderInsert = GetDelegate<DelegateReqOrderInsert>("ReqOrderInsert");
+                reqOrderAction = GetDelegate<DelegateReqOrderAction>("ReqOrderAction");
+                reqQueryMaxOrderVolume = GetDelegate<DelegateReqQueryMaxOrderVolume>("ReqQueryMaxOrderVolume");
+                reqSettlementInfoConfirm = GetDelegate<DelegateReqAccount>("ReqSettlementInfoConfirm");
+                reqQueryOrder = GetDelegate<DelegateReqQueryOrder>("ReqQryOrder");
+                reqQueryTrade = GetDelegate<DelegateReqQueryTrade>("ReqQryTrade");
+                reqQueryInvestorPosition = GetDelegate<DelegateReqUser>("ReqQryInvestorPosition");
+                reqQueryTradingAccount = GetDelegate<DelegateReqAccount>("ReqQryTradingAccount");
+                reqQueryInvestor = GetDelegate<DelegateReqAccount>("ReqQryInvestor");
+                reqQueryTradingCode = GetDelegate<DelegateReqUserUpdate>("ReqQryTradingCode");
+                reqQueryInstrumentMarginRate = GetDelegate<DelegateReqQueryInstrumentMarginRate>("ReqQryInstrumentMarginRate");
+                reqQueryInstrumentCommissionRate = GetDelegate<DelegateReqUser>("ReqQryInstrumentCommissionRate");
+                reqQueryExchange = GetDelegate<DelegateReqQueryExchange>("ReqQryExchange");
+                reqQueryInstrument = GetDelegate<DelegateReqQueryExchange>("ReqQryInstrument");
+                reqQueryDepthMarketData = GetDelegate<DelegateReqQueryExchange>("ReqQryDepthMarketData");
+                reqQuerySettlementInfo = GetDelegate<DelegateReqUser>("ReqQrySettlementInfo");
+                reqQueryInvestorPositionDetail = GetDelegate<DelegateReqUser>("ReqQryInvestorPositionDetail");
+                reqQueryNotice = GetDelegate<DelegateReqQueryExchange>("ReqQryNotice");
+                reqQuerySettlementInfoConfirm = GetDelegate<DelegateReqAccount>("ReqQrySettlementInfoConfirm");
+                reqQueryInvestorPositionCombineDetail = GetDelegate<DelegateReqUser>("ReqQryInvestorPositionCombineDetail");
+                reqQueryCFMMCTradingAccountKey = GetDelegate<DelegateReqAccount>("ReqQryCFMMCTradingAccountKey");
+                reqQueryTradingNotice = GetDelegate<DelegateReqAccount>("ReqQryTradingNotice");
+                reqQueryBrokerTradingParams = GetDelegate<DelegateReqAccount>("ReqQryBrokerTradingParams");
+                reqQueryBrokerTradingAlgos = GetDelegate<DelegateReqUser>("ReqQryBrokerTradingAlgos");
+                reqParkedOrderInsert = GetDelegate<DelegateReqParkedOrderInsert>("ReqParkedOrderInsert");
+                reqParkedOrderAction = GetDelegate<DelegateReqParkedOrderAction>("ReqParkedOrderAction");
+                reqRemoveParkedOrder = GetDelegate<DelegateReqUser>("ReqRemoveParkedOrder");
+                reqRemoveParkedOrderAction = GetDelegate<DelegateReqUser>("ReqRemoveParkedOrderAction");
+                reqQueryTransferBank = GetDelegate<DelegateReqAccount>("ReqQryTransferBank");
+                reqQueryTransferSerial = GetDelegate<DelegateReqUser>("ReqQryTransferSerial");
+                reqQueryAccountregister = GetDelegate<DelegateReqUser>("ReqQryAccountregister");
+                reqQueryContractBank = GetDelegate<DelegateReqUser>("ReqQryContractBank");
+                reqQueryParkedOrder = GetDelegate<DelegateReqUserUpdate>("ReqQryParkedOrder");
+                reqQueryParkedOrderAction = GetDelegate<DelegateReqUserUpdate>("ReqQryParkedOrderAction");
+                reqFromBankToFutureByFuture = GetDelegate<DelegateReqBankAndFuture>("ReqFromBankToFutureByFuture");
+                reqFromFutureToBankByFuture = GetDelegate<DelegateReqBankAndFuture>("ReqFromFutureToBankByFuture");
+                reqQueryBankAccountMoneyByFuture = GetDelegate<DelegateReqQueryBankAccountMoney>("ReqQueryBankAccountMoneyByFuture");
 
-                regOnFrontConnected = GetDelegate<DelegateRegOnFrontConnected>("?RegOnFrontConnected");
-                regOnDisConnected = GetDelegate<DelegateRegOnDisconnected>("?RegOnFrontDisconnected");
-                regOnHeartBeatWarning = GetDelegate<DelegateRegOnHeartBeatWarning>("?RegOnHeartBeatWarning");
-                regErrRtnBankToFutureByFuture = GetDelegate<DelegateRegErrRtnBankToFutureByFuture>("?RegErrRtnBankToFutureByFuture");
-                regErrRtnFutureToBankByFuture = GetDelegate<DelegateRegErrRtnFutureToBankByFuture>("?RegErrRtnFutureToBankByFuture");
-                regErrRtnOrderAction = GetDelegate<DelegateRegErrRtnOrderAction>("?RegErrRtnOrderAction");
-                regErrRtnOrderInsert = GetDelegate<DelegateRegErrRtnOrderInsert>("?RegErrRtnOrderInsert");
-                regErrRtnQueryBankBalanceByFuture = GetDelegate<DelegateRegErrRtnQueryBankBalanceByFuture>("?RegErrRtnQueryBankBalanceByFuture");
-                regErrRtnRepealBankToFutureByFutureManual = GetDelegate<DelegateRegErrRtnRepealBankToFutureByFutureManual>("?RegErrRtnRepealBankToFutureByFutureManual");
-                regErrRtnRepealFutureToBankByFutureManual = GetDelegate<DelegateRegErrRtnRepealFutureToBankByFutureManual>("?RegErrRtnRepealFutureToBankByFutureManual");
-                regRspError = GetDelegate<DelegateRegRspError>("?RegRspError");
-                regRspFromBankToFutureByFuture = GetDelegate<DelegateRegRspFromBankToFutureByFuture>("?RegRspFromBankToFutureByFuture");
-                regRspFromFutureToBankByFuture = GetDelegate<DelegateRegRspFromFutureToBankByFuture>("?RegRspFromFutureToBankByFuture");
-                regRspOrderAction = GetDelegate<DelegateRegRspOrderAction>("?RegRspOrderAction");
-                regRspOrderInsert = GetDelegate<DelegateRegRspOrderInsert>("?RegRspOrderInsert");
-                regRspParkedOrderAction = GetDelegate<DelegateRegRspParkedOrderAction>("?RegRspParkedOrderAction");
-                regRspParkedOrderInsert = GetDelegate<DelegateRegRspParkedOrderInsert>("?RegRspParkedOrderInsert");
-                regRspQueryBrokerTradingAlgos = GetDelegate<DelegateRegRspQueryBrokerTradingAlgos>("?RegRspQryBrokerTradingAlgos");
-                regRspQueryBrokerTradingParams = GetDelegate<DelegateRegRspQueryBrokerTradingParams>("?RegRspQryBrokerTradingParams");
-                regRspQueryCFMMCTradingAccountKey = GetDelegate<DelegateRegRspQueryCFMMCTradingAccountKey>("?RegRspQryCFMMCTradingAccountKey");
-                regRspQueryContractBank = GetDelegate<DelegateRegRspQueryContractBank>("?RegRspQryContractBank");
-                regRspQueryDepthMarketData = GetDelegate<DelegateRegRspQueryDepthMarketData>("?RegRspQryDepthMarketData");
-                regRspQueryExchange = GetDelegate<DelegateRegRspQueryExchange>("?RegRspQryExchange");
-                regRspQueryInstrument = GetDelegate<DelegateRegRspQueryInstrument>("?RegRspQryInstrument");
-                regRspQueryInstrumentCommissionRate = GetDelegate<DelegateRegRspQueryInstrumentCommissionRate>("?RegRspQryInstrumentCommissionRate");
-                regRspQueryInstrumentMarginRate = GetDelegate<DelegateRegRspQueryInstrumentMarginRate>("?RegRspQryInstrumentMarginRate");
-                regRspQueryInvestor = GetDelegate<DelegateRegRspQueryInvestor>("?RegRspQryInvestor");
-                regRspQueryInvestorPosition = GetDelegate<DelegateRegRspQueryInvestorPosition>("?RegRspQryInvestorPosition");
-                regRspQueryInvestorPositionCombineDetail = GetDelegate<DelegateRegRspQueryInvestorPositionCombineDetail>("?RegRspQryInvestorPositionCombineDetail");
-                regRspQueryInvestorPositionDetail = GetDelegate<DelegateRegRspQueryInvestorPositionDetail>("?RegRspQryInvestorPositionDetail");
-                regRspQueryNotice = GetDelegate<DelegateRegRspQueryNotice>("?RegRspQryNotice");
-                regRspQueryOrder = GetDelegate<DelegateRegRspQueryOrder>("?RegRspQryOrder");
-                regRspQueryParkedOrder = GetDelegate<DelegateRegRspQueryParkedOrder>("?RegRspQryParkedOrder");
-                regRspQueryParkedOrderAction = GetDelegate<DelegateRegRspQueryParkedOrderAction>("?RegRspQryParkedOrderAction");
-                regRspQuerySettlementInfo = GetDelegate<DelegateRegRspQuerySettlementInfo>("?RegRspQrySettlementInfo");
-                regRspQuerySettlementInfoConfirm = GetDelegate<DelegateRegRspQuerySettlementInfoConfirm>("?RegRspQrySettlementInfoConfirm");
-                regRspQueryTrade = GetDelegate<DelegateRegRspQueryTrade>("?RegRspQryTrade");
-                regRspQueryTradingAccount = GetDelegate<DelegateRegRspQueryTradingAccount>("?RegRspQryTradingAccount");
-                regRspQueryTradingCode = GetDelegate<DelegateRegRspQueryTradingCode>("?RegRspQryTradingCode");
-                regRspQueryTradingNotice = GetDelegate<DelegateRegRspQueryTradingNotice>("?RegRspQryTradingNotice");
-                regRspQueryTransferBank = GetDelegate<DelegateRegRspQueryTransferBank>("?RegRspQryTransferBank");
-                regRspQueryTransferSerial = GetDelegate<DelegateRegRspQueryTransferSerial>("?RegRspQryTransferSerial");
-                regRspQueryAccountregister = GetDelegate<DelegateRegRspQueryAccountregister>("?RegRspQryAccountregister");
-                regRspQueryBankAccountMoneyByFuture = GetDelegate<DelegateRegRspQueryBankAccountMoneyByFuture>("?RegRspQueryBankAccountMoneyByFuture");
-                regRspQueryMaxOrderVolume = GetDelegate<DelegateRegRspQueryMaxOrderVolume>("?RegRspQueryMaxOrderVolume");
-                regRspRemoveParkedOrder = GetDelegate<DelegateRegRspRemoveParkedOrder>("?RegRspRemoveParkedOrder");
-                regRspRemoveParkedOrderAction = GetDelegate<DelegateRegRspRemoveParkedOrderAction>("?RegRspRemoveParkedOrderAction");
-                regRspSettlementInfoConfirm = GetDelegate<DelegateRegRspSettlementInfoConfirm>("?RegRspSettlementInfoConfirm");
-                regRspTradingAccountPasswordUpdate = GetDelegate<DelegateRegRspTradingAccountPasswordUpdate>("?RegRspTradingAccountPasswordUpdate");
-                regRspUserLogin = GetDelegate<DelegateRegRspUserLogin>("?RegRspUserLogin");
-                regRspUserLogout = GetDelegate<DelegateRegRspUserLogout>("?RegRspUserLogout");
-                regRspUserPasswordUpdate = GetDelegate<DelegateRegRspUserPasswordUpdate>("?RegRspUserPasswordUpdate");
-                regRtnErrorConditionalOrder = GetDelegate<DelegateRegRtnErrorConditionalOrder>("?RegRtnErrorConditionalOrder");
-                regRtnFromBankToFutureByBank = GetDelegate<DelegateRegRtnFromBankToFutureByBank>("?RegRtnFromBankToFutureByBank");
-                regRtnFromBankToFutureByFuture = GetDelegate<DelegateRegRtnFromBankToFutureByFuture>("?RegRtnFromBankToFutureByFuture");
-                regRtnFromFutureToBankByBank = GetDelegate<DelegateRegRtnFromFutureToBankByBank>("?RegRtnFromFutureToBankByBank");
-                regRtnFromFutureToBankByFuture = GetDelegate<DelegateRegRtnFromFutureToBankByFuture>("?RegRtnFromFutureToBankByFuture");
-                regRtnInstrumentStatus = GetDelegate<DelegateRegRtnInstrumentStatus>("?RegRtnInstrumentStatus");
-                regRtnOrder = GetDelegate<DelegateRegRtnOrder>("?RegRtnOrder");
-                regRtnQueryBankBalanceByFuture = GetDelegate<DelegateRegRtnQueryBankBalanceByFuture>("?RegRtnQueryBankBalanceByFuture");
-                regRtnRepealFromBankToFutureByBank = GetDelegate<DelegateRegRtnRepealFromBankToFutureByBank>("?RegRtnRepealFromBankToFutureByBank");
-                regRtnRepealFromBankToFutureByFuture = GetDelegate<DelegateRegRtnRepealFromBankToFutureByFuture>("?RegRtnRepealFromBankToFutureByFuture");
-                regRtnRepealFromBankToFutureByFutureManual = GetDelegate<DelegateRegRtnRepealFromBankToFutureByFutureManual>("?RegRtnRepealFromBankToFutureByFutureManual");
-                regRtnRepealFromFutureToBankByBank = GetDelegate<DelegateRegRtnRepealFromFutureToBankByBank>("?RegRtnRepealFromFutureToBankByBank");
-                regRtnRepealFromFutureToBankByFuture = GetDelegate<DelegateRegRtnRepealFromFutureToBankByFuture>("?RegRtnRepealFromFutureToBankByFuture");
-                regRtnRepealFromFutureToBankByFutureManual = GetDelegate<DelegateRegRtnRepealFromFutureToBankByFutureManual>("?RegRtnRepealFromFutureToBankByFutureManual");
-                regRtnTrade = GetDelegate<DelegateRegRtnTrade>("?RegRtnTrade");
-                regRtnTradingNotice = GetDelegate<DelegateRegRtnTradingNotice>("?RegRtnTradingNotice");
+                regOnFrontConnected = GetDelegate<DelegateRegOnFrontConnected>("RegOnFrontConnected");
+                regOnDisConnected = GetDelegate<DelegateRegOnDisconnected>("RegOnFrontDisconnected");
+                regOnHeartBeatWarning = GetDelegate<DelegateRegOnHeartBeatWarning>("RegOnHeartBeatWarning");
+                regErrRtnBankToFutureByFuture = GetDelegate<DelegateRegErrRtnBankToFutureByFuture>("RegErrRtnBankToFutureByFuture");
+                regErrRtnFutureToBankByFuture = GetDelegate<DelegateRegErrRtnFutureToBankByFuture>("RegErrRtnFutureToBankByFuture");
+                regErrRtnOrderAction = GetDelegate<DelegateRegErrRtnOrderAction>("RegErrRtnOrderAction");
+                regErrRtnOrderInsert = GetDelegate<DelegateRegErrRtnOrderInsert>("RegErrRtnOrderInsert");
+                regErrRtnQueryBankBalanceByFuture = GetDelegate<DelegateRegErrRtnQueryBankBalanceByFuture>("RegErrRtnQueryBankBalanceByFuture");
+                regErrRtnRepealBankToFutureByFutureManual = GetDelegate<DelegateRegErrRtnRepealBankToFutureByFutureManual>("RegErrRtnRepealBankToFutureByFutureManual");
+                regErrRtnRepealFutureToBankByFutureManual = GetDelegate<DelegateRegErrRtnRepealFutureToBankByFutureManual>("RegErrRtnRepealFutureToBankByFutureManual");
+                regRspError = GetDelegate<DelegateRegRspError>("RegRspError");
+                regRspFromBankToFutureByFuture = GetDelegate<DelegateRegRspFromBankToFutureByFuture>("RegRspFromBankToFutureByFuture");
+                regRspFromFutureToBankByFuture = GetDelegate<DelegateRegRspFromFutureToBankByFuture>("RegRspFromFutureToBankByFuture");
+                regRspOrderAction = GetDelegate<DelegateRegRspOrderAction>("RegRspOrderAction");
+                regRspOrderInsert = GetDelegate<DelegateRegRspOrderInsert>("RegRspOrderInsert");
+                regRspParkedOrderAction = GetDelegate<DelegateRegRspParkedOrderAction>("RegRspParkedOrderAction");
+                regRspParkedOrderInsert = GetDelegate<DelegateRegRspParkedOrderInsert>("RegRspParkedOrderInsert");
+                regRspQueryBrokerTradingAlgos = GetDelegate<DelegateRegRspQueryBrokerTradingAlgos>("RegRspQryBrokerTradingAlgos");
+                regRspQueryBrokerTradingParams = GetDelegate<DelegateRegRspQueryBrokerTradingParams>("RegRspQryBrokerTradingParams");
+                regRspQueryCFMMCTradingAccountKey = GetDelegate<DelegateRegRspQueryCFMMCTradingAccountKey>("RegRspQryCFMMCTradingAccountKey");
+                regRspQueryContractBank = GetDelegate<DelegateRegRspQueryContractBank>("RegRspQryContractBank");
+                regRspQueryDepthMarketData = GetDelegate<DelegateRegRspQueryDepthMarketData>("RegRspQryDepthMarketData");
+                regRspQueryExchange = GetDelegate<DelegateRegRspQueryExchange>("RegRspQryExchange");
+                regRspQueryInstrument = GetDelegate<DelegateRegRspQueryInstrument>("RegRspQryInstrument");
+                regRspQueryInstrumentCommissionRate = GetDelegate<DelegateRegRspQueryInstrumentCommissionRate>("RegRspQryInstrumentCommissionRate");
+                regRspQueryInstrumentMarginRate = GetDelegate<DelegateRegRspQueryInstrumentMarginRate>("RegRspQryInstrumentMarginRate");
+                regRspQueryInvestor = GetDelegate<DelegateRegRspQueryInvestor>("RegRspQryInvestor");
+                regRspQueryInvestorPosition = GetDelegate<DelegateRegRspQueryInvestorPosition>("RegRspQryInvestorPosition");
+                regRspQueryInvestorPositionCombineDetail = GetDelegate<DelegateRegRspQueryInvestorPositionCombineDetail>("RegRspQryInvestorPositionCombineDetail");
+                regRspQueryInvestorPositionDetail = GetDelegate<DelegateRegRspQueryInvestorPositionDetail>("RegRspQryInvestorPositionDetail");
+                regRspQueryNotice = GetDelegate<DelegateRegRspQueryNotice>("RegRspQryNotice");
+                regRspQueryOrder = GetDelegate<DelegateRegRspQueryOrder>("RegRspQryOrder");
+                regRspQueryParkedOrder = GetDelegate<DelegateRegRspQueryParkedOrder>("RegRspQryParkedOrder");
+                regRspQueryParkedOrderAction = GetDelegate<DelegateRegRspQueryParkedOrderAction>("RegRspQryParkedOrderAction");
+                regRspQuerySettlementInfo = GetDelegate<DelegateRegRspQuerySettlementInfo>("RegRspQrySettlementInfo");
+                regRspQuerySettlementInfoConfirm = GetDelegate<DelegateRegRspQuerySettlementInfoConfirm>("RegRspQrySettlementInfoConfirm");
+                regRspQueryTrade = GetDelegate<DelegateRegRspQueryTrade>("RegRspQryTrade");
+                regRspQueryTradingAccount = GetDelegate<DelegateRegRspQueryTradingAccount>("RegRspQryTradingAccount");
+                regRspQueryTradingCode = GetDelegate<DelegateRegRspQueryTradingCode>("RegRspQryTradingCode");
+                regRspQueryTradingNotice = GetDelegate<DelegateRegRspQueryTradingNotice>("RegRspQryTradingNotice");
+                regRspQueryTransferBank = GetDelegate<DelegateRegRspQueryTransferBank>("RegRspQryTransferBank");
+                regRspQueryTransferSerial = GetDelegate<DelegateRegRspQueryTransferSerial>("RegRspQryTransferSerial");
+                regRspQueryAccountregister = GetDelegate<DelegateRegRspQueryAccountregister>("RegRspQryAccountregister");
+                regRspQueryBankAccountMoneyByFuture = GetDelegate<DelegateRegRspQueryBankAccountMoneyByFuture>("RegRspQueryBankAccountMoneyByFuture");
+                regRspQueryMaxOrderVolume = GetDelegate<DelegateRegRspQueryMaxOrderVolume>("RegRspQueryMaxOrderVolume");
+                regRspRemoveParkedOrder = GetDelegate<DelegateRegRspRemoveParkedOrder>("RegRspRemoveParkedOrder");
+                regRspRemoveParkedOrderAction = GetDelegate<DelegateRegRspRemoveParkedOrderAction>("RegRspRemoveParkedOrderAction");
+                regRspSettlementInfoConfirm = GetDelegate<DelegateRegRspSettlementInfoConfirm>("RegRspSettlementInfoConfirm");
+                regRspTradingAccountPasswordUpdate = GetDelegate<DelegateRegRspTradingAccountPasswordUpdate>("RegRspTradingAccountPasswordUpdate");
+                regRspUserLogin = GetDelegate<DelegateRegRspUserLogin>("RegRspUserLogin");
+                regRspUserLogout = GetDelegate<DelegateRegRspUserLogout>("RegRspUserLogout");
+                regRspUserPasswordUpdate = GetDelegate<DelegateRegRspUserPasswordUpdate>("RegRspUserPasswordUpdate");
+                regRtnErrorConditionalOrder = GetDelegate<DelegateRegRtnErrorConditionalOrder>("RegRtnErrorConditionalOrder");
+                regRtnFromBankToFutureByBank = GetDelegate<DelegateRegRtnFromBankToFutureByBank>("RegRtnFromBankToFutureByBank");
+                regRtnFromBankToFutureByFuture = GetDelegate<DelegateRegRtnFromBankToFutureByFuture>("RegRtnFromBankToFutureByFuture");
+                regRtnFromFutureToBankByBank = GetDelegate<DelegateRegRtnFromFutureToBankByBank>("RegRtnFromFutureToBankByBank");
+                regRtnFromFutureToBankByFuture = GetDelegate<DelegateRegRtnFromFutureToBankByFuture>("RegRtnFromFutureToBankByFuture");
+                regRtnInstrumentStatus = GetDelegate<DelegateRegRtnInstrumentStatus>("RegRtnInstrumentStatus");
+                regRtnOrder = GetDelegate<DelegateRegRtnOrder>("RegRtnOrder");
+                regRtnQueryBankBalanceByFuture = GetDelegate<DelegateRegRtnQueryBankBalanceByFuture>("RegRtnQueryBankBalanceByFuture");
+                regRtnRepealFromBankToFutureByBank = GetDelegate<DelegateRegRtnRepealFromBankToFutureByBank>("RegRtnRepealFromBankToFutureByBank");
+                regRtnRepealFromBankToFutureByFuture = GetDelegate<DelegateRegRtnRepealFromBankToFutureByFuture>("RegRtnRepealFromBankToFutureByFuture");
+                regRtnRepealFromBankToFutureByFutureManual = GetDelegate<DelegateRegRtnRepealFromBankToFutureByFutureManual>("RegRtnRepealFromBankToFutureByFutureManual");
+                regRtnRepealFromFutureToBankByBank = GetDelegate<DelegateRegRtnRepealFromFutureToBankByBank>("RegRtnRepealFromFutureToBankByBank");
+                regRtnRepealFromFutureToBankByFuture = GetDelegate<DelegateRegRtnRepealFromFutureToBankByFuture>("RegRtnRepealFromFutureToBankByFuture");
+                regRtnRepealFromFutureToBankByFutureManual = GetDelegate<DelegateRegRtnRepealFromFutureToBankByFutureManual>("RegRtnRepealFromFutureToBankByFutureManual");
+                regRtnTrade = GetDelegate<DelegateRegRtnTrade>("RegRtnTrade");
+                regRtnTradingNotice = GetDelegate<DelegateRegRtnTradingNotice>("RegRtnTradingNotice");
 
                 #endregion
             }
@@ -509,20 +513,26 @@ namespace CTPTradeApi
                 throw ex;
             }
         }
-
+        
         /// <summary>
-        /// 从列表中查找入口并返回非托管方法委托
+        /// 从列表中查找入口并返回非托管方法委托(注意接口前缀不能相同，否则可能找到错误的入口)
         /// </summary>
         /// <param name="name">方法委托</param>
         /// <returns></returns>
         private T GetDelegate<T>(string name) where T : class
         {
-            string entryName = _entryList.FirstOrDefault(p => p.StartsWith(name));
-            if (!string.IsNullOrEmpty(entryName))
+            var entries = _entryList.Where(p => p.StartsWith(string.Format("?{0}@", name)));
+            int count = entries.Count();
+            if (count > 1)
             {
-                return _wrapper.GetUnmanagedFunction<T>(entryName);
+                throw new Exception(string.Format("More than one entries found with the name: \"{0}\"", name));
             }
-            throw new Exception(string.Format("Failed to get entry point for \"{0}\"", name));
+            if (count == 0)
+            {
+                throw new Exception(string.Format("Failed to get entry point for \"{0}\"", name));
+            }
+            string entryName = entries.FirstOrDefault();
+            return _wrapper.GetUnmanagedFunction<T>(entryName);
         }
 
         #endregion
@@ -612,6 +622,32 @@ namespace CTPTradeApi
         public int TradingAccountPasswordUpdate(int requestID, string accountID, string oldPassword, string newPassword)
         {
             return reqTradingAccountPasswordUpdate(requestID, this.BrokerID, accountID, oldPassword, newPassword);
+        }
+
+        /// <summary>
+        /// 安全登入请求
+        /// </summary>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="password">密码</param>
+        /// <returns></returns>
+        public int UserSafeLogin(int requestID, string investorID, string password)
+        {
+            this.InvestorID = investorID;
+            this._password = password;
+            return reqUserSafeLogin(requestID, this.BrokerID, this.InvestorID, this._password);
+        }
+
+        /// <summary>
+        /// 安全更新用户口令
+        /// </summary>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="userID">投资者账号</param>
+        /// <param name="oldPassword">原密码</param>
+        /// <param name="newPassword">新密码</param>
+        public int UserPasswordSafeUpdate(int requestID, string userID, string oldPassword, string newPassword)
+        {
+            return reqUserPasswordSafeUpdate(requestID, this.BrokerID, userID, oldPassword, newPassword);
         }
 
         /// <summary>

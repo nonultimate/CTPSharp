@@ -22,8 +22,11 @@ namespace CTPTradeAdapter.Adapter.Tests
 
         /// <summary>
         /// 交易服务器地址
+        /// 180.168.146.187:10000
+        /// 180.168.146.187:10001
+        /// 218.202.237.33:10002
         /// </summary>
-        private string _frontAddr = "tcp://180.168.146.187:10000";
+        private string _frontAddr = "tcp://218.202.237.33:10002";
 
         /// <summary>
         /// 经纪商代码

@@ -34,6 +34,8 @@ extern CBRspForQuoteInsert cbRspForQuoteInsert;	///询价录入请求响应
 extern CBRspQuoteInsert cbRspQuoteInsert;	///报价录入请求响应
 extern CBRspQuoteAction cbRspQuoteAction;	///报价操作请求响应
 extern CBRspBatchOrderAction cbRspBatchOrderAction;	///批量报单操作请求响应
+extern CBRspOptionSelfCloseInsert cbRspOptionSelfCloseInsert;	///期权自对冲录入请求响应
+extern CBRspOptionSelfCloseAction cbRspOptionSelfCloseAction; ///期权自对冲操作请求响应
 extern CBRspCombActionInsert cbRspCombActionInsert;	///申请组合录入请求响应
 extern CBRspQryOrder cbRspQryOrder;	///请求查询报单响应
 extern CBRspQryTrade cbRspQryTrade;	///请求查询成交响应
@@ -64,11 +66,15 @@ extern CBRspQryProductGroup cbRspQryProductGroup;	///请求查询产品组
 extern CBRspQryMMInstrumentCommissionRate cbRspQryMMInstrumentCommissionRate;	///请求查询做市商合约手续费率响应
 extern CBRspQryMMOptionInstrCommRate cbRspQryMMOptionInstrCommRate;	///请求查询做市商期权合约手续费响应
 extern CBRspQryInstrumentOrderCommRate cbRspQryInstrumentOrderCommRate;	///请求查询报单手续费响应
+extern CBRspQrySecAgentTradingAccount cbRspQrySecAgentTradingAccount;	///请求查询资金账户响应
+extern CBRspQrySecAgentCheckMode cbRspQrySecAgentCheckMode;	///请求查询二级代理商资金校验模式响应
 extern CBRspQryOptionInstrTradeCost cbRspQryOptionInstrTradeCost;	///请求查询期权交易成本响应
 extern CBRspQryOptionInstrCommRate cbRspQryOptionInstrCommRate;	///请求查询期权合约手续费响应
 extern CBRspQryExecOrder cbRspQryExecOrder;	///请求查询执行宣告响应
 extern CBRspQryForQuote cbRspQryForQuote;	///请求查询询价响应
 extern CBRspQryQuote cbRspQryQuote;	///请求查询报价响应
+extern CBRspQryOptionSelfClose cbRspQryOptionSelfClose;	///请求查询期权自对冲响应
+extern CBRspQryInvestUnit cbRspQryInvestUnit;	///请求查询投资单元响应
 extern CBRspQryCombInstrumentGuard cbRspQryCombInstrumentGuard;	///请求查询组合合约安全系数响应
 extern CBRspQryCombAction cbRspQryCombAction;	///请求查询申请组合响应
 extern CBRspQryTransferSerial cbRspQryTransferSerial;	///请求查询转帐流水响应
@@ -91,6 +97,9 @@ extern CBErrRtnQuoteAction cbErrRtnQuoteAction;	///报价操作错误回报
 extern CBRtnForQuoteRsp cbRtnForQuoteRsp;	///询价通知
 extern CBRtnCFMMCTradingAccountToken cbRtnCFMMCTradingAccountToken;	///保证金监控中心用户令牌
 extern CBErrRtnBatchOrderAction cbErrRtnBatchOrderAction;	///批量报单操作错误回报
+extern CBRtnOptionSelfClose cbRtnOptionSelfClose;	///期权自对冲通知
+extern CBErrRtnOptionSelfCloseInsert cbErrRtnOptionSelfCloseInsert;	///期权自对冲录入错误回报
+extern CBErrRtnOptionSelfCloseAction cbErrRtnOptionSelfCloseAction;	///期权自对冲操作错误回报
 extern CBRtnCombAction cbRtnCombAction;	///申请组合通知
 extern CBErrRtnCombActionInsert cbErrRtnCombActionInsert;	///申请组合录入错误回报
 extern CBRspQryContractBank cbRspQryContractBank;	///请求查询签约银行响应
@@ -429,6 +438,38 @@ void CTraderSpi::OnRspBatchOrderAction(CThostFtdcInputBatchOrderActionField * pI
 		}
 		else
 			cbRspBatchOrderAction(pInputBatchOrderAction, repareInfo(pRspInfo), nRequestID, bIsLast);
+	}
+}
+
+///期权自对冲录入请求响应
+void CTraderSpi::OnRspOptionSelfCloseInsert(CThostFtdcInputOptionSelfCloseField *pInputOptionSelfClose, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (cbRspOptionSelfCloseInsert != NULL)
+	{
+		if (pInputOptionSelfClose == NULL)
+		{
+			CThostFtdcInputOptionSelfCloseField req;
+			memset(&req, 0, sizeof(req));
+			cbRspOptionSelfCloseInsert(&req, repareInfo(pRspInfo), nRequestID, bIsLast);
+		}
+		else
+			cbRspOptionSelfCloseInsert(pInputOptionSelfClose, repareInfo(pRspInfo), nRequestID, bIsLast);
+	}
+}
+
+///期权自对冲操作请求响应
+void CTraderSpi::OnRspOptionSelfCloseAction(CThostFtdcInputOptionSelfCloseActionField *pInputOptionSelfCloseAction, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (cbRspOptionSelfCloseAction != NULL)
+	{
+		if (pInputOptionSelfCloseAction == NULL)
+		{
+			CThostFtdcInputOptionSelfCloseActionField req;
+			memset(&req, 0, sizeof(req));
+			cbRspOptionSelfCloseAction(&req, repareInfo(pRspInfo), nRequestID, bIsLast);
+		}
+		else
+			cbRspOptionSelfCloseAction(pInputOptionSelfCloseAction, repareInfo(pRspInfo), nRequestID, bIsLast);
 	}
 }
 
@@ -912,6 +953,38 @@ void CTraderSpi::OnRspQryInstrumentOrderCommRate(CThostFtdcInstrumentOrderCommRa
 	}
 }
 
+///请求查询资金账户响应
+void CTraderSpi::OnRspQrySecAgentTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (cbRspQrySecAgentTradingAccount != NULL)
+	{
+		if (pTradingAccount == NULL)
+		{
+			CThostFtdcTradingAccountField req;
+			memset(&req, 0, sizeof(req));
+			cbRspQrySecAgentTradingAccount(&req, repareInfo(pRspInfo), nRequestID, bIsLast);
+		}
+		else
+			cbRspQrySecAgentTradingAccount(pTradingAccount, repareInfo(pRspInfo), nRequestID, bIsLast);
+	}
+}
+
+///请求查询二级代理商资金校验模式响应
+void CTraderSpi::OnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (cbRspQrySecAgentCheckMode != NULL)
+	{
+		if (pSecAgentCheckMode == NULL)
+		{
+			CThostFtdcSecAgentCheckModeField req;
+			memset(&req, 0, sizeof(req));
+			cbRspQrySecAgentCheckMode(&req, repareInfo(pRspInfo), nRequestID, bIsLast);
+		}
+		else
+			cbRspQrySecAgentCheckMode(pSecAgentCheckMode, repareInfo(pRspInfo), nRequestID, bIsLast);
+	}
+}
+
 ///请求查询期权交易成本响应
 void CTraderSpi::OnRspQryOptionInstrTradeCost(CThostFtdcOptionInstrTradeCostField * pOptionInstrTradeCost, CThostFtdcRspInfoField * pRspInfo, int nRequestID, bool bIsLast)
 {
@@ -989,6 +1062,38 @@ void CTraderSpi::OnRspQryQuote(CThostFtdcQuoteField * pQuote, CThostFtdcRspInfoF
 		}
 		else
 			cbRspQryQuote(pQuote, repareInfo(pRspInfo), nRequestID, bIsLast);
+	}
+}
+
+///请求查询期权自对冲响应
+void CTraderSpi::OnRspQryOptionSelfClose(CThostFtdcOptionSelfCloseField *pOptionSelfClose, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (cbRspQryOptionSelfClose != NULL)
+	{
+		if (pOptionSelfClose == NULL)
+		{
+			CThostFtdcOptionSelfCloseField req;
+			memset(&req, 0, sizeof(req));
+			cbRspQryOptionSelfClose(&req, repareInfo(pRspInfo), nRequestID, bIsLast);
+		}
+		else
+			cbRspQryOptionSelfClose(pOptionSelfClose, repareInfo(pRspInfo), nRequestID, bIsLast);
+	}
+}
+
+///请求查询投资单元响应
+void CTraderSpi::OnRspQryInvestUnit(CThostFtdcInvestUnitField *pInvestUnit, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (cbRspQryInvestUnit != NULL)
+	{
+		if (pInvestUnit == NULL)
+		{
+			CThostFtdcInvestUnitField req;
+			memset(&req, 0, sizeof(req));
+			cbRspQryInvestUnit(&req, repareInfo(pRspInfo), nRequestID, bIsLast);
+		}
+		else
+			cbRspQryInvestUnit(pInvestUnit, repareInfo(pRspInfo), nRequestID, bIsLast);
 	}
 }
 
@@ -1339,6 +1444,54 @@ void CTraderSpi::OnErrRtnBatchOrderAction(CThostFtdcBatchOrderActionField * pBat
 		}
 		else
 			cbErrRtnBatchOrderAction(pBatchOrderAction, repareInfo(pRspInfo));
+	}
+}
+
+///期权自对冲通知
+void CTraderSpi::OnRtnOptionSelfClose(CThostFtdcOptionSelfCloseField *pOptionSelfClose)
+{
+	if (cbRtnOptionSelfClose != NULL)
+	{
+		if (pOptionSelfClose == NULL)
+		{
+			CThostFtdcOptionSelfCloseField req;
+			memset(&req, 0, sizeof(req));
+			cbRtnOptionSelfClose(&req);
+		}
+		else
+			cbRtnOptionSelfClose(pOptionSelfClose);
+	}
+}
+
+///期权自对冲录入错误回报
+void CTraderSpi::OnErrRtnOptionSelfCloseInsert(CThostFtdcInputOptionSelfCloseField *pInputOptionSelfClose, CThostFtdcRspInfoField *pRspInfo)
+{
+	if (cbErrRtnOptionSelfCloseInsert != NULL)
+	{
+		if (pInputOptionSelfClose == NULL)
+		{
+			CThostFtdcInputOptionSelfCloseField req;
+			memset(&req, 0, sizeof(req));
+			cbErrRtnOptionSelfCloseInsert(&req, repareInfo(pRspInfo));
+		}
+		else
+			cbErrRtnOptionSelfCloseInsert(pInputOptionSelfClose, repareInfo(pRspInfo));
+	}
+}
+
+///期权自对冲操作错误回报
+void CTraderSpi::OnErrRtnOptionSelfCloseAction(CThostFtdcOptionSelfCloseActionField *pOptionSelfCloseAction, CThostFtdcRspInfoField *pRspInfo)
+{
+	if (cbErrRtnOptionSelfCloseAction != NULL)
+	{
+		if (pOptionSelfCloseAction == NULL)
+		{
+			CThostFtdcOptionSelfCloseActionField req;
+			memset(&req, 0, sizeof(req));
+			cbErrRtnOptionSelfCloseAction(&req, repareInfo(pRspInfo));
+		}
+		else
+			cbErrRtnOptionSelfCloseAction(pOptionSelfCloseAction, repareInfo(pRspInfo));
 	}
 }
 
