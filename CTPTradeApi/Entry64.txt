@@ -6,13 +6,13 @@ File Type: DLL
   Section contains the following exports for TradeApi.dll
 
     00000000 characteristics
-    5AD3F935 time date stamp Mon Apr 16 09:15:33 2018
+    5AF54A0E time date stamp Fri May 11 15:45:18 2018
         0.00 version
            1 ordinal base
-         153 number of functions
-         153 number of names
+         154 number of functions
+         154 number of names
 
- ordinal hint RVA      name
+    ordinal hint RVA      name
 
           1    0 000010A0 ?Connect@@YAPEAVCThostFtdcTraderApi@@PEAD0PEAVCTraderSpi@@@Z = ?Connect@@YAPEAVCThostFtdcTraderApi@@PEAD0PEAVCTraderSpi@@@Z (class CThostFtdcTraderApi * __cdecl Connect(char *,char *,class CTraderSpi *))
           2    1 00001030 ?CreateSpi@@YAPEAVCTraderSpi@@XZ = ?CreateSpi@@YAPEAVCTraderSpi@@XZ (class CTraderSpi * __cdecl CreateSpi(void))

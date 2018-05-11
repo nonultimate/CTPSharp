@@ -15,7 +15,7 @@ namespace CTPMarketAdapter.Adapter.Tests
         /// <summary>
         /// 行情适配器接口实例
         /// </summary>
-        private MarketAdapter _api;
+        private MarketAdapter _adapter;
 
         /// <summary>
         /// 连接地址
@@ -53,13 +53,12 @@ namespace CTPMarketAdapter.Adapter.Tests
         [TestInitialize]
         public void Initialize()
         {
-            _api = new MarketAdapter();
+            _adapter = new MarketAdapter();
             var connectCallback = new DataCallback((DataResult result) =>
             {
                 if (result.IsSuccess)
                 {
                     _isConnected = true;
-                    //登录行情服务器
                     var loginCallback = new DataCallback((DataResult loginResult) =>
                     {
                         if (loginResult.IsSuccess)
@@ -68,19 +67,18 @@ namespace CTPMarketAdapter.Adapter.Tests
                         }
                         else
                         {
-                            Console.WriteLine("登录失败:{0}", loginResult.Error);
+                            Console.WriteLine("登录失败：{0}", loginResult.Error);
                         }
                     });
-                    _api.UserLogin(loginCallback, _investor, _password);
+                    _adapter.UserLogin(loginCallback, _investor, _password);
                     Thread.Sleep(100);
                 }
                 else
                 {
-                    Console.WriteLine("连接失败:{0}", result.Error);
+                    Console.WriteLine("连接失败：{0}", result.Error);
                 }
             });
-            //连接行情服务器
-            _api.Connect(connectCallback, _brokerID, _frontAddr);
+            _adapter.Connect(connectCallback, _brokerID, _frontAddr);
             Thread.Sleep(200);
         }
 
@@ -100,10 +98,10 @@ namespace CTPMarketAdapter.Adapter.Tests
                      }
                      else
                      {
-                         Console.WriteLine("登出失败:{0}", logoutResult.Error);
+                         Console.WriteLine("登出失败：{0}", logoutResult.Error);
                      }
                  });
-                _api.UserLogout(logoutCallback);
+                _adapter.UserLogout(logoutCallback);
                 Thread.Sleep(100);
             }
             else if (_isConnected)
@@ -116,10 +114,10 @@ namespace CTPMarketAdapter.Adapter.Tests
                     }
                     else
                     {
-                        Console.WriteLine("登出失败:{0}", disconnectResult.Error);
+                        Console.WriteLine("登出失败：{0}", disconnectResult.Error);
                     }
                 });
-                _api.Disconnect(disconnectCallback);
+                _adapter.Disconnect(disconnectCallback);
                 Thread.Sleep(100);
             }
         }
@@ -130,7 +128,7 @@ namespace CTPMarketAdapter.Adapter.Tests
         [TestMethod()]
         public void TestGetTradingDay()
         {
-            string result = _api.GetTradingDay();
+            string result = _adapter.GetTradingDay();
             Assert.AreEqual(8, result.Length);
         }
 
@@ -140,16 +138,16 @@ namespace CTPMarketAdapter.Adapter.Tests
         [TestMethod()]
         public void TestSubscribeMarket()
         {
-            string instrmentID = "IF1709";
+            string instrmentID = "IF1809";
             //订阅行情
-            _api.OnMarketDataChanged += new MarketDataChangedHandler((market) =>
+            _adapter.OnMarketDataChanged += new MarketDataChangedHandler((market) =>
             {
                 Assert.AreEqual(instrmentID, market.InstrmentID);
             });
 
-            _api.SubscribeMarket(instrmentID);
+            _adapter.SubscribeMarket(instrmentID);
             Thread.Sleep(100);
-            _api.UnsubscribeMarket(instrmentID);
+            _adapter.UnsubscribeMarket(instrmentID);
         }
     }
 }

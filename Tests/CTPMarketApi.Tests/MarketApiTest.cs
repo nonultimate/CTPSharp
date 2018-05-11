@@ -124,7 +124,7 @@ namespace CTPMarketApi.Tests
         [TestMethod()]
         public void TestSubscribeMarketData()
         {
-            string instrumentID = "IF1709";
+            string instrumentID = "IF1809";
             _api.OnRspSubMarketData += new MarketApi.RspSubMarketData((ref CThostFtdcSpecificInstrumentField pSpecificInstrument,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {

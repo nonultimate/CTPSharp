@@ -6,13 +6,13 @@ File Type: DLL
   Section contains the following exports for MdApi.dll
 
     00000000 characteristics
-    59801EFA time date stamp Tue Aug  1 14:26:02 2017
+    5AF54EEE time date stamp Fri May 11 16:06:06 2018
         0.00 version
            1 ordinal base
-          17 number of functions
-          17 number of names
+          18 number of functions
+          18 number of names
 
-ordinal hint RVA      name
+    ordinal hint RVA      name
 
           1    0 000010F0 ?Connect@@YAPAVCThostFtdcMdApi@@PAD0PAVCMdSpi@@@Z = ?Connect@@YAPAVCThostFtdcMdApi@@PAD0PAVCMdSpi@@@Z (class CThostFtdcMdApi * __cdecl Connect(char *,char *,class CMdSpi *))
           2    1 00001190 ?CreateSpi@@YAPAVCMdSpi@@XZ = ?CreateSpi@@YAPAVCMdSpi@@XZ (class CMdSpi * __cdecl CreateSpi(void))

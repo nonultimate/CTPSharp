@@ -65,16 +65,16 @@ namespace CTPTradeAdapter.Adapter.Tests
                 if (result.IsSuccess)
                 {
                     _isConnected = true;
-                    //登录行情服务器
                     var loginCallback = new DataCallback((DataResult loginResult) =>
                     {
                         if (loginResult.IsSuccess)
                         {
                             _isLogin = true;
+                            _adapter.SettlementInfoConfirm(null);
                         }
                         else
                         {
-                            Console.WriteLine("登录失败:{0}", loginResult.Error);
+                            Console.WriteLine("登录失败：{0}", loginResult.Error);
                         }
                     });
                     _adapter.UserLogin(loginCallback, _investorID, _password);
@@ -82,10 +82,9 @@ namespace CTPTradeAdapter.Adapter.Tests
                 }
                 else
                 {
-                    Console.WriteLine("连接失败:{0}", result.Error);
+                    Console.WriteLine("连接失败：{0}", result.Error);
                 }
             });
-            //连接行情服务器
             _adapter.Connect(connectCallback, _brokerID, _frontAddr);
             Thread.Sleep(100);
         }
@@ -106,7 +105,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                     }
                     else
                     {
-                        Console.WriteLine("登出失败:{0}", logoutResult.Error);
+                        Console.WriteLine("登出失败：{0}", logoutResult.Error);
                     }
                 });
                 _adapter.UserLogout(logoutCallback);
@@ -122,7 +121,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                     }
                     else
                     {
-                        Console.WriteLine("登出失败:{0}", disconnectResult.Error);
+                        Console.WriteLine("登出失败：{0}", disconnectResult.Error);
                     }
                 });
                 _adapter.Disconnect(disconnectCallback);
@@ -151,7 +150,7 @@ namespace CTPTradeAdapter.Adapter.Tests
             {
                 if (result.IsSuccess)
                 {
-                    Console.WriteLine("更新用户口令成功。");
+                    Console.WriteLine("更新用户口令成功");
                 }
                 Assert.IsFalse(result.IsSuccess);
             });
@@ -174,12 +173,12 @@ namespace CTPTradeAdapter.Adapter.Tests
                 orderInfo = result.Result;
                 if (result.IsSuccess)
                 {
-                    Console.WriteLine("下单成功, OrderRef: {0}, OrderSysID: {1}", orderInfo.OrderRef, orderInfo.OrderSysID);
+                    Console.WriteLine("下单成功, OrderRef：{0}, OrderSysID：{1}", orderInfo.OrderRef, orderInfo.OrderSysID);
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
             OrderParameter order = new OrderParameter();
-            order.InstrumentID = "TF1709";
+            order.InstrumentID = "TF1809";
             order.OrderRef = "1";
             order.Direction = DirectionType.Buy;
             order.PriceType = OrderPriceType.LimitPrice;
@@ -216,13 +215,13 @@ namespace CTPTradeAdapter.Adapter.Tests
                         orderInfo = cancelOrderResult.Result;
                         if (cancelOrderResult.IsSuccess)
                         {
-                            Console.WriteLine("撤单成功, OrderRef: {0}, InstrumentID: {1}", orderInfo.OrderRef, orderInfo.InstrumentID);
+                            Console.WriteLine("撤单成功，OrderRef：{0}, InstrumentID：{1}", orderInfo.OrderRef, orderInfo.InstrumentID);
                         }
                         Assert.IsTrue(cancelOrderResult.IsSuccess);
                     });
                     CancelOrderParameter field = new CancelOrderParameter();
                     field.ActionFlag = ActionFlag.Delete;
-                    field.InstrumentID = "TF1709";
+                    field.InstrumentID = "TF1809";
                     field.OrderRef = orderInfo.OrderRef;
                     field.ExchangeID = orderInfo.ExchangeID;
                     field.OrderSysID = new string('\0', 21 - orderInfo.OrderSysID.Length) + orderInfo.OrderSysID;
@@ -233,7 +232,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                 Assert.IsTrue(result.IsSuccess);
             });
             OrderParameter order = new OrderParameter();
-            order.InstrumentID = "TF1709";
+            order.InstrumentID = "TF1809";
             order.OrderRef = "1";
             order.Direction = DirectionType.Buy;
             order.PriceType = OrderPriceType.LimitPrice;
@@ -263,7 +262,7 @@ namespace CTPTradeAdapter.Adapter.Tests
             {
                 if (result.IsSuccess)
                 {
-                    Console.WriteLine("帐户资金查询成功, Available: {0}", result.Result.Available);
+                    Console.WriteLine("帐户资金查询成功, Available：{0}", result.Result.Available);
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
@@ -281,10 +280,11 @@ namespace CTPTradeAdapter.Adapter.Tests
             {
                 if (result.IsSuccess)
                 {
-                    foreach (PositionInfo positionInfo in result.Result)
-                    {
-                        Console.WriteLine("投资者持仓查询成功, InstrumentID: {0}", positionInfo.InstrumentID);
-                    }
+                    Console.WriteLine("投资者持仓查询成功, 记录条数：{0}", result.Result.Count);
+                }
+                else
+                {
+                    Console.WriteLine("投资者持仓查询失败：{0}", result.Error);
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
@@ -302,10 +302,11 @@ namespace CTPTradeAdapter.Adapter.Tests
             {
                 if (result.IsSuccess)
                 {
-                    foreach (OrderInfo orderInfo in result.Result)
-                    {
-                        Console.WriteLine("报单查询成功, OrderSysID: {0},OrderRef: {1},ExchangeID: {2}", orderInfo.OrderSysID, orderInfo.OrderRef, orderInfo.ExchangeID);
-                    }
+                    Console.WriteLine("报单查询成功, 记录条数：{0}", result.Result.Count);
+                }
+                else
+                {
+                    Console.WriteLine("报单查询失败：{0}", result.Error);
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
@@ -323,10 +324,11 @@ namespace CTPTradeAdapter.Adapter.Tests
             {
                 if (result.IsSuccess)
                 {
-                    foreach (TradeInfo tradeInfo in result.Result)
-                    {
-                        Console.WriteLine("成交查询成功, TradeID: {0}", tradeInfo.TradeID);
-                    }
+                    Console.WriteLine("成交查询成功，记录条数：{0}", result.Result.Count);
+                }
+                else
+                {
+                    Console.WriteLine("成交查询失败：{0}", result.Error);
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
@@ -342,16 +344,18 @@ namespace CTPTradeAdapter.Adapter.Tests
         {
             var insertParkedOrderCallback = new DataCallback<ParkedOrderInfo>((DataResult<ParkedOrderInfo> result) =>
             {
-                ParkedOrderInfo pParkedOrder = new ParkedOrderInfo();
-                pParkedOrder = result.Result;
                 if (result.IsSuccess)
                 {
-                    Console.WriteLine("预埋单录入成功, ParkedOrderID: {0}", pParkedOrder.ParkedOrderID);
+                    Console.WriteLine("预埋单录入成功，ParkedOrderID：{0}", result.Result.ParkedOrderID);
+                }
+                else
+                {
+                    Console.WriteLine("预埋单录入失败：{0}", result.Error);
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
             OrderParameter field = new OrderParameter();
-            field.InstrumentID = "TF1709";
+            field.InstrumentID = "TF1809";
             field.OrderRef = "1";
             field.Direction = DirectionType.Buy;
             field.PriceType = OrderPriceType.LimitPrice;
@@ -388,7 +392,11 @@ namespace CTPTradeAdapter.Adapter.Tests
                         pParkedOrder = cancelParkedOrderResult.Result;
                         if (cancelParkedOrderResult.IsSuccess)
                         {
-                            Console.WriteLine("预埋撤单录入成功, ParkedOrderActionID: {0}", pParkedOrder.ParkedOrderActionID);
+                            Console.WriteLine("预埋撤单录入成功，ParkedOrderActionID：{0}", pParkedOrder.ParkedOrderActionID);
+                        }
+                        else
+                        {
+                            Console.WriteLine("预埋撤单录入失败：{0}", cancelParkedOrderResult.Error);
                         }
                         Assert.IsTrue(cancelParkedOrderResult.IsSuccess);
                     });
@@ -402,10 +410,14 @@ namespace CTPTradeAdapter.Adapter.Tests
                     _adapter.CancelParkedOrder(cancelParkedOrderCallback, fieldAction);
                     Thread.Sleep(50);
                 }
+                else
+                {
+                    Console.WriteLine("预埋单录入失败：", result.Error);
+                }
                 Assert.IsTrue(result.IsSuccess);
             });
             OrderParameter field = new OrderParameter();
-            field.InstrumentID = "TF1709";
+            field.InstrumentID = "TF1809";
             field.OrderRef = "1";
             field.Direction = DirectionType.Buy;
             field.PriceType = OrderPriceType.LimitPrice;
@@ -489,7 +501,7 @@ namespace CTPTradeAdapter.Adapter.Tests
             {
                 if (result.IsSuccess)
                 {
-                    Console.WriteLine("投资者查询成功, InvestorID: {0}", result.Result.InvestorID);
+                    Console.WriteLine("投资者查询成功，InvestorID：{0}", result.Result.InvestorID);
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
@@ -511,7 +523,7 @@ namespace CTPTradeAdapter.Adapter.Tests
                 }
                 Assert.IsTrue(result.IsSuccess);
             });
-            string InstrumentID = "TF1709";
+            string InstrumentID = "TF1809";
             _adapter.QueryInvestorPositionDetail(queryInvestorPositionDetailCallback, InstrumentID);
             Thread.Sleep(200);
         }

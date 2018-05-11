@@ -69,6 +69,7 @@ namespace CTPTradeApi.Tests
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 _isLogin = true;
+                _api.SettlementInfoConfirm(-4);
             });
             _api.OnDisconnected += new TradeApi.Disconnected((int nReasion) =>
             {
@@ -93,7 +94,7 @@ namespace CTPTradeApi.Tests
         {
             if (_isLogin)
             {
-                _api.UserLogout(-4);
+                _api.UserLogout(-5);
             }
             else if (_isConnected)
             {
@@ -119,7 +120,7 @@ namespace CTPTradeApi.Tests
         public void TestGetTradingDay()
         {
             string result = _api.GetTradingDay();
-            Console.WriteLine("Trading day: " + result);
+            Console.WriteLine("Trading day：" + result);
             Assert.AreEqual(8, result.Length);
         }
 

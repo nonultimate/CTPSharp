@@ -88,6 +88,13 @@ namespace CTPTradeAdapter.Interface
         int CancelParkedOrder(DataCallback<ParkedOrderInfo> callback, CancelOrderParameter parameter);
 
         /// <summary>
+        /// 确认结算结果
+        /// </summary>
+        /// <param name="callback">结果回调</param>
+        /// <returns></returns>
+        int SettlementInfoConfirm(DataCallback callback);
+
+        /// <summary>
         /// 查询当日委托
         /// </summary>
         /// <param name="callback">查询回调</param>
@@ -150,5 +157,19 @@ namespace CTPTradeAdapter.Interface
         /// </summary>
         /// <param name="callback">查询回调</param>
         void QueryNotice(DataListCallback<NoticeInfo> callback);
+
+        /// <summary>
+        /// 查询结算结果
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <returns></returns>
+        void QuerySettlementInfo(DataCallback callback);
+
+        /// <summary>
+        /// 查询结算信息确认
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <returns></returns>
+        void QuerySettlementInfoConfirm(DataCallback callback);
     }
 }

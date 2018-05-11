@@ -120,6 +120,9 @@ namespace CTPTradeAdapter.Adapter
             _api.OnRspQryInvestor += OnRspQueryInvestor;
             _api.OnRspQryInvestorPositionDetail += OnRspQueryInvestorPositionDetail;
             _api.OnRspQryNotice += OnRspQueryNotice;
+            _api.OnRspQrySettlementInfo += OnRspQrySettlementInfo;
+            _api.OnRspQrySettlementInfoConfirm += OnRspQrySettlementInfoConfirm;
+            _api.OnRspSettlementInfoConfirm += OnRspSettlementInfoConfirm;
 
             _timer = new Timer();
             _timer.Interval = 1000;
@@ -290,6 +293,17 @@ namespace CTPTradeAdapter.Adapter
         }
 
         /// <summary>
+        /// 确认结算结果
+        /// </summary>
+        /// <param name="callback">结果回调</param>
+        /// <returns></returns>
+        public int SettlementInfoConfirm(DataCallback callback)
+        {
+            int requestID = AddCallback(callback);
+            return _api.SettlementInfoConfirm(requestID);
+        }
+
+        /// <summary>
         /// 查询资金账户
         /// </summary>
         /// <param name="callback">查询回调</param>
@@ -430,6 +444,36 @@ namespace CTPTradeAdapter.Adapter
             AddMethod(requestID, new Action(() =>
             {
                 int ret = _api.QueryNotice(requestID);
+                RemoveMethod(requestID, ret);
+            }));
+        }
+
+        /// <summary>
+        /// 查询结算结果
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <returns></returns>
+        public void QuerySettlementInfo(DataCallback callback)
+        {
+            int requestID = AddCallback(callback);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QuerySettlementInfo(requestID);
+                RemoveMethod(requestID, ret);
+            }));
+        }
+
+        /// <summary>
+        /// 查询结算信息确认
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <returns></returns>
+        public void QuerySettlementInfoConfirm(DataCallback callback)
+        {
+            int requestID = AddCallback(callback);
+            AddMethod(requestID, new Action(() =>
+            {
+                int ret = _api.QuerySettlementInfoConfirm(requestID);
                 RemoveMethod(requestID, ret);
             }));
         }
@@ -802,7 +846,7 @@ namespace CTPTradeAdapter.Adapter
         {
             DataResult<OrderInfo> result = new DataResult<OrderInfo>();
             SetError(result, pRspInfo);
-            ExecuteCallback<OrderInfo>(nRequestID, result);
+            ExecuteCallback(nRequestID, result);
         }
 
         /// <summary>
@@ -842,7 +886,7 @@ namespace CTPTradeAdapter.Adapter
             }
             if (pRspInfo.ErrorID > 0)
             {
-                SetError<OrderInfo>(result, pRspInfo);
+                SetError(result, pRspInfo);
             }
             else
             {
@@ -851,7 +895,7 @@ namespace CTPTradeAdapter.Adapter
                 if (bIsLast == 1)
                 {
                     result.IsSuccess = true;
-                    ExecuteCallback<OrderInfo>(nRequestID, result);
+                    ExecuteCallback(nRequestID, result);
                 }
             }
         }
@@ -878,7 +922,7 @@ namespace CTPTradeAdapter.Adapter
             }
             if (pRspInfo.ErrorID > 0)
             {
-                SetError<TradeInfo>(result, pRspInfo);
+                SetError(result, pRspInfo);
             }
             else
             {
@@ -887,7 +931,7 @@ namespace CTPTradeAdapter.Adapter
                 if (bIsLast == 1)
                 {
                     result.IsSuccess = true;
-                    ExecuteCallback<TradeInfo>(nRequestID, result);
+                    ExecuteCallback(nRequestID, result);
                 }
             }
         }
@@ -911,7 +955,7 @@ namespace CTPTradeAdapter.Adapter
             {
                 result.Result = ConvertToAccount(pTradingAccount);
                 result.IsSuccess = true;
-                ExecuteCallback<AccountInfo>(nRequestID, result);
+                ExecuteCallback(nRequestID, result);
             }
         }
 
@@ -937,7 +981,7 @@ namespace CTPTradeAdapter.Adapter
             }
             if (pRspInfo.ErrorID > 0)
             {
-                SetError<PositionInfo>(result, pRspInfo);
+                SetError(result, pRspInfo);
             }
             else
             {
@@ -946,7 +990,7 @@ namespace CTPTradeAdapter.Adapter
                 if (bIsLast == 1)
                 {
                     result.IsSuccess = true;
-                    ExecuteCallback<PositionInfo>(nRequestID, result);
+                    ExecuteCallback(nRequestID, result);
                 }
             }
         }
@@ -961,11 +1005,16 @@ namespace CTPTradeAdapter.Adapter
         private void OnRspParkedOrderInsert(ref CThostFtdcParkedOrderField pParkedOrder,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
-            DataResult result = new DataResult();
-            result.IsSuccess = true;
-            ParkedOrderInfo order = new ParkedOrderInfo();
-
-            result.Result = order;
+            DataResult<ParkedOrderInfo> result = new DataResult<ParkedOrderInfo>();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = true;
+                result.Result = ConvertToParkedOrder(pParkedOrder);
+            }
             ExecuteCallback(nRequestID, result);
         }
 
@@ -979,11 +1028,38 @@ namespace CTPTradeAdapter.Adapter
         private void OnRspParkedOrderAction(ref CThostFtdcParkedOrderActionField pParkedOrderAction,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
-            DataResult result = new DataResult();
-            result.IsSuccess = true;
-            CancelOrderParameter parameter = new CancelOrderParameter();
+            DataResult<ParkedCanelOrderInfo> result = new DataResult<ParkedCanelOrderInfo>();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = true;
+                result.Result = ConvertToParkedCancelOrder(pParkedOrderAction);
+            }
+            ExecuteCallback(nRequestID, result);
+        }
 
-            result.Result = parameter;
+        /// <summary>
+        /// 结算确认回调
+        /// </summary>
+        /// <param name="pSettlementInfoConfirm"></param>
+        /// <param name="pRspInfo"></param>
+        /// <param name="nRequestID"></param>
+        /// <param name="bIsLast"></param>
+        private void OnRspSettlementInfoConfirm(ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
+        {
+            DataResult result = new DataResult();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = true;
+            }
             ExecuteCallback(nRequestID, result);
         }
 
@@ -1009,7 +1085,7 @@ namespace CTPTradeAdapter.Adapter
             }
             if (pRspInfo.ErrorID > 0)
             {
-                SetError<ParkedOrderInfo>(result, pRspInfo);
+                SetError(result, pRspInfo);
             }
             else
             {
@@ -1018,7 +1094,7 @@ namespace CTPTradeAdapter.Adapter
                 if (bIsLast == 1)
                 {
                     result.IsSuccess = true;
-                    ExecuteCallback<ParkedOrderInfo>(nRequestID, result);
+                    ExecuteCallback(nRequestID, result);
                 }
             }
         }
@@ -1045,7 +1121,7 @@ namespace CTPTradeAdapter.Adapter
             }
             if (pRspInfo.ErrorID > 0)
             {
-                SetError<ParkedCanelOrderInfo>(result, pRspInfo);
+                SetError(result, pRspInfo);
             }
             else
             {
@@ -1054,7 +1130,7 @@ namespace CTPTradeAdapter.Adapter
                 if (bIsLast == 1)
                 {
                     result.IsSuccess = true;
-                    ExecuteCallback<ParkedCanelOrderInfo>(nRequestID, result);
+                    ExecuteCallback(nRequestID, result);
                 }
             }
         }
@@ -1081,7 +1157,7 @@ namespace CTPTradeAdapter.Adapter
             }
             if (pRspInfo.ErrorID > 0)
             {
-                SetError<InstrumentInfo>(result, pRspInfo);
+                SetError(result, pRspInfo);
             }
             else
             {
@@ -1090,7 +1166,7 @@ namespace CTPTradeAdapter.Adapter
                 if (bIsLast == 1)
                 {
                     result.IsSuccess = true;
-                    ExecuteCallback<InstrumentInfo>(nRequestID, result);
+                    ExecuteCallback(nRequestID, result);
                 }
             }
         }
@@ -1114,7 +1190,7 @@ namespace CTPTradeAdapter.Adapter
             {
                 result.Result = ConvertToInvestor(pInvestor);
                 result.IsSuccess = true;
-                ExecuteCallback<InvestorInfo>(nRequestID, result);
+                ExecuteCallback(nRequestID, result);
             }
         }
 
@@ -1141,7 +1217,7 @@ namespace CTPTradeAdapter.Adapter
             }
             if (pRspInfo.ErrorID > 0)
             {
-                SetError<PositionDetailInfo>(result, pRspInfo);
+                SetError(result, pRspInfo);
             }
             else
             {
@@ -1150,7 +1226,7 @@ namespace CTPTradeAdapter.Adapter
                 if (bIsLast == 1)
                 {
                     result.IsSuccess = true;
-                    ExecuteCallback<PositionDetailInfo>(nRequestID, result);
+                    ExecuteCallback(nRequestID, result);
                 }
             }
         }
@@ -1177,7 +1253,7 @@ namespace CTPTradeAdapter.Adapter
             }
             if (pRspInfo.ErrorID > 0)
             {
-                SetError<NoticeInfo>(result, pRspInfo);
+                SetError(result, pRspInfo);
             }
             else
             {
@@ -1186,9 +1262,66 @@ namespace CTPTradeAdapter.Adapter
                 if (bIsLast == 1)
                 {
                     result.IsSuccess = true;
-                    ExecuteCallback<NoticeInfo>(nRequestID, result);
+                    ExecuteCallback(nRequestID, result);
                 }
             }
+        }
+
+        /// <summary>
+        /// 查询结算结果回调
+        /// </summary>
+        /// <param name="pSettlementInfo">结算结果</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnRspQrySettlementInfo(ref CThostFtdcSettlementInfoField pSettlementInfo,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
+        {
+            DataResult result;
+            if (_dataDict.ContainsKey(nRequestID))
+            {
+                result = (DataResult)_dataDict[nRequestID];
+            }
+            else
+            {
+                result = new DataResult();
+                _dataDict.TryAdd(nRequestID, result);
+            }
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.Result += pSettlementInfo.Content;
+                if (bIsLast == 1)
+                {
+                    result.IsSuccess = true;
+                    ExecuteCallback(nRequestID, result);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 查询结算信息确认回调
+        /// </summary>
+        /// <param name="pSettlementInfoConfirm">结算信息确认</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnRspQrySettlementInfoConfirm(ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
+        {
+            DataResult result = new DataResult();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = !string.IsNullOrEmpty(pSettlementInfoConfirm.ConfirmDate);
+            }
+            ExecuteCallback(nRequestID, result);
         }
 
         #endregion
