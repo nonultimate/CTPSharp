@@ -143,7 +143,7 @@ extern CBRtnChangeAccountByBank cbRtnChangeAccountByBank;	///ÒøĞĞ·¢Æğ±ä¸üÒøĞĞÕËº
 //extern TThostFtdcDirectionType	DIRECTION;	// ÂòÂô·½Ïò
 
 // ÇëÇó±àºÅ
-extern int iRequestID;
+//extern int iRequestID;
 ///µ±¿Í»§¶ËÓë½»Ò×ºóÌ¨½¨Á¢ÆğÍ¨ĞÅÁ¬½ÓÊ±£¨»¹Î´µÇÂ¼Ç°£©£¬¸Ã·½·¨±»µ÷ÓÃ¡£
 void CTraderSpi::OnFrontConnected() { if (cbOnFrontConnected != NULL) 		cbOnFrontConnected(); }
 

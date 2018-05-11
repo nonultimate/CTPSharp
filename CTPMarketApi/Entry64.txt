@@ -12,25 +12,26 @@ File Type: DLL
           17 number of functions
           17 number of names
 
-    ordinal hint RVA      name
+  ordinal hint RVA      name
 
-          1    0 00001030 ?Connect@@YAXPEAD0@Z = ?Connect@@YAXPEAD0@Z (void __cdecl Connect(char *,char *))
-          2    1 00001110 ?DisConnect@@YAXXZ = ?DisConnect@@YAXXZ (void __cdecl DisConnect(void))
-          3    2 00001000 ?GetApiVersion@@YAPEBDXZ = ?GetApiVersion@@YAPEBDXZ (char const * __cdecl GetApiVersion(void))
-          4    3 00001150 ?GetTradingDay@@YAPEBDXZ = ?GetTradingDay@@YAPEBDXZ (char const * __cdecl GetTradingDay(void))
-          5    4 00001410 ?RegOnFrontConnected@@YAXP6AHXZ@Z = ?RegOnFrontConnected@@YAXP6AHXZ@Z (void __cdecl RegOnFrontConnected(int (__cdecl*)(void)))
-          6    5 00001430 ?RegOnFrontDisconnected@@YAXP6AHH@Z@Z = ?RegOnFrontDisconnected@@YAXP6AHH@Z@Z (void __cdecl RegOnFrontDisconnected(int (__cdecl*)(int)))
-          7    6 000013F0 ?RegOnHeartBeatWarning@@YAXP6AHH@Z@Z = ?RegOnHeartBeatWarning@@YAXP6AHH@Z@Z (void __cdecl RegOnHeartBeatWarning(int (__cdecl*)(int)))
-          8    7 000013D0 ?RegOnRspError@@YAXP6AHPEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspError@@YAXP6AHPEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspError(int (__cdecl*)(struct CThostFtdcRspInfoField *,int,bool)))
-          9    8 00001490 ?RegOnRspSubMarketData@@YAXP6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspSubMarketData@@YAXP6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspSubMarketData(int (__cdecl*)(struct CThostFtdcSpecificInstrumentField *,struct CThostFtdcRspInfoField *,int,bool)))
-         10    9 000014B0 ?RegOnRspUnSubMarketData@@YAXP6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspUnSubMarketData@@YAXP6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspUnSubMarketData(int (__cdecl*)(struct CThostFtdcSpecificInstrumentField *,struct CThostFtdcRspInfoField *,int,bool)))
-         11    A 00001450 ?RegOnRspUserLogin@@YAXP6AHPEAUCThostFtdcRspUserLoginField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspUserLogin@@YAXP6AHPEAUCThostFtdcRspUserLoginField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspUserLogin(int (__cdecl*)(struct CThostFtdcRspUserLoginField *,struct CThostFtdcRspInfoField *,int,bool)))
-         12    B 00001470 ?RegOnRspUserLogout@@YAXP6AHPEAUCThostFtdcUserLogoutField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspUserLogout@@YAXP6AHPEAUCThostFtdcUserLogoutField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspUserLogout(int (__cdecl*)(struct CThostFtdcUserLogoutField *,struct CThostFtdcRspInfoField *,int,bool)))
-         13    C 000014D0 ?RegOnRtnDepthMarketData@@YAXP6AHPEAUCThostFtdcDepthMarketDataField@@@Z@Z = ?RegOnRtnDepthMarketData@@YAXP6AHPEAUCThostFtdcDepthMarketDataField@@@Z@Z (void __cdecl RegOnRtnDepthMarketData(int (__cdecl*)(struct CThostFtdcDepthMarketDataField *)))
-         14    D 00001190 ?ReqUserLogin@@YAXHQEAD00@Z = ?ReqUserLogin@@YAXHQEAD00@Z (void __cdecl ReqUserLogin(int,char * const,char * const,char * const))
-         15    E 00001270 ?ReqUserLogout@@YAXHQEAD0@Z = ?ReqUserLogout@@YAXHQEAD0@Z (void __cdecl ReqUserLogout(int,char * const,char * const))
-         16    F 00001330 ?SubMarketData@@YAXQEAPEADH@Z = ?SubMarketData@@YAXQEAPEADH@Z (void __cdecl SubMarketData(char * * const,int))
-         17   10 00001380 ?UnSubscribeMarketData@@YAXQEAPEADH@Z = ?UnSubscribeMarketData@@YAXQEAPEADH@Z (void __cdecl UnSubscribeMarketData(char * * const,int))
+          1    0 000010B0 ?Connect@@YAPEAVCThostFtdcMdApi@@PEAD0PEAVCMdSpi@@@Z = ?Connect@@YAPEAVCThostFtdcMdApi@@PEAD0PEAVCMdSpi@@@Z (class CThostFtdcMdApi * __cdecl Connect(char *,char *,class CMdSpi *))
+          2    1 00001000 ?CreateSpi@@YAPEAVCMdSpi@@XZ = ?CreateSpi@@YAPEAVCMdSpi@@XZ (class CMdSpi * __cdecl CreateSpi(void))
+          3    2 00001140 ?DisConnect@@YAXPEAVCThostFtdcMdApi@@@Z = ?DisConnect@@YAXPEAVCThostFtdcMdApi@@@Z (void __cdecl DisConnect(class CThostFtdcMdApi *))
+          4    3 00001080 ?GetApiVersion@@YAPEBDXZ = ?GetApiVersion@@YAPEBDXZ (char const * __cdecl GetApiVersion(void))
+          5    4 00001190 ?GetTradingDay@@YAPEBDPEAVCThostFtdcMdApi@@@Z = ?GetTradingDay@@YAPEBDPEAVCThostFtdcMdApi@@@Z (char const * __cdecl GetTradingDay(class CThostFtdcMdApi *))
+          6    5 000014C0 ?RegOnFrontConnected@@YAXPEAVCMdSpi@@P6AHXZ@Z = ?RegOnFrontConnected@@YAXPEAVCMdSpi@@P6AHXZ@Z (void __cdecl RegOnFrontConnected(class CMdSpi *,int (__cdecl*)(void)))
+          7    6 000014F0 ?RegOnFrontDisconnected@@YAXPEAVCMdSpi@@P6AHH@Z@Z = ?RegOnFrontDisconnected@@YAXPEAVCMdSpi@@P6AHH@Z@Z (void __cdecl RegOnFrontDisconnected(class CMdSpi *,int (__cdecl*)(int)))
+          8    7 00001490 ?RegOnHeartBeatWarning@@YAXPEAVCMdSpi@@P6AHH@Z@Z = ?RegOnHeartBeatWarning@@YAXPEAVCMdSpi@@P6AHH@Z@Z (void __cdecl RegOnHeartBeatWarning(class CMdSpi *,int (__cdecl*)(int)))
+          9    8 00001460 ?RegOnRspError@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspError@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspError(class CMdSpi *,int (__cdecl*)(struct CThostFtdcRspInfoField *,int,bool)))
+         10    9 00001580 ?RegOnRspSubMarketData@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspSubMarketData@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspSubMarketData(class CMdSpi *,int (__cdecl*)(struct CThostFtdcSpecificInstrumentField *,struct CThostFtdcRspInfoField *,int,bool)))
+         11    A 000015B0 ?RegOnRspUnSubMarketData@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspUnSubMarketData@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcSpecificInstrumentField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspUnSubMarketData(class CMdSpi *,int (__cdecl*)(struct CThostFtdcSpecificInstrumentField *,struct CThostFtdcRspInfoField *,int,bool)))
+         12    B 00001520 ?RegOnRspUserLogin@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcRspUserLoginField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspUserLogin@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcRspUserLoginField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspUserLogin(class CMdSpi *,int (__cdecl*)(struct CThostFtdcRspUserLoginField *,struct CThostFtdcRspInfoField *,int,bool)))
+         13    C 00001550 ?RegOnRspUserLogout@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcUserLogoutField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z = ?RegOnRspUserLogout@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcUserLogoutField@@PEAUCThostFtdcRspInfoField@@H_N@Z@Z (void __cdecl RegOnRspUserLogout(class CMdSpi *,int (__cdecl*)(struct CThostFtdcUserLogoutField *,struct CThostFtdcRspInfoField *,int,bool)))
+         14    D 000015E0 ?RegOnRtnDepthMarketData@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcDepthMarketDataField@@@Z@Z = ?RegOnRtnDepthMarketData@@YAXPEAVCMdSpi@@P6AHPEAUCThostFtdcDepthMarketDataField@@@Z@Z (void __cdecl RegOnRtnDepthMarketData(class CMdSpi *,int (__cdecl*)(struct CThostFtdcDepthMarketDataField *)))
+         15    E 000011E0 ?ReqUserLogin@@YAXPEAVCThostFtdcMdApi@@HQEAD11@Z = ?ReqUserLogin@@YAXPEAVCThostFtdcMdApi@@HQEAD11@Z (void __cdecl ReqUserLogin(class CThostFtdcMdApi *,int,char * const,char * const,char * const))
+         16    F 000012D0 ?ReqUserLogout@@YAXPEAVCThostFtdcMdApi@@HQEAD1@Z = ?ReqUserLogout@@YAXPEAVCThostFtdcMdApi@@HQEAD1@Z (void __cdecl ReqUserLogout(class CThostFtdcMdApi *,int,char * const,char * const))
+         17   10 000013A0 ?SubMarketData@@YAXPEAVCThostFtdcMdApi@@QEAPEADH@Z = ?SubMarketData@@YAXPEAVCThostFtdcMdApi@@QEAPEADH@Z (void __cdecl SubMarketData(class CThostFtdcMdApi *,char * * const,int))
+         18   11 00001400 ?UnSubscribeMarketData@@YAXPEAVCThostFtdcMdApi@@QEAPEADH@Z = ?UnSubscribeMarketData@@YAXPEAVCThostFtdcMdApi@@QEAPEADH@Z (void __cdecl UnSubscribeMarketData(class CThostFtdcMdApi *,char * * const,int))
 
   Summary
 

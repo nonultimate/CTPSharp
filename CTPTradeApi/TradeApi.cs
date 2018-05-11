@@ -54,6 +54,12 @@ namespace CTPTradeApi
         private string _flowPath = "";
 
         /// <summary>
+        /// 交易类句柄
+        /// </summary>
+        private IntPtr _handle = IntPtr.Zero;
+        private IntPtr _spi = IntPtr.Zero;
+
+        /// <summary>
         /// 类库加载类
         /// </summary>
         private LibraryWrapper _wrapper;
@@ -67,130 +73,152 @@ namespace CTPTradeApi
 
         #region 委托定义
 
-        delegate IntPtr DelegateGetString();
+        #region 方法委托定义
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void DelegateConnect(string frontAddr, string flowPath);
+        delegate IntPtr DelegateCreateSpi();
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void DelegateDisconnect();
+        delegate IntPtr DelegateGetVersion();
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQueryExchange(int requestID, string exchangeID);
+        delegate IntPtr DelegateGetString(IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqAccount(int requestID, string brokerID, string investorID);
+        delegate IntPtr DelegateConnect(string frontAddr, string flowPath, IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqUser(int requestID, string brokerID, string investorID, string password);
+        delegate void DelegateDisconnect(IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqUserUpdate(int requestID, string brokerID, string userID, string oldPassword,
+        delegate int DelegateReqQueryExchange(IntPtr ptr, int requestID, string exchangeID);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate int DelegateReqAccount(IntPtr ptr, int requestID, string brokerID, string investorID);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate int DelegateReqUser(IntPtr ptr, int requestID, string brokerID, string investorID, string password);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate int DelegateReqUserUpdate(IntPtr ptr, int requestID, string brokerID, string userID, string oldPassword,
             string newPassword);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqOrderInsert(int requestID, ref CThostFtdcInputOrderField req);
+        delegate int DelegateReqOrderInsert(IntPtr ptr, int requestID, ref CThostFtdcInputOrderField req);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqOrderAction(int requestID, ref CThostFtdcInputOrderActionField pOrder);
+        delegate int DelegateReqOrderAction(IntPtr ptr, int requestID, ref CThostFtdcInputOrderActionField pOrder);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQueryMaxOrderVolume(int requestID,
+        delegate int DelegateReqQueryMaxOrderVolume(IntPtr ptr, int requestID,
             ref CThostFtdcQueryMaxOrderVolumeField pMaxOrderVolume);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQueryOrder(int requestID, ref CThostFtdcQryOrderField pQryOrder);
+        delegate int DelegateReqQueryOrder(IntPtr ptr, int requestID, ref CThostFtdcQryOrderField pQryOrder);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQueryTrade(int requestID, ref CThostFtdcQryTradeField pQryTrade);
+        delegate int DelegateReqQueryTrade(IntPtr ptr, int requestID, ref CThostFtdcQryTradeField pQryTrade);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQueryInstrumentMarginRate(int requestID, string brokerID, string investorID,
+        delegate int DelegateReqQueryInstrumentMarginRate(IntPtr ptr, int requestID, string brokerID, string investorID,
             string instrumentID, TThostFtdcHedgeFlagType hedgeFlag);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqParkedOrderInsert(int requestID, ref CThostFtdcParkedOrderField pField);
+        delegate int DelegateReqParkedOrderInsert(IntPtr ptr, int requestID, ref CThostFtdcParkedOrderField pField);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqParkedOrderAction(int requestID, ref CThostFtdcParkedOrderActionField pField);
+        delegate int DelegateReqParkedOrderAction(IntPtr ptr, int requestID, ref CThostFtdcParkedOrderActionField pField);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqBankAndFuture(int requestID, ref CThostFtdcReqTransferField pField);
+        delegate int DelegateReqBankAndFuture(IntPtr ptr, int requestID, ref CThostFtdcReqTransferField pField);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqQueryBankAccountMoney(int requestID, ref CThostFtdcReqQueryAccountField pField);
+        delegate int DelegateReqQueryBankAccountMoney(IntPtr ptr, int requestID, ref CThostFtdcReqQueryAccountField pField);
+
+        #endregion
+
+        #region 回调委托定义
 
         // 回调委托
-        delegate void DelegateRegOnFrontConnected(FrontConnect fc);
-        delegate void DelegateRegOnDisconnected(Disconnected dc);
-        delegate void DelegateRegOnHeartBeatWarning(HeartBeatWarning hbw);
-        delegate void DelegateRegErrRtnBankToFutureByFuture(ErrRtnBankToFutureByFuture cb);
-        delegate void DelegateRegErrRtnFutureToBankByFuture(ErrRtnFutureToBankByFuture cb);
-        delegate void DelegateRegErrRtnOrderAction(ErrRtnOrderAction cb);
-        delegate void DelegateRegErrRtnOrderInsert(ErrRtnOrderInsert cb);
-        delegate void DelegateRegErrRtnQueryBankBalanceByFuture(ErrRtnQueryBankBalanceByFuture cb);
-        delegate void DelegateRegErrRtnRepealBankToFutureByFutureManual(ErrRtnRepealBankToFutureByFutureManual cb);
-        delegate void DelegateRegErrRtnRepealFutureToBankByFutureManual(ErrRtnRepealFutureToBankByFutureManual cb);
-        delegate void DelegateRegRspError(RspError cb);
-        delegate void DelegateRegRspFromBankToFutureByFuture(RspFromBankToFutureByFuture cb);
-        delegate void DelegateRegRspFromFutureToBankByFuture(RspFromFutureToBankByFuture cb);
-        delegate void DelegateRegRspOrderAction(RspOrderAction cb);
-        delegate void DelegateRegRspOrderInsert(RspOrderInsert cb);
-        delegate void DelegateRegRspParkedOrderAction(RspParkedOrderAction cb);
-        delegate void DelegateRegRspParkedOrderInsert(RspParkedOrderInsert cb);
-        delegate void DelegateRegRspQueryBrokerTradingAlgos(RspQryBrokerTradingAlgos cb);
-        delegate void DelegateRegRspQueryBrokerTradingParams(RspQryBrokerTradingParams cb);
-        delegate void DelegateRegRspQueryCFMMCTradingAccountKey(RspQryCFMMCTradingAccountKey cb);
-        delegate void DelegateRegRspQueryContractBank(RspQryContractBank cb);
-        delegate void DelegateRegRspQueryDepthMarketData(RspQryDepthMarketData cb);
-        delegate void DelegateRegRspQueryExchange(RspQryExchange cb);
-        delegate void DelegateRegRspQueryInstrument(RspQryInstrument cb);
-        delegate void DelegateRegRspQueryInstrumentCommissionRate(RspQryInstrumentCommissionRate cb);
-        delegate void DelegateRegRspQueryInstrumentMarginRate(RspQryInstrumentMarginRate cb);
-        delegate void DelegateRegRspQueryInvestor(RspQryInvestor cb);
-        delegate void DelegateRegRspQueryInvestorPosition(RspQryInvestorPosition cb);
-        delegate void DelegateRegRspQueryInvestorPositionCombineDetail(RspQryInvestorPositionCombineDetail cb);
-        delegate void DelegateRegRspQueryInvestorPositionDetail(RspQryInvestorPositionDetail cb);
-        delegate void DelegateRegRspQueryNotice(RspQryNotice cb);
-        delegate void DelegateRegRspQueryOrder(RspQryOrder cb);
-        delegate void DelegateRegRspQueryParkedOrder(RspQryParkedOrder cb);
-        delegate void DelegateRegRspQueryParkedOrderAction(RspQryParkedOrderAction cb);
-        delegate void DelegateRegRspQuerySettlementInfo(RspQrySettlementInfo cb);
-        delegate void DelegateRegRspQuerySettlementInfoConfirm(RspQrySettlementInfoConfirm cb);
-        delegate void DelegateRegRspQueryTrade(RspQryTrade cb);
-        delegate void DelegateRegRspQueryTradingAccount(RspQryTradingAccount cb);
-        delegate void DelegateRegRspQueryTradingCode(RspQryTradingCode cb);
-        delegate void DelegateRegRspQueryTradingNotice(RspQryTradingNotice cb);
-        delegate void DelegateRegRspQueryTransferBank(RspQryTransferBank cb);
-        delegate void DelegateRegRspQueryTransferSerial(RspQryTransferSerial cb);
-        delegate void DelegateRegRspQueryAccountregister(RspQryAccountregister cb);
-        delegate void DelegateRegRspQueryBankAccountMoneyByFuture(RspQueryBankAccountMoneyByFuture cb);
-        delegate void DelegateRegRspQueryMaxOrderVolume(RspQueryMaxOrderVolume cb);
-        delegate void DelegateRegRspRemoveParkedOrder(RspRemoveParkedOrder cb);
-        delegate void DelegateRegRspRemoveParkedOrderAction(RspRemoveParkedOrderAction cb);
-        delegate void DelegateRegRspSettlementInfoConfirm(RspSettlementInfoConfirm cb);
-        delegate void DelegateRegRspTradingAccountPasswordUpdate(RspTradingAccountPasswordUpdate cb);
-        delegate void DelegateRegRspUserLogin(RspUserLogin cb);
-        delegate void DelegateRegRspUserLogout(RspUserLogout cb);
-        delegate void DelegateRegRspUserPasswordUpdate(RspUserPasswordUpdate cb);
-        delegate void DelegateRegRtnErrorConditionalOrder(RtnErrorConditionalOrder cb);
-        delegate void DelegateRegRtnFromBankToFutureByBank(RtnFromBankToFutureByBank cb);
-        delegate void DelegateRegRtnFromBankToFutureByFuture(RtnFromBankToFutureByFuture cb);
-        delegate void DelegateRegRtnFromFutureToBankByBank(RtnFromFutureToBankByBank cb);
-        delegate void DelegateRegRtnFromFutureToBankByFuture(RtnFromFutureToBankByFuture cb);
-        delegate void DelegateRegRtnInstrumentStatus(RtnInstrumentStatus cb);
-        delegate void DelegateRegRtnOrder(RtnOrder cb);
-        delegate void DelegateRegRtnQueryBankBalanceByFuture(RtnQueryBankBalanceByFuture cb);
-        delegate void DelegateRegRtnRepealFromBankToFutureByBank(RtnRepealFromBankToFutureByBank cb);
-        delegate void DelegateRegRtnRepealFromBankToFutureByFuture(RtnRepealFromBankToFutureByFuture cb);
-        delegate void DelegateRegRtnRepealFromBankToFutureByFutureManual(RtnRepealFromBankToFutureByFutureManual cb);
-        delegate void DelegateRegRtnRepealFromFutureToBankByBank(RtnRepealFromFutureToBankByBank cb);
-        delegate void DelegateRegRtnRepealFromFutureToBankByFuture(RtnRepealFromFutureToBankByFuture cb);
-        delegate void DelegateRegRtnRepealFromFutureToBankByFutureManual(RtnRepealFromFutureToBankByFutureManual cb);
-        delegate void DelegateRegRtnTrade(RtnTrade cb);
-        delegate void DelegateRegRtnTradingNotice(RtnTradingNotice cb);
+        delegate void DelegateRegOnFrontConnected(IntPtr ptr, FrontConnect fc);
+        delegate void DelegateRegOnDisconnected(IntPtr ptr, Disconnected dc);
+        delegate void DelegateRegOnHeartBeatWarning(IntPtr ptr, HeartBeatWarning hbw);
+        delegate void DelegateRegErrRtnBankToFutureByFuture(IntPtr ptr, ErrRtnBankToFutureByFuture cb);
+        delegate void DelegateRegErrRtnFutureToBankByFuture(IntPtr ptr, ErrRtnFutureToBankByFuture cb);
+        delegate void DelegateRegErrRtnOrderAction(IntPtr ptr, ErrRtnOrderAction cb);
+        delegate void DelegateRegErrRtnOrderInsert(IntPtr ptr, ErrRtnOrderInsert cb);
+        delegate void DelegateRegErrRtnQueryBankBalanceByFuture(IntPtr ptr, ErrRtnQueryBankBalanceByFuture cb);
+        delegate void DelegateRegErrRtnRepealBankToFutureByFutureManual(IntPtr ptr, ErrRtnRepealBankToFutureByFutureManual cb);
+        delegate void DelegateRegErrRtnRepealFutureToBankByFutureManual(IntPtr ptr, ErrRtnRepealFutureToBankByFutureManual cb);
+        delegate void DelegateRegRspError(IntPtr ptr, RspError cb);
+        delegate void DelegateRegRspFromBankToFutureByFuture(IntPtr ptr, RspFromBankToFutureByFuture cb);
+        delegate void DelegateRegRspFromFutureToBankByFuture(IntPtr ptr, RspFromFutureToBankByFuture cb);
+        delegate void DelegateRegRspOrderAction(IntPtr ptr, RspOrderAction cb);
+        delegate void DelegateRegRspOrderInsert(IntPtr ptr, RspOrderInsert cb);
+        delegate void DelegateRegRspParkedOrderAction(IntPtr ptr, RspParkedOrderAction cb);
+        delegate void DelegateRegRspParkedOrderInsert(IntPtr ptr, RspParkedOrderInsert cb);
+        delegate void DelegateRegRspQueryBrokerTradingAlgos(IntPtr ptr, RspQryBrokerTradingAlgos cb);
+        delegate void DelegateRegRspQueryBrokerTradingParams(IntPtr ptr, RspQryBrokerTradingParams cb);
+        delegate void DelegateRegRspQueryCFMMCTradingAccountKey(IntPtr ptr, RspQryCFMMCTradingAccountKey cb);
+        delegate void DelegateRegRspQueryContractBank(IntPtr ptr, RspQryContractBank cb);
+        delegate void DelegateRegRspQueryDepthMarketData(IntPtr ptr, RspQryDepthMarketData cb);
+        delegate void DelegateRegRspQueryExchange(IntPtr ptr, RspQryExchange cb);
+        delegate void DelegateRegRspQueryInstrument(IntPtr ptr, RspQryInstrument cb);
+        delegate void DelegateRegRspQueryInstrumentCommissionRate(IntPtr ptr, RspQryInstrumentCommissionRate cb);
+        delegate void DelegateRegRspQueryInstrumentMarginRate(IntPtr ptr, RspQryInstrumentMarginRate cb);
+        delegate void DelegateRegRspQueryInvestor(IntPtr ptr, RspQryInvestor cb);
+        delegate void DelegateRegRspQueryInvestorPosition(IntPtr ptr, RspQryInvestorPosition cb);
+        delegate void DelegateRegRspQueryInvestorPositionCombineDetail(IntPtr ptr, RspQryInvestorPositionCombineDetail cb);
+        delegate void DelegateRegRspQueryInvestorPositionDetail(IntPtr ptr, RspQryInvestorPositionDetail cb);
+        delegate void DelegateRegRspQueryNotice(IntPtr ptr, RspQryNotice cb);
+        delegate void DelegateRegRspQueryOrder(IntPtr ptr, RspQryOrder cb);
+        delegate void DelegateRegRspQueryParkedOrder(IntPtr ptr, RspQryParkedOrder cb);
+        delegate void DelegateRegRspQueryParkedOrderAction(IntPtr ptr, RspQryParkedOrderAction cb);
+        delegate void DelegateRegRspQuerySettlementInfo(IntPtr ptr, RspQrySettlementInfo cb);
+        delegate void DelegateRegRspQuerySettlementInfoConfirm(IntPtr ptr, RspQrySettlementInfoConfirm cb);
+        delegate void DelegateRegRspQueryTrade(IntPtr ptr, RspQryTrade cb);
+        delegate void DelegateRegRspQueryTradingAccount(IntPtr ptr, RspQryTradingAccount cb);
+        delegate void DelegateRegRspQueryTradingCode(IntPtr ptr, RspQryTradingCode cb);
+        delegate void DelegateRegRspQueryTradingNotice(IntPtr ptr, RspQryTradingNotice cb);
+        delegate void DelegateRegRspQueryTransferBank(IntPtr ptr, RspQryTransferBank cb);
+        delegate void DelegateRegRspQueryTransferSerial(IntPtr ptr, RspQryTransferSerial cb);
+        delegate void DelegateRegRspQueryAccountregister(IntPtr ptr, RspQryAccountregister cb);
+        delegate void DelegateRegRspQueryBankAccountMoneyByFuture(IntPtr ptr, RspQueryBankAccountMoneyByFuture cb);
+        delegate void DelegateRegRspQueryMaxOrderVolume(IntPtr ptr, RspQueryMaxOrderVolume cb);
+        delegate void DelegateRegRspRemoveParkedOrder(IntPtr ptr, RspRemoveParkedOrder cb);
+        delegate void DelegateRegRspRemoveParkedOrderAction(IntPtr ptr, RspRemoveParkedOrderAction cb);
+        delegate void DelegateRegRspSettlementInfoConfirm(IntPtr ptr, RspSettlementInfoConfirm cb);
+        delegate void DelegateRegRspTradingAccountPasswordUpdate(IntPtr ptr, RspTradingAccountPasswordUpdate cb);
+        delegate void DelegateRegRspUserLogin(IntPtr ptr, RspUserLogin cb);
+        delegate void DelegateRegRspUserLogout(IntPtr ptr, RspUserLogout cb);
+        delegate void DelegateRegRspUserPasswordUpdate(IntPtr ptr, RspUserPasswordUpdate cb);
+        delegate void DelegateRegRtnErrorConditionalOrder(IntPtr ptr, RtnErrorConditionalOrder cb);
+        delegate void DelegateRegRtnFromBankToFutureByBank(IntPtr ptr, RtnFromBankToFutureByBank cb);
+        delegate void DelegateRegRtnFromBankToFutureByFuture(IntPtr ptr, RtnFromBankToFutureByFuture cb);
+        delegate void DelegateRegRtnFromFutureToBankByBank(IntPtr ptr, RtnFromFutureToBankByBank cb);
+        delegate void DelegateRegRtnFromFutureToBankByFuture(IntPtr ptr, RtnFromFutureToBankByFuture cb);
+        delegate void DelegateRegRtnInstrumentStatus(IntPtr ptr, RtnInstrumentStatus cb);
+        delegate void DelegateRegRtnOrder(IntPtr ptr, RtnOrder cb);
+        delegate void DelegateRegRtnQueryBankBalanceByFuture(IntPtr ptr, RtnQueryBankBalanceByFuture cb);
+        delegate void DelegateRegRtnRepealFromBankToFutureByBank(IntPtr ptr, RtnRepealFromBankToFutureByBank cb);
+        delegate void DelegateRegRtnRepealFromBankToFutureByFuture(IntPtr ptr, RtnRepealFromBankToFutureByFuture cb);
+        delegate void DelegateRegRtnRepealFromBankToFutureByFutureManual(IntPtr ptr, RtnRepealFromBankToFutureByFutureManual cb);
+        delegate void DelegateRegRtnRepealFromFutureToBankByBank(IntPtr ptr, RtnRepealFromFutureToBankByBank cb);
+        delegate void DelegateRegRtnRepealFromFutureToBankByFuture(IntPtr ptr, RtnRepealFromFutureToBankByFuture cb);
+        delegate void DelegateRegRtnRepealFromFutureToBankByFutureManual(IntPtr ptr, RtnRepealFromFutureToBankByFutureManual cb);
+        delegate void DelegateRegRtnTrade(IntPtr ptr, RtnTrade cb);
+        delegate void DelegateRegRtnTradingNotice(IntPtr ptr, RtnTradingNotice cb);
 
-        DelegateGetString getApiVersion;
+        #endregion
+
+        #endregion
+
+        #region 委托实例
+
+        #region 方法委托实例
+
+        DelegateCreateSpi createSpi;
+        DelegateGetVersion getApiVersion;
         DelegateConnect connect;
         DelegateDisconnect disconnect;
         DelegateGetString getTradingDay;
@@ -237,6 +265,10 @@ namespace CTPTradeApi
         DelegateReqBankAndFuture reqFromBankToFutureByFuture;
         DelegateReqBankAndFuture reqFromFutureToBankByFuture;
         DelegateReqQueryBankAccountMoney reqQueryBankAccountMoneyByFuture;
+
+        #endregion
+
+        #region 回掉委托实例
 
         DelegateRegOnFrontConnected regOnFrontConnected;
         DelegateRegOnDisconnected regOnDisConnected;
@@ -306,6 +338,8 @@ namespace CTPTradeApi
         DelegateRegRtnRepealFromFutureToBankByFutureManual regRtnRepealFromFutureToBankByFutureManual;
         DelegateRegRtnTrade regRtnTrade;
         DelegateRegRtnTradingNotice regRtnTradingNotice;
+
+        #endregion
 
         #endregion
 
@@ -389,7 +423,8 @@ namespace CTPTradeApi
 
                 #region 获取非托管方法
 
-                getApiVersion = GetDelegate<DelegateGetString>("GetApiVersion");
+                createSpi = GetDelegate<DelegateCreateSpi>("CreateSpi");
+                getApiVersion = GetDelegate<DelegateGetVersion>("GetApiVersion");
                 getTradingDay = GetDelegate<DelegateGetString>("GetTradingDay");
                 connect = GetDelegate<DelegateConnect>("Connect");
                 disconnect = GetDelegate<DelegateDisconnect>("DisConnect");
@@ -507,13 +542,15 @@ namespace CTPTradeApi
                 regRtnTradingNotice = GetDelegate<DelegateRegRtnTradingNotice>("RegRtnTradingNotice");
 
                 #endregion
+
+                _spi = createSpi();
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
-        
+
         /// <summary>
         /// 从列表中查找入口并返回非托管方法委托(注意接口前缀不能相同，否则可能找到错误的入口)
         /// </summary>
@@ -549,14 +586,13 @@ namespace CTPTradeApi
 
             return Marshal.PtrToStringAnsi(ptr);
         }
-
         /// <summary>
         /// 获取交易日（登录成功后调用）
         /// </summary>
         /// <returns></returns>
         public string GetTradingDay()
         {
-            IntPtr ptr = getTradingDay();
+            IntPtr ptr = getTradingDay(_handle);
 
             return Marshal.PtrToStringAnsi(ptr);
         }
@@ -566,15 +602,20 @@ namespace CTPTradeApi
         /// </summary>
         public void Connect()
         {
-            connect(this.FrontAddr, this._flowPath);
+            _handle = connect(this.FrontAddr, this._flowPath, _spi);
         }
 
         /// <summary>
         /// 断开
         /// </summary>
+
         public void Disconnect()
         {
-            disconnect();
+            if (_handle != IntPtr.Zero)
+            {
+                disconnect(_handle);
+                _handle = IntPtr.Zero;
+            }
         }
 
         /// <summary>
@@ -588,16 +629,17 @@ namespace CTPTradeApi
         {
             this.InvestorID = investorID;
             this._password = password;
-            return reqUserLogin(requestID, this.BrokerID, this.InvestorID, this._password);
+            return reqUserLogin(_handle, requestID, this.BrokerID, this.InvestorID, this._password);
         }
 
         /// <summary>
         /// 发送登出请求
         /// </summary>
+
         /// <param name="requestID">请求编号</param>
         public int UserLogout(int requestID)
         {
-            return reqUserLogout(requestID, this.BrokerID, this.InvestorID);
+            return reqUserLogout(_handle, requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -609,7 +651,7 @@ namespace CTPTradeApi
         /// <param name="newPassword">新密码</param>
         public int UserPasswordupdate(int requestID, string userID, string oldPassword, string newPassword)
         {
-            return reqUserPasswordUpdate(requestID, this.BrokerID, userID, oldPassword, newPassword);
+            return reqUserPasswordUpdate(_handle, requestID, this.BrokerID, userID, oldPassword, newPassword);
         }
 
         /// <summary>
@@ -621,7 +663,7 @@ namespace CTPTradeApi
         /// <param name="newPassword">新密码</param>
         public int TradingAccountPasswordUpdate(int requestID, string accountID, string oldPassword, string newPassword)
         {
-            return reqTradingAccountPasswordUpdate(requestID, this.BrokerID, accountID, oldPassword, newPassword);
+            return reqTradingAccountPasswordUpdate(_handle, requestID, this.BrokerID, accountID, oldPassword, newPassword);
         }
 
         /// <summary>
@@ -635,7 +677,7 @@ namespace CTPTradeApi
         {
             this.InvestorID = investorID;
             this._password = password;
-            return reqUserSafeLogin(requestID, this.BrokerID, this.InvestorID, this._password);
+            return reqUserSafeLogin(_handle, requestID, this.BrokerID, this.InvestorID, this._password);
         }
 
         /// <summary>
@@ -647,7 +689,7 @@ namespace CTPTradeApi
         /// <param name="newPassword">新密码</param>
         public int UserPasswordSafeUpdate(int requestID, string userID, string oldPassword, string newPassword)
         {
-            return reqUserPasswordSafeUpdate(requestID, this.BrokerID, userID, oldPassword, newPassword);
+            return reqUserPasswordSafeUpdate(_handle, requestID, this.BrokerID, userID, oldPassword, newPassword);
         }
 
         /// <summary>
@@ -657,7 +699,7 @@ namespace CTPTradeApi
         /// <param name="order">输入的报单</param>
         public int OrderInsert(int requestID, CThostFtdcInputOrderField order)
         {
-            return reqOrderInsert(requestID, ref order);
+            return reqOrderInsert(_handle, requestID, ref order);
         }
 
         /// <summary>
@@ -694,7 +736,7 @@ namespace CTPTradeApi
             tmp.Direction = direction;
             tmp.LimitPrice = price;
             tmp.VolumeTotalOriginal = volume;
-            return reqOrderInsert(requestID, ref tmp);
+            return reqOrderInsert(_handle, requestID, ref tmp);
         }
 
         /// <summary>
@@ -730,7 +772,7 @@ namespace CTPTradeApi
             tmp.Direction = direction;
             tmp.LimitPrice = 0;
             tmp.VolumeTotalOriginal = volume;
-            return reqOrderInsert(requestID, ref tmp);
+            return reqOrderInsert(_handle, requestID, ref tmp);
         }
 
         /// <summary>
@@ -772,7 +814,7 @@ namespace CTPTradeApi
             tmp.OrderPriceType = priceType;             //下单类型
             tmp.LimitPrice = price;                     //下单价格:Price = LimitPrice 时有效
             tmp.VolumeTotalOriginal = volume;
-            return reqOrderInsert(requestID, ref tmp);
+            return reqOrderInsert(_handle, requestID, ref tmp);
         }
 
         /// <summary>
@@ -782,7 +824,7 @@ namespace CTPTradeApi
         /// <param name="field">输入报单结构体</param>
         public int OrderAction(int requestID, CThostFtdcInputOrderActionField field)
         {
-            return reqOrderAction(requestID, ref field);
+            return reqOrderAction(_handle, requestID, ref field);
         }
 
         /// <summary>
@@ -814,7 +856,7 @@ namespace CTPTradeApi
             tmp.ExchangeID = exchangeID;
             if (orderSysID != null)
                 tmp.OrderSysID = new string('\0', 21 - orderSysID.Length) + orderSysID; //OrderSysID右对齐
-            return reqOrderAction(requestID, ref tmp);
+            return reqOrderAction(_handle, requestID, ref tmp);
         }
 
         /// <summary>
@@ -824,7 +866,7 @@ namespace CTPTradeApi
         /// <param name="pMaxOrderVolume">最大报单数量</param>
         public int QueryMaxOrderVolume(int requestID, CThostFtdcQueryMaxOrderVolumeField pMaxOrderVolume)
         {
-            return reqQueryMaxOrderVolume(requestID, ref pMaxOrderVolume);
+            return reqQueryMaxOrderVolume(_handle, requestID, ref pMaxOrderVolume);
         }
 
         /// <summary>
@@ -834,7 +876,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int SettlementInfoConfirm(int requestID)
         {
-            return reqSettlementInfoConfirm(requestID, this.BrokerID, this.InvestorID);
+            return reqSettlementInfoConfirm(_handle, requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -857,7 +899,7 @@ namespace CTPTradeApi
             tmp.InsertTimeEnd = timeEnd;
             tmp.InstrumentID = instrumentID;
             tmp.OrderSysID = orderSysID;
-            return reqQueryOrder(requestID, ref tmp);
+            return reqQueryOrder(_handle, requestID, ref tmp);
         }
 
         /// <summary>
@@ -881,7 +923,7 @@ namespace CTPTradeApi
             tmp.TradeTimeEnd = timeEnd;
             tmp.InstrumentID = instrumentID;
             tmp.TradeID = tradeID;
-            return reqQueryTrade(requestID, ref tmp);
+            return reqQueryTrade(_handle, requestID, ref tmp);
         }
 
         /// <summary>
@@ -891,7 +933,7 @@ namespace CTPTradeApi
         /// <param name="instrument">合约代码:不填-查所有</param>
         public int QueryInvestorPosition(int requestID, string instrument = null)
         {
-            return reqQueryInvestorPosition(requestID, this.BrokerID, this.InvestorID, instrument);
+            return reqQueryInvestorPosition(_handle, requestID, this.BrokerID, this.InvestorID, instrument);
         }
 
         /// <summary>
@@ -901,7 +943,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTradingAccount(int requestID)
         {
-            return reqQueryTradingAccount(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryTradingAccount(_handle, requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -911,7 +953,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInvestor(int requestID)
         {
-            return reqQueryInvestor(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryInvestor(_handle, requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -923,7 +965,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTradingCode(int requestID, string clientID = null, string exchangeID = null)
         {
-            return reqQueryTradingCode(requestID, this.BrokerID, this.InvestorID, clientID, exchangeID);
+            return reqQueryTradingCode(_handle, requestID, this.BrokerID, this.InvestorID, clientID, exchangeID);
         }
 
         /// <summary>
@@ -936,7 +978,7 @@ namespace CTPTradeApi
         public int QueryInstrumentMarginRate(int requestID, string instrumentID,
             TThostFtdcHedgeFlagType hedgeFlag = TThostFtdcHedgeFlagType.Speculation)
         {
-            return reqQueryInstrumentMarginRate(requestID, this.BrokerID, this.InvestorID, instrumentID, hedgeFlag);
+            return reqQueryInstrumentMarginRate(_handle, requestID, this.BrokerID, this.InvestorID, instrumentID, hedgeFlag);
         }
 
         /// <summary>
@@ -947,7 +989,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInstrumentCommissionRate(int requestID, string instrumentID)
         {
-            return reqQueryInstrumentCommissionRate(requestID, this.BrokerID, this.InvestorID, instrumentID);
+            return reqQueryInstrumentCommissionRate(_handle, requestID, this.BrokerID, this.InvestorID, instrumentID);
         }
 
         /// <summary>
@@ -958,7 +1000,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryExchange(int requestID, string exchangeID)
         {
-            return reqQueryExchange(requestID, exchangeID);
+            return reqQueryExchange(_handle, requestID, exchangeID);
         }
 
         /// <summary>
@@ -969,7 +1011,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInstrument(int requestID, string instrumentID = null)
         {
-            return reqQueryInstrument(requestID, instrumentID);
+            return reqQueryInstrument(_handle, requestID, instrumentID);
         }
 
         /// <summary>
@@ -980,7 +1022,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryMarketData(int requestID, string instrumentID)
         {
-            return reqQueryDepthMarketData(requestID, instrumentID);
+            return reqQueryDepthMarketData(_handle, requestID, instrumentID);
         }
 
         /// <summary>
@@ -991,7 +1033,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QuerySettlementInfo(int requestID, string date = null)
         {
-            return reqQuerySettlementInfo(requestID, this.BrokerID, this.InvestorID, date);
+            return reqQuerySettlementInfo(_handle, requestID, this.BrokerID, this.InvestorID, date);
         }
 
         /// <summary>
@@ -1002,7 +1044,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInvestorPositionDetail(int requestID, string instrumentID = null)
         {
-            return reqQueryInvestorPositionDetail(requestID, this.BrokerID, this.InvestorID, instrumentID);
+            return reqQueryInvestorPositionDetail(_handle, requestID, this.BrokerID, this.InvestorID, instrumentID);
         }
 
         /// <summary>
@@ -1012,7 +1054,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryNotice(int requestID)
         {
-            return reqQueryNotice(requestID, this.BrokerID);
+            return reqQueryNotice(_handle, requestID, this.BrokerID);
         }
 
         /// <summary>
@@ -1022,7 +1064,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QuerySettlementInfoConfirm(int requestID)
         {
-            return reqQuerySettlementInfoConfirm(requestID, this.BrokerID, this.InvestorID);
+            return reqQuerySettlementInfoConfirm(_handle, requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -1033,7 +1075,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryInvestorPositionCombineDetail(int requestID, string instrumentID = null)
         {
-            return reqQueryInvestorPositionCombineDetail(requestID, this.BrokerID, this.InvestorID, instrumentID);
+            return reqQueryInvestorPositionCombineDetail(_handle, requestID, this.BrokerID, this.InvestorID, instrumentID);
         }
 
         /// <summary>
@@ -1043,7 +1085,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryCFMMCTradingAccountKey(int requestID)
         {
-            return reqQueryCFMMCTradingAccountKey(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryCFMMCTradingAccountKey(_handle, requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -1053,7 +1095,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTradingNotice(int requestID)
         {
-            return reqQueryTradingNotice(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryTradingNotice(_handle, requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -1063,7 +1105,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryBrokerTradingParams(int requestID)
         {
-            return reqQueryBrokerTradingParams(requestID, this.BrokerID, this.InvestorID);
+            return reqQueryBrokerTradingParams(_handle, requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -1075,7 +1117,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryBrokerTradingAlgos(int requestID, string exchangeID, string instrumentID)
         {
-            return reqQueryBrokerTradingAlgos(requestID, this.BrokerID, exchangeID, instrumentID);
+            return reqQueryBrokerTradingAlgos(_handle, requestID, this.BrokerID, exchangeID, instrumentID);
         }
 
         /// <summary>
@@ -1086,7 +1128,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int ParkedOrderInsert(int requestID, CThostFtdcParkedOrderField field)
         {
-            return reqParkedOrderInsert(requestID, ref field);
+            return reqParkedOrderInsert(_handle, requestID, ref field);
         }
 
         /// <summary>
@@ -1124,7 +1166,7 @@ namespace CTPTradeApi
             tmp.Direction = direction;
             tmp.LimitPrice = price;
             tmp.VolumeTotalOriginal = volume;
-            return reqParkedOrderInsert(requestID, ref tmp);
+            return reqParkedOrderInsert(_handle, requestID, ref tmp);
         }
 
         /// <summary>
@@ -1135,7 +1177,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int ParkedOrderAction(int requestID, CThostFtdcParkedOrderActionField field)
         {
-            return reqParkedOrderAction(requestID, ref field);
+            return reqParkedOrderAction(_handle, requestID, ref field);
         }
 
         /// <summary>
@@ -1166,7 +1208,7 @@ namespace CTPTradeApi
             tmp.ExchangeID = exchangeID;
             if (orderSysID != null)
                 tmp.OrderSysID = new string('\0', 21 - orderSysID.Length) + orderSysID; //OrderSysID右对齐
-            return reqParkedOrderAction(requestID, ref tmp);
+            return reqParkedOrderAction(_handle, requestID, ref tmp);
         }
 
         /// <summary>
@@ -1177,7 +1219,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int RemoveParkedOrder(int requestID, string parkedOrderID)
         {
-            return reqRemoveParkedOrder(requestID, this.BrokerID, this.InvestorID, parkedOrderID);
+            return reqRemoveParkedOrder(_handle, requestID, this.BrokerID, this.InvestorID, parkedOrderID);
         }
 
         /// <summary>
@@ -1188,7 +1230,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int RemoveParkedOrderAction(int requestID, string parkedOrderActionID)
         {
-            return reqRemoveParkedOrderAction(requestID, this.BrokerID, this.InvestorID, parkedOrderActionID);
+            return reqRemoveParkedOrderAction(_handle, requestID, this.BrokerID, this.InvestorID, parkedOrderActionID);
         }
 
         /// <summary>
@@ -1200,7 +1242,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTransferBank(int requestID, string bankID, string bankBranchID)
         {
-            return reqQueryTransferBank(requestID, bankID, bankBranchID);
+            return reqQueryTransferBank(_handle, requestID, bankID, bankBranchID);
         }
 
         /// <summary>
@@ -1211,7 +1253,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryTransferSerial(int requestID, string bankID)
         {
-            return reqQueryTransferSerial(requestID, this.BrokerID, this.InvestorID, bankID);
+            return reqQueryTransferSerial(_handle, requestID, this.BrokerID, this.InvestorID, bankID);
         }
 
         /// <summary>
@@ -1222,7 +1264,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryAccountregister(int requestID, string bankID)
         {
-            return reqQueryAccountregister(requestID, this.BrokerID, this.InvestorID, bankID);
+            return reqQueryAccountregister(_handle, requestID, this.BrokerID, this.InvestorID, bankID);
         }
 
         /// <summary>
@@ -1232,7 +1274,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryContractBank(int requestID)
         {
-            return reqQueryContractBank(requestID, this.BrokerID, null, null);
+            return reqQueryContractBank(_handle, requestID, this.BrokerID, null, null);
         }
 
         /// <summary>
@@ -1244,7 +1286,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryParkedOrder(int requestID, string instrumentID = null, string exchangeID = null)
         {
-            return reqQueryParkedOrder(requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
+            return reqQueryParkedOrder(_handle, requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
         }
 
         /// <summary>
@@ -1256,7 +1298,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryParkedOrderAction(int requestID, string instrumentID = null, string exchangeID = null)
         {
-            return reqQueryParkedOrderAction(requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
+            return reqQueryParkedOrderAction(_handle, requestID, this.BrokerID, this.InvestorID, instrumentID, exchangeID);
         }
 
         /// <summary>
@@ -1267,7 +1309,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int FromBankToFutureByFuture(int requestID, CThostFtdcReqTransferField field)
         {
-            return reqFromBankToFutureByFuture(requestID, ref field);
+            return reqFromBankToFutureByFuture(_handle, requestID, ref field);
         }
 
         /// <summary>
@@ -1278,7 +1320,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int FromFutureToBankByFuture(int requestID, CThostFtdcReqTransferField field)
         {
-            return reqFromFutureToBankByFuture(requestID, ref field);
+            return reqFromFutureToBankByFuture(_handle, requestID, ref field);
         }
 
         /// <summary>
@@ -1289,7 +1331,7 @@ namespace CTPTradeApi
         /// <returns></returns>
         public int QueryBankAccountMoneyByFuture(int requestID, CThostFtdcReqQueryAccountField field)
         {
-            return reqQueryBankAccountMoneyByFuture(requestID, ref field);
+            return reqQueryBankAccountMoneyByFuture(_handle, requestID, ref field);
         }
 
         #endregion
@@ -1308,8 +1350,8 @@ namespace CTPTradeApi
         /// </summary>
         public event FrontConnect OnFrontConnect
         {
-            add { frontConnect += value; regOnFrontConnected(frontConnect); }
-            remove { frontConnect -= value; regOnFrontConnected(frontConnect); }
+            add { frontConnect += value; regOnFrontConnected(_spi, frontConnect); }
+            remove { frontConnect -= value; regOnFrontConnected(_spi, frontConnect); }
         }
 
         #endregion
@@ -1329,8 +1371,8 @@ namespace CTPTradeApi
         /// </summary>
         public event Disconnected OnDisconnected
         {
-            add { disConnected += value; regOnDisConnected(disConnected); }
-            remove { disConnected -= value; regOnDisConnected(disConnected); }
+            add { disConnected += value; regOnDisConnected(_spi, disConnected); }
+            remove { disConnected -= value; regOnDisConnected(_spi, disConnected); }
         }
 
         #endregion
@@ -1350,8 +1392,8 @@ namespace CTPTradeApi
         /// </summary>
         public event HeartBeatWarning OnHeartBeatWarning
         {
-            add { heartBeatWarning += value; regOnHeartBeatWarning(heartBeatWarning); }
-            remove { heartBeatWarning -= value; regOnHeartBeatWarning(heartBeatWarning); }
+            add { heartBeatWarning += value; regOnHeartBeatWarning(_spi, heartBeatWarning); }
+            remove { heartBeatWarning -= value; regOnHeartBeatWarning(_spi, heartBeatWarning); }
         }
 
         #endregion
@@ -1373,8 +1415,8 @@ namespace CTPTradeApi
 		/// </summary>
 		public event ErrRtnBankToFutureByFuture OnErrRtnBankToFutureByFuture
         {
-            add { errRtnBankToFutureByFuture += value; regErrRtnBankToFutureByFuture(errRtnBankToFutureByFuture); }
-            remove { errRtnBankToFutureByFuture -= value; regErrRtnBankToFutureByFuture(errRtnBankToFutureByFuture); }
+            add { errRtnBankToFutureByFuture += value; regErrRtnBankToFutureByFuture(_spi, errRtnBankToFutureByFuture); }
+            remove { errRtnBankToFutureByFuture -= value; regErrRtnBankToFutureByFuture(_spi, errRtnBankToFutureByFuture); }
         }
 
         #endregion
@@ -1396,8 +1438,8 @@ namespace CTPTradeApi
         /// </summary>
         public event ErrRtnFutureToBankByFuture OnErrRtnFutureToBankByFuture
         {
-            add { errRtnFutureToBankByFuture += value; regErrRtnFutureToBankByFuture(errRtnFutureToBankByFuture); }
-            remove { errRtnFutureToBankByFuture -= value; regErrRtnFutureToBankByFuture(errRtnFutureToBankByFuture); }
+            add { errRtnFutureToBankByFuture += value; regErrRtnFutureToBankByFuture(_spi, errRtnFutureToBankByFuture); }
+            remove { errRtnFutureToBankByFuture -= value; regErrRtnFutureToBankByFuture(_spi, errRtnFutureToBankByFuture); }
         }
 
         #endregion
@@ -1419,8 +1461,8 @@ namespace CTPTradeApi
         /// </summary>
         public event ErrRtnOrderAction OnErrRtnOrderAction
         {
-            add { errRtnOrderAction += value; regErrRtnOrderAction(errRtnOrderAction); }
-            remove { errRtnOrderAction -= value; regErrRtnOrderAction(errRtnOrderAction); }
+            add { errRtnOrderAction += value; regErrRtnOrderAction(_spi, errRtnOrderAction); }
+            remove { errRtnOrderAction -= value; regErrRtnOrderAction(_spi, errRtnOrderAction); }
         }
 
         #endregion
@@ -1442,8 +1484,8 @@ namespace CTPTradeApi
         /// </summary>
         public event ErrRtnOrderInsert OnErrRtnOrderInsert
         {
-            add { errRtnOrderInsert += value; regErrRtnOrderInsert(errRtnOrderInsert); }
-            remove { errRtnOrderInsert -= value; regErrRtnOrderInsert(errRtnOrderInsert); }
+            add { errRtnOrderInsert += value; regErrRtnOrderInsert(_spi, errRtnOrderInsert); }
+            remove { errRtnOrderInsert -= value; regErrRtnOrderInsert(_spi, errRtnOrderInsert); }
         }
 
         #endregion
@@ -1468,12 +1510,12 @@ namespace CTPTradeApi
             add
             {
                 errRtnQueryBankBalanceByFuture += value;
-                regErrRtnQueryBankBalanceByFuture(errRtnQueryBankBalanceByFuture);
+                regErrRtnQueryBankBalanceByFuture(_spi, errRtnQueryBankBalanceByFuture);
             }
             remove
             {
                 errRtnQueryBankBalanceByFuture -= value;
-                regErrRtnQueryBankBalanceByFuture(errRtnQueryBankBalanceByFuture);
+                regErrRtnQueryBankBalanceByFuture(_spi, errRtnQueryBankBalanceByFuture);
             }
         }
 
@@ -1499,12 +1541,12 @@ namespace CTPTradeApi
             add
             {
                 errRtnRepealBankToFutureByFutureManual += value;
-                regErrRtnRepealBankToFutureByFutureManual(errRtnRepealBankToFutureByFutureManual);
+                regErrRtnRepealBankToFutureByFutureManual(_spi, errRtnRepealBankToFutureByFutureManual);
             }
             remove
             {
                 errRtnRepealBankToFutureByFutureManual -= value;
-                regErrRtnRepealBankToFutureByFutureManual(errRtnRepealBankToFutureByFutureManual);
+                regErrRtnRepealBankToFutureByFutureManual(_spi, errRtnRepealBankToFutureByFutureManual);
             }
         }
 
@@ -1530,12 +1572,12 @@ namespace CTPTradeApi
             add
             {
                 errRtnRepealFutureToBankByFutureManual += value;
-                regErrRtnRepealFutureToBankByFutureManual(errRtnRepealFutureToBankByFutureManual);
+                regErrRtnRepealFutureToBankByFutureManual(_spi, errRtnRepealFutureToBankByFutureManual);
             }
             remove
             {
                 errRtnRepealFutureToBankByFutureManual -= value;
-                regErrRtnRepealFutureToBankByFutureManual(errRtnRepealFutureToBankByFutureManual);
+                regErrRtnRepealFutureToBankByFutureManual(_spi, errRtnRepealFutureToBankByFutureManual);
             }
         }
 
@@ -1561,12 +1603,12 @@ namespace CTPTradeApi
             add
             {
                 rspError += value;
-                regRspError(rspError);
+                regRspError(_spi, rspError);
             }
             remove
             {
                 rspError -= value;
-                regRspError(rspError);
+                regRspError(_spi, rspError);
             }
         }
 
@@ -1594,12 +1636,12 @@ namespace CTPTradeApi
             add
             {
                 rspFromBankToFutureByFuture += value;
-                regRspFromBankToFutureByFuture(rspFromBankToFutureByFuture);
+                regRspFromBankToFutureByFuture(_spi, rspFromBankToFutureByFuture);
             }
             remove
             {
                 rspFromBankToFutureByFuture -= value;
-                regRspFromBankToFutureByFuture(rspFromBankToFutureByFuture);
+                regRspFromBankToFutureByFuture(_spi, rspFromBankToFutureByFuture);
             }
         }
 
@@ -1627,12 +1669,12 @@ namespace CTPTradeApi
             add
             {
                 rspFromFutureToBankByFuture += value;
-                regRspFromFutureToBankByFuture(rspFromFutureToBankByFuture);
+                regRspFromFutureToBankByFuture(_spi, rspFromFutureToBankByFuture);
             }
             remove
             {
                 rspFromFutureToBankByFuture -= value;
-                regRspFromFutureToBankByFuture(rspFromFutureToBankByFuture);
+                regRspFromFutureToBankByFuture(_spi, rspFromFutureToBankByFuture);
             }
         }
 
@@ -1660,12 +1702,12 @@ namespace CTPTradeApi
             add
             {
                 rspOrderAction += value;
-                regRspOrderAction(rspOrderAction);
+                regRspOrderAction(_spi, rspOrderAction);
             }
             remove
             {
                 rspOrderAction -= value;
-                regRspOrderAction(rspOrderAction);
+                regRspOrderAction(_spi, rspOrderAction);
             }
         }
 
@@ -1693,12 +1735,12 @@ namespace CTPTradeApi
             add
             {
                 rspOrderInsert += value;
-                regRspOrderInsert(rspOrderInsert);
+                regRspOrderInsert(_spi, rspOrderInsert);
             }
             remove
             {
                 rspOrderInsert -= value;
-                regRspOrderInsert(rspOrderInsert);
+                regRspOrderInsert(_spi, rspOrderInsert);
             }
         }
 
@@ -1726,12 +1768,12 @@ namespace CTPTradeApi
             add
             {
                 rspParkedOrderAction += value;
-                regRspParkedOrderAction(rspParkedOrderAction);
+                regRspParkedOrderAction(_spi, rspParkedOrderAction);
             }
             remove
             {
                 rspParkedOrderAction -= value;
-                regRspParkedOrderAction(rspParkedOrderAction);
+                regRspParkedOrderAction(_spi, rspParkedOrderAction);
             }
         }
 
@@ -1759,12 +1801,12 @@ namespace CTPTradeApi
             add
             {
                 rspParkedOrderInsert += value;
-                regRspParkedOrderInsert(rspParkedOrderInsert);
+                regRspParkedOrderInsert(_spi, rspParkedOrderInsert);
             }
             remove
             {
                 rspParkedOrderInsert -= value;
-                regRspParkedOrderInsert(rspParkedOrderInsert);
+                regRspParkedOrderInsert(_spi, rspParkedOrderInsert);
             }
         }
 
@@ -1792,12 +1834,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryBrokerTradingAlgos += value;
-                regRspQueryBrokerTradingAlgos(rspQryBrokerTradingAlgos);
+                regRspQueryBrokerTradingAlgos(_spi, rspQryBrokerTradingAlgos);
             }
             remove
             {
                 rspQryBrokerTradingAlgos -= value;
-                regRspQueryBrokerTradingAlgos(rspQryBrokerTradingAlgos);
+                regRspQueryBrokerTradingAlgos(_spi, rspQryBrokerTradingAlgos);
             }
         }
 
@@ -1825,12 +1867,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryBrokerTradingParams += value;
-                regRspQueryBrokerTradingParams(rspQryBrokerTradingParams);
+                regRspQueryBrokerTradingParams(_spi, rspQryBrokerTradingParams);
             }
             remove
             {
                 rspQryBrokerTradingParams -= value;
-                regRspQueryBrokerTradingParams(rspQryBrokerTradingParams);
+                regRspQueryBrokerTradingParams(_spi, rspQryBrokerTradingParams);
             }
         }
 
@@ -1859,12 +1901,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryCFMMCTradingAccountKey += value;
-                regRspQueryCFMMCTradingAccountKey(rspQryCFMMCTradingAccountKey);
+                regRspQueryCFMMCTradingAccountKey(_spi, rspQryCFMMCTradingAccountKey);
             }
             remove
             {
                 rspQryCFMMCTradingAccountKey -= value;
-                regRspQueryCFMMCTradingAccountKey(rspQryCFMMCTradingAccountKey);
+                regRspQueryCFMMCTradingAccountKey(_spi, rspQryCFMMCTradingAccountKey);
             }
         }
 
@@ -1892,12 +1934,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryContractBank += value;
-                regRspQueryContractBank(rspQryContractBank);
+                regRspQueryContractBank(_spi, rspQryContractBank);
             }
             remove
             {
                 rspQryContractBank -= value;
-                regRspQueryContractBank(rspQryContractBank);
+                regRspQueryContractBank(_spi, rspQryContractBank);
             }
         }
 
@@ -1925,12 +1967,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryDepthMarketData += value;
-                regRspQueryDepthMarketData(rspQryDepthMarketData);
+                regRspQueryDepthMarketData(_spi, rspQryDepthMarketData);
             }
             remove
             {
                 rspQryDepthMarketData -= value;
-                regRspQueryDepthMarketData(rspQryDepthMarketData);
+                regRspQueryDepthMarketData(_spi, rspQryDepthMarketData);
             }
         }
 
@@ -1958,12 +2000,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryExchange += value;
-                regRspQueryExchange(rspQryExchange);
+                regRspQueryExchange(_spi, rspQryExchange);
             }
             remove
             {
                 rspQryExchange -= value;
-                regRspQueryExchange(rspQryExchange);
+                regRspQueryExchange(_spi, rspQryExchange);
             }
         }
 
@@ -1991,12 +2033,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInstrument += value;
-                regRspQueryInstrument(rspQryInstrument);
+                regRspQueryInstrument(_spi, rspQryInstrument);
             }
             remove
             {
                 rspQryInstrument -= value;
-                regRspQueryInstrument(rspQryInstrument);
+                regRspQueryInstrument(_spi, rspQryInstrument);
             }
         }
 
@@ -2025,12 +2067,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInstrumentCommissionRate += value;
-                regRspQueryInstrumentCommissionRate(rspQryInstrumentCommissionRate);
+                regRspQueryInstrumentCommissionRate(_spi, rspQryInstrumentCommissionRate);
             }
             remove
             {
                 rspQryInstrumentCommissionRate -= value;
-                regRspQueryInstrumentCommissionRate(rspQryInstrumentCommissionRate);
+                regRspQueryInstrumentCommissionRate(_spi, rspQryInstrumentCommissionRate);
             }
         }
 
@@ -2058,12 +2100,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInstrumentMarginRate += value;
-                regRspQueryInstrumentMarginRate(rspQryInstrumentMarginRate);
+                regRspQueryInstrumentMarginRate(_spi, rspQryInstrumentMarginRate);
             }
             remove
             {
                 rspQryInstrumentMarginRate -= value;
-                regRspQueryInstrumentMarginRate(rspQryInstrumentMarginRate);
+                regRspQueryInstrumentMarginRate(_spi, rspQryInstrumentMarginRate);
             }
         }
 
@@ -2091,12 +2133,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInvestor += value;
-                regRspQueryInvestor(rspQryInvestor);
+                regRspQueryInvestor(_spi, rspQryInvestor);
             }
             remove
             {
                 rspQryInvestor -= value;
-                regRspQueryInvestor(rspQryInvestor);
+                regRspQueryInvestor(_spi, rspQryInvestor);
             }
         }
 
@@ -2124,12 +2166,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInvestorPosition += value;
-                regRspQueryInvestorPosition(rspQryInvestorPosition);
+                regRspQueryInvestorPosition(_spi, rspQryInvestorPosition);
             }
             remove
             {
                 rspQryInvestorPosition -= value;
-                regRspQueryInvestorPosition(rspQryInvestorPosition);
+                regRspQueryInvestorPosition(_spi, rspQryInvestorPosition);
             }
         }
 
@@ -2158,12 +2200,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInvestorPositionCombineDetail += value;
-                regRspQueryInvestorPositionCombineDetail(rspQryInvestorPositionCombineDetail);
+                regRspQueryInvestorPositionCombineDetail(_spi, rspQryInvestorPositionCombineDetail);
             }
             remove
             {
                 rspQryInvestorPositionCombineDetail -= value;
-                regRspQueryInvestorPositionCombineDetail(rspQryInvestorPositionCombineDetail);
+                regRspQueryInvestorPositionCombineDetail(_spi, rspQryInvestorPositionCombineDetail);
             }
         }
 
@@ -2192,12 +2234,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryInvestorPositionDetail += value;
-                regRspQueryInvestorPositionDetail(rspQryInvestorPositionDetail);
+                regRspQueryInvestorPositionDetail(_spi, rspQryInvestorPositionDetail);
             }
             remove
             {
                 rspQryInvestorPositionDetail -= value;
-                regRspQueryInvestorPositionDetail(rspQryInvestorPositionDetail);
+                regRspQueryInvestorPositionDetail(_spi, rspQryInvestorPositionDetail);
             }
         }
 
@@ -2225,12 +2267,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryNotice += value;
-                regRspQueryNotice(rspQryNotice);
+                regRspQueryNotice(_spi, rspQryNotice);
             }
             remove
             {
                 rspQryNotice -= value;
-                regRspQueryNotice(rspQryNotice);
+                regRspQueryNotice(_spi, rspQryNotice);
             }
         }
 
@@ -2258,12 +2300,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryOrder += value;
-                regRspQueryOrder(rspQryOrder);
+                regRspQueryOrder(_spi, rspQryOrder);
             }
             remove
             {
                 rspQryOrder -= value;
-                regRspQueryOrder(rspQryOrder);
+                regRspQueryOrder(_spi, rspQryOrder);
             }
         }
 
@@ -2291,12 +2333,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryParkedOrder += value;
-                regRspQueryParkedOrder(rspQryParkedOrder);
+                regRspQueryParkedOrder(_spi, rspQryParkedOrder);
             }
             remove
             {
                 rspQryParkedOrder -= value;
-                regRspQueryParkedOrder(rspQryParkedOrder);
+                regRspQueryParkedOrder(_spi, rspQryParkedOrder);
             }
         }
 
@@ -2324,12 +2366,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryParkedOrderAction += value;
-                regRspQueryParkedOrderAction(rspQryParkedOrderAction);
+                regRspQueryParkedOrderAction(_spi, rspQryParkedOrderAction);
             }
             remove
             {
                 rspQryParkedOrderAction -= value;
-                regRspQueryParkedOrderAction(rspQryParkedOrderAction);
+                regRspQueryParkedOrderAction(_spi, rspQryParkedOrderAction);
             }
         }
 
@@ -2357,12 +2399,12 @@ namespace CTPTradeApi
             add
             {
                 rspQrySettlementInfo += value;
-                regRspQuerySettlementInfo(rspQrySettlementInfo);
+                regRspQuerySettlementInfo(_spi, rspQrySettlementInfo);
             }
             remove
             {
                 rspQrySettlementInfo -= value;
-                regRspQuerySettlementInfo(rspQrySettlementInfo);
+                regRspQuerySettlementInfo(_spi, rspQrySettlementInfo);
             }
         }
 
@@ -2391,12 +2433,12 @@ namespace CTPTradeApi
             add
             {
                 rspQrySettlementInfoConfirm += value;
-                regRspQuerySettlementInfoConfirm(rspQrySettlementInfoConfirm);
+                regRspQuerySettlementInfoConfirm(_spi, rspQrySettlementInfoConfirm);
             }
             remove
             {
                 rspQrySettlementInfoConfirm -= value;
-                regRspQuerySettlementInfoConfirm(rspQrySettlementInfoConfirm);
+                regRspQuerySettlementInfoConfirm(_spi, rspQrySettlementInfoConfirm);
             }
         }
 
@@ -2423,12 +2465,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTrade += value;
-                regRspQueryTrade(rspQryTrade);
+                regRspQueryTrade(_spi, rspQryTrade);
             }
             remove
             {
                 rspQryTrade -= value;
-                regRspQueryTrade(rspQryTrade);
+                regRspQueryTrade(_spi, rspQryTrade);
             }
         }
 
@@ -2455,12 +2497,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTradingAccount += value;
-                regRspQueryTradingAccount(rspQryTradingAccount);
+                regRspQueryTradingAccount(_spi, rspQryTradingAccount);
             }
             remove
             {
                 rspQryTradingAccount -= value;
-                regRspQueryTradingAccount(rspQryTradingAccount);
+                regRspQueryTradingAccount(_spi, rspQryTradingAccount);
             }
         }
 
@@ -2488,12 +2530,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTradingCode += value;
-                regRspQueryTradingCode(rspQryTradingCode);
+                regRspQueryTradingCode(_spi, rspQryTradingCode);
             }
             remove
             {
                 rspQryTradingCode -= value;
-                regRspQueryTradingCode(rspQryTradingCode);
+                regRspQueryTradingCode(_spi, rspQryTradingCode);
             }
         }
 
@@ -2520,12 +2562,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTradingNotice += value;
-                regRspQueryTradingNotice(rspQryTradingNotice);
+                regRspQueryTradingNotice(_spi, rspQryTradingNotice);
             }
             remove
             {
                 rspQryTradingNotice -= value;
-                regRspQueryTradingNotice(rspQryTradingNotice);
+                regRspQueryTradingNotice(_spi, rspQryTradingNotice);
             }
         }
 
@@ -2551,12 +2593,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTransferBank += value;
-                regRspQueryTransferBank(rspQryTransferBank);
+                regRspQueryTransferBank(_spi, rspQryTransferBank);
             }
             remove
             {
                 rspQryTransferBank -= value;
-                regRspQueryTransferBank(rspQryTransferBank);
+                regRspQueryTransferBank(_spi, rspQryTransferBank);
             }
         }
 
@@ -2584,12 +2626,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryTransferSerial += value;
-                regRspQueryTransferSerial(rspQryTransferSerial);
+                regRspQueryTransferSerial(_spi, rspQryTransferSerial);
             }
             remove
             {
                 rspQryTransferSerial -= value;
-                regRspQueryTransferSerial(rspQryTransferSerial);
+                regRspQueryTransferSerial(_spi, rspQryTransferSerial);
             }
         }
 
@@ -2617,12 +2659,12 @@ namespace CTPTradeApi
             add
             {
                 rspQryAccountregister += value;
-                regRspQueryAccountregister(rspQryAccountregister);
+                regRspQueryAccountregister(_spi, rspQryAccountregister);
             }
             remove
             {
                 rspQryAccountregister -= value;
-                regRspQueryAccountregister(rspQryAccountregister);
+                regRspQueryAccountregister(_spi, rspQryAccountregister);
             }
         }
 
@@ -2650,12 +2692,12 @@ namespace CTPTradeApi
             add
             {
                 rspQueryBankAccountMoneyByFuture += value;
-                regRspQueryBankAccountMoneyByFuture(rspQueryBankAccountMoneyByFuture);
+                regRspQueryBankAccountMoneyByFuture(_spi, rspQueryBankAccountMoneyByFuture);
             }
             remove
             {
                 rspQueryBankAccountMoneyByFuture -= value;
-                regRspQueryBankAccountMoneyByFuture(rspQueryBankAccountMoneyByFuture);
+                regRspQueryBankAccountMoneyByFuture(_spi, rspQueryBankAccountMoneyByFuture);
             }
         }
 
@@ -2683,12 +2725,12 @@ namespace CTPTradeApi
             add
             {
                 rspQueryMaxOrderVolume += value;
-                regRspQueryMaxOrderVolume(rspQueryMaxOrderVolume);
+                regRspQueryMaxOrderVolume(_spi, rspQueryMaxOrderVolume);
             }
             remove
             {
                 rspQueryMaxOrderVolume -= value;
-                regRspQueryMaxOrderVolume(rspQueryMaxOrderVolume);
+                regRspQueryMaxOrderVolume(_spi, rspQueryMaxOrderVolume);
             }
         }
 
@@ -2716,12 +2758,12 @@ namespace CTPTradeApi
             add
             {
                 rspRemoveParkedOrder += value;
-                regRspRemoveParkedOrder(rspRemoveParkedOrder);
+                regRspRemoveParkedOrder(_spi, rspRemoveParkedOrder);
             }
             remove
             {
                 rspRemoveParkedOrder -= value;
-                regRspRemoveParkedOrder(rspRemoveParkedOrder);
+                regRspRemoveParkedOrder(_spi, rspRemoveParkedOrder);
             }
         }
 
@@ -2750,12 +2792,12 @@ namespace CTPTradeApi
             add
             {
                 rspRemoveParkedOrderAction += value;
-                regRspRemoveParkedOrderAction(rspRemoveParkedOrderAction);
+                regRspRemoveParkedOrderAction(_spi, rspRemoveParkedOrderAction);
             }
             remove
             {
                 rspRemoveParkedOrderAction -= value;
-                regRspRemoveParkedOrderAction(rspRemoveParkedOrderAction);
+                regRspRemoveParkedOrderAction(_spi, rspRemoveParkedOrderAction);
             }
         }
 
@@ -2783,12 +2825,12 @@ namespace CTPTradeApi
             add
             {
                 rspSettlementInfoConfirm += value;
-                regRspSettlementInfoConfirm(rspSettlementInfoConfirm);
+                regRspSettlementInfoConfirm(_spi, rspSettlementInfoConfirm);
             }
             remove
             {
                 rspSettlementInfoConfirm -= value;
-                regRspSettlementInfoConfirm(rspSettlementInfoConfirm);
+                regRspSettlementInfoConfirm(_spi, rspSettlementInfoConfirm);
             }
         }
 
@@ -2817,12 +2859,12 @@ namespace CTPTradeApi
             add
             {
                 rspTradingAccountPasswordUpdate += value;
-                regRspTradingAccountPasswordUpdate(rspTradingAccountPasswordUpdate);
+                regRspTradingAccountPasswordUpdate(_spi, rspTradingAccountPasswordUpdate);
             }
             remove
             {
                 rspTradingAccountPasswordUpdate -= value;
-                regRspTradingAccountPasswordUpdate(rspTradingAccountPasswordUpdate);
+                regRspTradingAccountPasswordUpdate(_spi, rspTradingAccountPasswordUpdate);
             }
         }
 
@@ -2850,12 +2892,12 @@ namespace CTPTradeApi
             add
             {
                 rspUserLogin += value;
-                regRspUserLogin(rspUserLogin);
+                regRspUserLogin(_spi, rspUserLogin);
             }
             remove
             {
                 rspUserLogin -= value;
-                regRspUserLogin(rspUserLogin);
+                regRspUserLogin(_spi, rspUserLogin);
             }
         }
 
@@ -2883,12 +2925,12 @@ namespace CTPTradeApi
             add
             {
                 rspUserLogout += value;
-                regRspUserLogout(rspUserLogout);
+                regRspUserLogout(_spi, rspUserLogout);
             }
             remove
             {
                 rspUserLogout -= value;
-                regRspUserLogout(rspUserLogout);
+                regRspUserLogout(_spi, rspUserLogout);
             }
         }
 
@@ -2916,12 +2958,12 @@ namespace CTPTradeApi
             add
             {
                 rspUserPasswordUpdate += value;
-                regRspUserPasswordUpdate(rspUserPasswordUpdate);
+                regRspUserPasswordUpdate(_spi, rspUserPasswordUpdate);
             }
             remove
             {
                 rspUserPasswordUpdate -= value;
-                regRspUserPasswordUpdate(rspUserPasswordUpdate);
+                regRspUserPasswordUpdate(_spi, rspUserPasswordUpdate);
             }
         }
 
@@ -2945,12 +2987,12 @@ namespace CTPTradeApi
             add
             {
                 rtnErrorConditionalOrder += value;
-                regRtnErrorConditionalOrder(rtnErrorConditionalOrder);
+                regRtnErrorConditionalOrder(_spi, rtnErrorConditionalOrder);
             }
             remove
             {
                 rtnErrorConditionalOrder -= value;
-                regRtnErrorConditionalOrder(rtnErrorConditionalOrder);
+                regRtnErrorConditionalOrder(_spi, rtnErrorConditionalOrder);
             }
         }
 
@@ -2974,12 +3016,12 @@ namespace CTPTradeApi
             add
             {
                 rtnFromBankToFutureByBank += value;
-                regRtnFromBankToFutureByBank(rtnFromBankToFutureByBank);
+                regRtnFromBankToFutureByBank(_spi, rtnFromBankToFutureByBank);
             }
             remove
             {
                 rtnFromBankToFutureByBank -= value;
-                regRtnFromBankToFutureByBank(rtnFromBankToFutureByBank);
+                regRtnFromBankToFutureByBank(_spi, rtnFromBankToFutureByBank);
             }
         }
 
@@ -3003,12 +3045,12 @@ namespace CTPTradeApi
             add
             {
                 rtnFromBankToFutureByFuture += value;
-                regRtnFromBankToFutureByFuture(rtnFromBankToFutureByFuture);
+                regRtnFromBankToFutureByFuture(_spi, rtnFromBankToFutureByFuture);
             }
             remove
             {
                 rtnFromBankToFutureByFuture -= value;
-                regRtnFromBankToFutureByFuture(rtnFromBankToFutureByFuture);
+                regRtnFromBankToFutureByFuture(_spi, rtnFromBankToFutureByFuture);
             }
         }
 
@@ -3032,12 +3074,12 @@ namespace CTPTradeApi
             add
             {
                 rtnFromFutureToBankByBank += value;
-                regRtnFromFutureToBankByBank(rtnFromFutureToBankByBank);
+                regRtnFromFutureToBankByBank(_spi, rtnFromFutureToBankByBank);
             }
             remove
             {
                 rtnFromFutureToBankByBank -= value;
-                regRtnFromFutureToBankByBank(rtnFromFutureToBankByBank);
+                regRtnFromFutureToBankByBank(_spi, rtnFromFutureToBankByBank);
             }
         }
 
@@ -3061,12 +3103,12 @@ namespace CTPTradeApi
             add
             {
                 rtnFromFutureToBankByFuture += value;
-                regRtnFromFutureToBankByFuture(rtnFromFutureToBankByFuture);
+                regRtnFromFutureToBankByFuture(_spi, rtnFromFutureToBankByFuture);
             }
             remove
             {
                 rtnFromFutureToBankByFuture -= value;
-                regRtnFromFutureToBankByFuture(rtnFromFutureToBankByFuture);
+                regRtnFromFutureToBankByFuture(_spi, rtnFromFutureToBankByFuture);
             }
         }
 
@@ -3090,12 +3132,12 @@ namespace CTPTradeApi
             add
             {
                 rtnInstrumentStatus += value;
-                regRtnInstrumentStatus(rtnInstrumentStatus);
+                regRtnInstrumentStatus(_spi, rtnInstrumentStatus);
             }
             remove
             {
                 rtnInstrumentStatus -= value;
-                regRtnInstrumentStatus(rtnInstrumentStatus);
+                regRtnInstrumentStatus(_spi, rtnInstrumentStatus);
             }
         }
 
@@ -3119,12 +3161,12 @@ namespace CTPTradeApi
             add
             {
                 rtnOrder += value;
-                regRtnOrder(rtnOrder);
+                regRtnOrder(_spi, rtnOrder);
             }
             remove
             {
                 rtnOrder -= value;
-                regRtnOrder(rtnOrder);
+                regRtnOrder(_spi, rtnOrder);
             }
         }
 
@@ -3148,12 +3190,12 @@ namespace CTPTradeApi
             add
             {
                 rtnQueryBankBalanceByFuture += value;
-                regRtnQueryBankBalanceByFuture(rtnQueryBankBalanceByFuture);
+                regRtnQueryBankBalanceByFuture(_spi, rtnQueryBankBalanceByFuture);
             }
             remove
             {
                 rtnQueryBankBalanceByFuture -= value;
-                regRtnQueryBankBalanceByFuture(rtnQueryBankBalanceByFuture);
+                regRtnQueryBankBalanceByFuture(_spi, rtnQueryBankBalanceByFuture);
             }
         }
 
@@ -3177,12 +3219,12 @@ namespace CTPTradeApi
             add
             {
                 rtnRepealFromBankToFutureByBank += value;
-                regRtnRepealFromBankToFutureByBank(rtnRepealFromBankToFutureByBank);
+                regRtnRepealFromBankToFutureByBank(_spi, rtnRepealFromBankToFutureByBank);
             }
             remove
             {
                 rtnRepealFromBankToFutureByBank -= value;
-                regRtnRepealFromBankToFutureByBank(rtnRepealFromBankToFutureByBank);
+                regRtnRepealFromBankToFutureByBank(_spi, rtnRepealFromBankToFutureByBank);
             }
         }
 
@@ -3206,12 +3248,12 @@ namespace CTPTradeApi
             add
             {
                 rtnRepealFromBankToFutureByFuture += value;
-                regRtnRepealFromBankToFutureByFuture(rtnRepealFromBankToFutureByFuture);
+                regRtnRepealFromBankToFutureByFuture(_spi, rtnRepealFromBankToFutureByFuture);
             }
             remove
             {
                 rtnRepealFromBankToFutureByFuture -= value;
-                regRtnRepealFromBankToFutureByFuture(rtnRepealFromBankToFutureByFuture);
+                regRtnRepealFromBankToFutureByFuture(_spi, rtnRepealFromBankToFutureByFuture);
             }
         }
 
@@ -3234,12 +3276,12 @@ namespace CTPTradeApi
             add
             {
                 rtnRepealFromBankToFutureByFutureManual += value;
-                regRtnRepealFromBankToFutureByFutureManual(rtnRepealFromBankToFutureByFutureManual);
+                regRtnRepealFromBankToFutureByFutureManual(_spi, rtnRepealFromBankToFutureByFutureManual);
             }
             remove
             {
                 rtnRepealFromBankToFutureByFutureManual -= value;
-                regRtnRepealFromBankToFutureByFutureManual(rtnRepealFromBankToFutureByFutureManual);
+                regRtnRepealFromBankToFutureByFutureManual(_spi, rtnRepealFromBankToFutureByFutureManual);
             }
         }
 
@@ -3263,12 +3305,12 @@ namespace CTPTradeApi
             add
             {
                 rtnRepealFromFutureToBankByBank += value;
-                regRtnRepealFromFutureToBankByBank(rtnRepealFromFutureToBankByBank);
+                regRtnRepealFromFutureToBankByBank(_spi, rtnRepealFromFutureToBankByBank);
             }
             remove
             {
                 rtnRepealFromFutureToBankByBank -= value;
-                regRtnRepealFromFutureToBankByBank(rtnRepealFromFutureToBankByBank);
+                regRtnRepealFromFutureToBankByBank(_spi, rtnRepealFromFutureToBankByBank);
             }
         }
 
@@ -3292,12 +3334,12 @@ namespace CTPTradeApi
             add
             {
                 rtnRepealFromFutureToBankByFuture += value;
-                regRtnRepealFromFutureToBankByFuture(rtnRepealFromFutureToBankByFuture);
+                regRtnRepealFromFutureToBankByFuture(_spi, rtnRepealFromFutureToBankByFuture);
             }
             remove
             {
                 rtnRepealFromFutureToBankByFuture -= value;
-                regRtnRepealFromFutureToBankByFuture(rtnRepealFromFutureToBankByFuture);
+                regRtnRepealFromFutureToBankByFuture(_spi, rtnRepealFromFutureToBankByFuture);
             }
         }
 
@@ -3321,12 +3363,12 @@ namespace CTPTradeApi
             add
             {
                 rtnRepealFromFutureToBankByFutureManual += value;
-                regRtnRepealFromFutureToBankByFutureManual(rtnRepealFromFutureToBankByFutureManual);
+                regRtnRepealFromFutureToBankByFutureManual(_spi, rtnRepealFromFutureToBankByFutureManual);
             }
             remove
             {
                 rtnRepealFromFutureToBankByFutureManual -= value;
-                regRtnRepealFromFutureToBankByFutureManual(rtnRepealFromFutureToBankByFutureManual);
+                regRtnRepealFromFutureToBankByFutureManual(_spi, rtnRepealFromFutureToBankByFutureManual);
             }
         }
 
@@ -3350,12 +3392,12 @@ namespace CTPTradeApi
             add
             {
                 rtnTrade += value;
-                regRtnTrade(rtnTrade);
+                regRtnTrade(_spi, rtnTrade);
             }
             remove
             {
                 rtnTrade -= value;
-                regRtnTrade(rtnTrade);
+                regRtnTrade(_spi, rtnTrade);
             }
         }
 
@@ -3379,12 +3421,12 @@ namespace CTPTradeApi
             add
             {
                 rtnTradingNotice += value;
-                regRtnTradingNotice(rtnTradingNotice);
+                regRtnTradingNotice(_spi, rtnTradingNotice);
             }
             remove
             {
                 rtnTradingNotice -= value;
-                regRtnTradingNotice(rtnTradingNotice);
+                regRtnTradingNotice(_spi, rtnTradingNotice);
             }
         }
 

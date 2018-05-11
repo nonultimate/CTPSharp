@@ -26,7 +26,7 @@ extern CBOnRspUnSubMarketData cbOnRspUnSubMarketData;
 extern CBOnRtnDepthMarketData cbOnRtnDepthMarketData;
 
 // «Î«Û±‡∫≈
-extern int iRequestID;
+//extern int iRequestID;
 
 
 

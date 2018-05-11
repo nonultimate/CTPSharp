@@ -54,6 +54,13 @@ namespace CTPMarketApi
         private string _flowPath = "";
 
         /// <summary>
+        /// 交易类句柄
+        /// </summary>
+        private IntPtr _handle = IntPtr.Zero;
+        private IntPtr _spi = IntPtr.Zero;
+
+
+        /// <summary>
         /// 类库加载类
         /// </summary>
         private LibraryWrapper _wrapper;
@@ -67,39 +74,53 @@ namespace CTPMarketApi
 
         #region 委托定义
 
+        //请求委托
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate IntPtr DelegateCreateSpi();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate IntPtr DelegateGetString();
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void DelegateConnect(string pFrontAddr, string flowPath);
+        delegate IntPtr DelegatetTradingDay(IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void DelegateDisconnect();
+        delegate IntPtr DelegateConnect(string pFrontAddr, string flowPath, IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void DelegateUserLogin(int requestID, string brokerID, string investorID, string password);
+        delegate void DelegateDisconnect(IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void DelegateUserLogout(int requestID, string brokerID, string investorID);
+        delegate void DelegateUserLogin(IntPtr ptr, int requestID, string brokerID, string investorID, string password);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void DelegateSubscribeMarketData(string[] instrumentsID, int nCount);
+        delegate void DelegateUserLogout(IntPtr ptr, int requestID, string brokerID, string investorID);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void DelegateUnsubscribeMarketData(string[] ppInstrumentID, int nCount);
+        delegate void DelegateSubscribeMarketData(IntPtr ptr, string[] instrumentsID, int nCount);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate void DelegateUnsubscribeMarketData(IntPtr ptr, string[] ppInstrumentID, int nCount);
 
         // 回调委托
-        delegate void DelegateRegOnRspError(RspError cb);
-        delegate void DelegateRegOnHeartBeatWarning(HeartBeatWarning cb);
-        delegate void DelegateRegOnFrontConnected(FrontConnected cb);
-        delegate void DelegateRegOnFrontDisconnected(FrontDisconnected cb);
-        delegate void DelegateRegOnRspUserLogin(RspUserLogin cb);
-        delegate void DelegateRegOnRspUserLogout(RspUserLogout cb);
-        delegate void DelegateRegOnRspSubMarketData(RspSubMarketData cb);
-        delegate void DelegateRegOnRspUnSubMarketData(RspUnSubMarketData cb);
-        delegate void DelegateRegOnRtnDepthMarketData(RtnDepthMarketData cb);
+        delegate void DelegateRegOnRspError(IntPtr ptr, RspError cb);
+        delegate void DelegateRegOnHeartBeatWarning(IntPtr ptr, HeartBeatWarning cb);
+        delegate void DelegateRegOnFrontConnected(IntPtr ptr, FrontConnected cb);
+        delegate void DelegateRegOnFrontDisconnected(IntPtr ptr, FrontDisconnected cb);
+        delegate void DelegateRegOnRspUserLogin(IntPtr ptr, RspUserLogin cb);
+        delegate void DelegateRegOnRspUserLogout(IntPtr ptr, RspUserLogout cb);
+        delegate void DelegateRegOnRspSubMarketData(IntPtr ptr, RspSubMarketData cb);
+        delegate void DelegateRegOnRspUnSubMarketData(IntPtr ptr, RspUnSubMarketData cb);
+        delegate void DelegateRegOnRtnDepthMarketData(IntPtr ptr, RtnDepthMarketData cb);
 
+        #endregion
+
+        #region 委托实例
+
+        //请求实例
+        DelegateCreateSpi createSpi;
         DelegateGetString getApiVersion;
-        DelegateGetString getTradingDay;
+        DelegatetTradingDay getTradingDay;
         DelegateConnect connect;
         DelegateDisconnect disconnect;
         DelegateUserLogin userLogin;
@@ -107,6 +128,7 @@ namespace CTPMarketApi
         DelegateSubscribeMarketData subscribeMarketData;
         DelegateUnsubscribeMarketData unsubscribeMarketData;
         
+        //回调实例
         DelegateRegOnRspError regOnRspError;
         DelegateRegOnHeartBeatWarning regOnHeartBeatWarning;
         DelegateRegOnFrontConnected regOnFrontConnected;
@@ -199,8 +221,9 @@ namespace CTPMarketApi
 
                 #region 获取非托管方法
 
+                createSpi = GetDelegate<DelegateCreateSpi>("CreateSpi");
                 getApiVersion = GetDelegate<DelegateGetString>("GetApiVersion");
-                getTradingDay = GetDelegate<DelegateGetString>("GetTradingDay");
+                getTradingDay = GetDelegate<DelegatetTradingDay>("GetTradingDay");
                 connect = GetDelegate<DelegateConnect>("Connect");
                 disconnect = GetDelegate<DelegateDisconnect>("DisConnect");
                 userLogin = GetDelegate<DelegateUserLogin>("ReqUserLogin");
@@ -218,6 +241,8 @@ namespace CTPMarketApi
                 regOnRtnDepthMarketData = GetDelegate<DelegateRegOnRtnDepthMarketData>("RegOnRtnDepthMarketData");
 
                 #endregion
+
+                _spi = createSpi();
             }
             catch (Exception ex)
             {
@@ -265,7 +290,7 @@ namespace CTPMarketApi
 		/// <returns></returns>
 		public string GetTradingDay()
         {
-            IntPtr ptr = getTradingDay();
+            IntPtr ptr = getTradingDay(_handle);
 
             return Marshal.PtrToStringAnsi(ptr);
         }
@@ -275,7 +300,7 @@ namespace CTPMarketApi
 		/// </summary>
         public void Connect()
         {
-            connect(this.FrontAddr, this._flowPath);
+          _handle = connect(this.FrontAddr, this._flowPath, _spi);
         }
 
         /// <summary>
@@ -283,7 +308,11 @@ namespace CTPMarketApi
         /// </summary>
         public void Disconnect()
         {
-            disconnect();
+            if (_handle != IntPtr.Zero)
+            {
+                disconnect(_handle);
+                _handle = IntPtr.Zero;
+            }
         }
 
         /// <summary>
@@ -297,7 +326,7 @@ namespace CTPMarketApi
         {
             this.InvestorID = investorID;
             this._password = password;
-            userLogin(requestID, this.BrokerID, this.InvestorID, this._password);
+            userLogin(_handle, requestID, this.BrokerID, this.InvestorID, this._password);
         }
 
         /// <summary>
@@ -306,7 +335,7 @@ namespace CTPMarketApi
         /// <param name="requestID">请求编号</param>
         public void UserLogout(int requestID)
         {
-            userLogout(requestID, this.BrokerID, this.InvestorID);
+            userLogout(_handle, requestID, this.BrokerID, this.InvestorID);
         }
 
         /// <summary>
@@ -315,7 +344,7 @@ namespace CTPMarketApi
 		/// <param name="instruments">合约代码:可填多个,订阅所有填null</param>
 		public void SubscribeMarketData(params string[] instruments)
         {
-            subscribeMarketData(instruments, instruments == null ? 0 : instruments.Length);
+            subscribeMarketData(_handle, instruments, instruments == null ? 0 : instruments.Length);
         }
 
         /// <summary>
@@ -324,7 +353,7 @@ namespace CTPMarketApi
         /// <param name="instruments">合约代码:可填多个,退订所有填null</param>
         public void UnsubscribeMarketData(params string[] instruments)
         {
-            unsubscribeMarketData(instruments, instruments == null ? 0 : instruments.Length);
+            unsubscribeMarketData(_handle, instruments, instruments == null ? 0 : instruments.Length);
         }
 
         #endregion
@@ -343,8 +372,8 @@ namespace CTPMarketApi
         /// </summary>
         public event RspError OnRspError
         {
-            add { rspError += value; regOnRspError(rspError); }
-            remove { rspError -= value; regOnRspError(rspError); }
+            add { rspError += value; regOnRspError(_spi, rspError); }
+            remove { rspError -= value; regOnRspError(_spi, rspError); }
         }
 
         #endregion
@@ -363,8 +392,8 @@ namespace CTPMarketApi
         /// </summary>
         public event HeartBeatWarning OnHeartBeatWarning
         {
-            add { heartBeatWarning += value; regOnHeartBeatWarning(heartBeatWarning); }
-            remove { heartBeatWarning -= value; regOnHeartBeatWarning(heartBeatWarning); }
+            add { heartBeatWarning += value; regOnHeartBeatWarning(_spi, heartBeatWarning); }
+            remove { heartBeatWarning -= value; regOnHeartBeatWarning(_spi, heartBeatWarning); }
         }
 
         #endregion
@@ -383,8 +412,8 @@ namespace CTPMarketApi
         /// </summary>
         public event FrontConnected OnFrontConnected
         {
-            add { frontConnected += value; regOnFrontConnected(frontConnected); }
-            remove { frontConnected -= value; regOnFrontConnected(frontConnected); }
+            add { frontConnected += value; regOnFrontConnected(_spi, frontConnected); }
+            remove { frontConnected -= value; regOnFrontConnected(_spi, frontConnected); }
         }
 
         #endregion
@@ -403,8 +432,8 @@ namespace CTPMarketApi
         /// </summary>
         public event FrontDisconnected OnFrontDisconnected
         {
-            add { frontDisconnected += value; regOnFrontDisconnected(frontDisconnected); }
-            remove { frontDisconnected -= value; regOnFrontDisconnected(frontDisconnected); }
+            add { frontDisconnected += value; regOnFrontDisconnected(_spi, frontDisconnected); }
+            remove { frontDisconnected -= value; regOnFrontDisconnected(_spi, frontDisconnected); }
         }
 
         #endregion
@@ -424,8 +453,8 @@ namespace CTPMarketApi
         /// </summary>
         public event RspUserLogin OnRspUserLogin
         {
-            add { rspUserLogin += value; regOnRspUserLogin(rspUserLogin); }
-            remove { rspUserLogin -= value; regOnRspUserLogin(rspUserLogin); }
+            add { rspUserLogin += value; regOnRspUserLogin(_spi, rspUserLogin); }
+            remove { rspUserLogin -= value; regOnRspUserLogin(_spi, rspUserLogin); }
         }
 
         #endregion
@@ -449,8 +478,8 @@ namespace CTPMarketApi
         /// </summary>
         public event RspUserLogout OnRspUserLogout
         {
-            add { rspUserLogout += value; regOnRspUserLogout(rspUserLogout); }
-            remove { rspUserLogout -= value; regOnRspUserLogout(rspUserLogout); }
+            add { rspUserLogout += value; regOnRspUserLogout(_spi, rspUserLogout); }
+            remove { rspUserLogout -= value; regOnRspUserLogout(_spi, rspUserLogout); }
         }
 
         #endregion
@@ -474,8 +503,8 @@ namespace CTPMarketApi
         /// </summary>
         public event RspSubMarketData OnRspSubMarketData
         {
-            add { rspSubMarketData += value; regOnRspSubMarketData(rspSubMarketData); }
-            remove { rspSubMarketData -= value; regOnRspSubMarketData(rspSubMarketData); }
+            add { rspSubMarketData += value; regOnRspSubMarketData(_spi, rspSubMarketData); }
+            remove { rspSubMarketData -= value; regOnRspSubMarketData(_spi, rspSubMarketData); }
         }
 
         #endregion
@@ -499,8 +528,8 @@ namespace CTPMarketApi
         /// </summary>
         public event RspUnSubMarketData OnRspUnSubMarketData
         {
-            add { rspUnSubMarketData += value; regOnRspUnSubMarketData(rspUnSubMarketData); }
-            remove { rspUnSubMarketData -= value; regOnRspUnSubMarketData(rspUnSubMarketData); }
+            add { rspUnSubMarketData += value; regOnRspUnSubMarketData(_spi, rspUnSubMarketData); }
+            remove { rspUnSubMarketData -= value; regOnRspUnSubMarketData(_spi, rspUnSubMarketData); }
         }
 
         #endregion
@@ -520,8 +549,8 @@ namespace CTPMarketApi
         /// </summary>
         public event RtnDepthMarketData OnRtnDepthMarketData
         {
-            add { rtnDepthMarketData += value; regOnRtnDepthMarketData(rtnDepthMarketData); }
-            remove { rtnDepthMarketData -= value; regOnRtnDepthMarketData(rtnDepthMarketData); }
+            add { rtnDepthMarketData += value; regOnRtnDepthMarketData(_spi, rtnDepthMarketData); }
+            remove { rtnDepthMarketData -= value; regOnRtnDepthMarketData(_spi, rtnDepthMarketData); }
         }
 
         #endregion

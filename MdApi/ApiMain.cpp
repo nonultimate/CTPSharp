@@ -9,22 +9,19 @@
 #include "..\api\x86\ThostFtdcMdApi.h"
 
 // UserApi对象
-CThostFtdcMdApi* pUserApi;
+//CThostFtdcMdApi* pUserApi;
 
 // 请求编号
-int iRequestID = 0;
+//int iRequestID = 0;
 
-//回调函数
-CBOnRspError cbOnRspError = 0;
-CBOnHeartBeatWarning cbOnHeartBeatWarning = 0;
+#pragma region 请求方法
 
-CBOnFrontConnected cbOnFrontConnected = 0;
-CBOnFrontDisconnected cbOnFrontDisconnected = 0;
-CBOnRspUserLogin cbOnRspUserLogin = 0;
-CBOnRspUserLogout cbOnRspUserLogout = 0;
-CBOnRspSubMarketData cbOnRspSubMarketData = 0;
-CBOnRspUnSubMarketData cbOnRspUnSubMarketData = 0;
-CBOnRtnDepthMarketData cbOnRtnDepthMarketData = 0;
+//创建回调类
+MDAPI_API CMdSpi* CreateSpi()
+{
+	CMdSpi* pUserSpi = new CMdSpi();
+	return pUserSpi;
+}
 
 //获取接口版本
 MDAPI_API const char* GetApiVersion()
@@ -33,34 +30,39 @@ MDAPI_API const char* GetApiVersion()
 }
 
 //连接
-MDAPI_API void Connect(char* frontAddr, char *pszFlowPath)
+MDAPI_API CThostFtdcMdApi*  Connect(char* frontAddr, char *pszFlowPath, CMdSpi* pUserSpi)
 {
-
-	CThostFtdcMdSpi* pUserSpi = new CMdSpi();
 	// 初始化UserApi
-	pUserApi = CThostFtdcMdApi::CreateFtdcMdApi(pszFlowPath);			// 创建UserApi
+	CThostFtdcMdApi*  pUserApi = CThostFtdcMdApi::CreateFtdcMdApi(pszFlowPath);			// 创建UserApi
 
-	pUserApi->RegisterSpi(pUserSpi);						// 注册事件类
+	pUserApi->RegisterSpi((CThostFtdcMdSpi*)pUserSpi);						// 注册事件类
 	pUserApi->RegisterFront(frontAddr);					// connect
 	pUserApi->Init();
 	//	pUserApi->Join();
+	return pUserApi;
 }
 
 //断开连接
-MDAPI_API void DisConnect()
+MDAPI_API void DisConnect(CThostFtdcMdApi*  pUserApi)
 {
+	if (pUserApi == NULL) return;
+
 	pUserApi->Release();
 }
 
 //获取当前交易日:只有登录成功后,才能得到正确的交易日
-MDAPI_API const char *GetTradingDay()
+MDAPI_API const char *GetTradingDay(CThostFtdcMdApi*  pUserApi)
 {
+	if (pUserApi == NULL) return NULL;
+
 	return pUserApi->GetTradingDay();
 }
 
 //登录
-MDAPI_API void ReqUserLogin(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcPasswordType password)
+MDAPI_API void ReqUserLogin(CThostFtdcMdApi*  pUserApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID, TThostFtdcPasswordType password)
 {
+	if (pUserApi == NULL) return;
+
 	CThostFtdcReqUserLoginField req;
 	memset(&req, 0, sizeof(req));
 	strcpy_s(req.BrokerID, brokerID);
@@ -70,8 +72,10 @@ MDAPI_API void ReqUserLogin(int requestID, TThostFtdcBrokerIDType brokerID, TTho
 }
 
 //登出请求
-MDAPI_API void ReqUserLogout(int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
+MDAPI_API void ReqUserLogout(CThostFtdcMdApi*  pUserApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcInvestorIDType investorID)
 {
+	if (pUserApi == NULL) return;
+
 	CThostFtdcUserLogoutField req;
 	memset(&req, 0, sizeof(req));
 	strcpy_s(req.BrokerID, brokerID);
@@ -80,61 +84,71 @@ MDAPI_API void ReqUserLogout(int requestID, TThostFtdcBrokerIDType brokerID, TTh
 }
 
 //订阅行情
-MDAPI_API void SubMarketData(char* instrumentsID[], int nCount)
+MDAPI_API void SubMarketData(CThostFtdcMdApi*  pUserApi, char* instrumentsID[], int nCount)
 {
+	if (pUserApi == NULL) return;
+
 	pUserApi->SubscribeMarketData(instrumentsID, nCount);
 }
 
 //退订行情
-MDAPI_API void UnSubscribeMarketData(char *ppInstrumentID[], int nCount)
+MDAPI_API void UnSubscribeMarketData(CThostFtdcMdApi*  pUserApi, char *ppInstrumentID[], int nCount)
 {
+	if (pUserApi == NULL) return;
+
 	pUserApi->UnSubscribeMarketData(ppInstrumentID, nCount);
 }
 
+#pragma endregion
+
+#pragma region 回调函数
+
 //============================================ 回调 函数注册 ===========================================
-MDAPI_API void WINAPI RegOnRspError(CBOnRspError cb)
+MDAPI_API void WINAPI RegOnRspError(CMdSpi* pUserSpi, CBOnRspError cb)
 {
-	cbOnRspError = cb;
+	pUserSpi->cbOnRspError = cb;
 }
 //心跳
-MDAPI_API void WINAPI RegOnHeartBeatWarning(CBOnHeartBeatWarning cb)
+MDAPI_API void WINAPI RegOnHeartBeatWarning(CMdSpi* pUserSpi, CBOnHeartBeatWarning cb)
 {
-	cbOnHeartBeatWarning = cb;
+	pUserSpi->cbOnHeartBeatWarning = cb;
 }
 
 //连接应答
-MDAPI_API void WINAPI RegOnFrontConnected(CBOnFrontConnected cb)
+MDAPI_API void WINAPI RegOnFrontConnected(CMdSpi* pUserSpi, CBOnFrontConnected cb)
 {
-	cbOnFrontConnected = cb;
+	pUserSpi->cbOnFrontConnected = cb;
 }
 //连接断开
-MDAPI_API void WINAPI RegOnFrontDisconnected(CBOnFrontDisconnected cb)
+MDAPI_API void WINAPI RegOnFrontDisconnected(CMdSpi* pUserSpi, CBOnFrontDisconnected cb)
 {
-	cbOnFrontDisconnected = cb;
+	pUserSpi->cbOnFrontDisconnected = cb;
 }
 //登录请求应答
-MDAPI_API void WINAPI RegOnRspUserLogin(CBOnRspUserLogin cb)
+MDAPI_API void WINAPI RegOnRspUserLogin(CMdSpi* pUserSpi, CBOnRspUserLogin cb)
 {
-	cbOnRspUserLogin = cb;
+	pUserSpi->cbOnRspUserLogin = cb;
 }
 //登出请求应答
-MDAPI_API void WINAPI RegOnRspUserLogout(CBOnRspUserLogout cb)
+MDAPI_API void WINAPI RegOnRspUserLogout(CMdSpi* pUserSpi, CBOnRspUserLogout cb)
 {
-	cbOnRspUserLogout = cb;
+	pUserSpi->cbOnRspUserLogout = cb;
 }
 //订阅行情应答
-MDAPI_API void WINAPI RegOnRspSubMarketData(CBOnRspSubMarketData cb)
+MDAPI_API void WINAPI RegOnRspSubMarketData(CMdSpi* pUserSpi, CBOnRspSubMarketData cb)
 {
-	cbOnRspSubMarketData = cb;
+	pUserSpi->cbOnRspSubMarketData = cb;
 }
 
 //退订行情应答
-MDAPI_API void WINAPI RegOnRspUnSubMarketData(CBOnRspUnSubMarketData cb)
+MDAPI_API void WINAPI RegOnRspUnSubMarketData(CMdSpi* pUserSpi, CBOnRspUnSubMarketData cb)
 {
-	cbOnRspUnSubMarketData = cb;
+	pUserSpi->cbOnRspUnSubMarketData = cb;
 }
 //深度行情通知
-MDAPI_API void WINAPI RegOnRtnDepthMarketData(CBOnRtnDepthMarketData cb)
+MDAPI_API void WINAPI RegOnRtnDepthMarketData(CMdSpi* pUserSpi, CBOnRtnDepthMarketData cb)
 {
-	cbOnRtnDepthMarketData = cb;
+	pUserSpi->cbOnRtnDepthMarketData = cb;
 }
+
+#pragma endregion
