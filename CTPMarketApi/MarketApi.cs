@@ -154,7 +154,7 @@ namespace CTPMarketApi
         /// <summary>
         /// MdApi.dll, thostmduserapi.dll 放在主程序的执行文件夹中
         /// </summary>
-        /// <param name="brokerID">经纪公司代码:2030-CTP模拟</param>
+        /// <param name="brokerID">经纪公司代码</param>
         /// <param name="frontAddr">前置地址，tcp://IP:Port</param>
         /// <param name="flowPath">存储订阅信息文件的目录，默认为当前目录</param>
         public MarketApi(string brokerID, string frontAddr, string flowPath = "")

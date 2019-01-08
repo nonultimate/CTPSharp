@@ -178,6 +178,7 @@ namespace CTPTradeAdapter.Adapter
         public void Disconnect(DataCallback callback)
         {
             AddCallback(callback, -2);
+            _isConnected = false;
             _api.Disconnect();
         }
 

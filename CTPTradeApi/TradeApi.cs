@@ -268,7 +268,7 @@ namespace CTPTradeApi
 
         #endregion
 
-        #region 回掉委托实例
+        #region 回调委托实例
 
         DelegateRegOnFrontConnected regOnFrontConnected;
         DelegateRegOnDisconnected regOnDisConnected;
@@ -608,7 +608,6 @@ namespace CTPTradeApi
         /// <summary>
         /// 断开
         /// </summary>
-
         public void Disconnect()
         {
             if (_handle != IntPtr.Zero)
@@ -635,7 +634,6 @@ namespace CTPTradeApi
         /// <summary>
         /// 发送登出请求
         /// </summary>
-
         /// <param name="requestID">请求编号</param>
         public int UserLogout(int requestID)
         {
