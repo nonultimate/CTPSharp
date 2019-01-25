@@ -24,6 +24,8 @@ typedef int (WINAPI *CBOnFrontDisconnected)(int nReason);
 
 ///心跳超时警告。当长时间未收到报文时，该方法被调用。
 typedef int (WINAPI *CBOnHeartBeatWarning)(int nTimeLapse);
+///客户端认证响应
+typedef int (WINAPI *CBRspAuthenticate)(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 ///登录请求响应
 typedef int (WINAPI *CBRspUserLogin)(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 ///登出请求响应
@@ -266,6 +268,7 @@ public:
 	CBOnFrontConnected cbOnFrontConnected = 0;		///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	CBOnFrontDisconnected cbOnFrontDisconnected = 0;		///当客户端与交易后台通信连接断开时，该方法被调用。当发生这个情况后，API会自动重新连接，客户端可不做处理。
 	CBOnHeartBeatWarning cbOnHeartBeatWarning = 0;		///心跳超时警告。当长时间未收到报文时，该方法被调用。
+	CBRspAuthenticate cbRspAuthenticate = 0;	///客户端认证响应
 	CBRspUserLogin cbRspUserLogin = 0;	///登录请求响应
 	CBRspUserLogout cbRspUserLogout = 0;	///登出请求响应
 	CBRspUserPasswordUpdate cbRspUserPasswordUpdate = 0;	///用户口令更新请求响应
@@ -384,7 +387,7 @@ public:
 
 #pragma endregion
 
-															///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
+	///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 	virtual void OnFrontConnected();
 
 	///当客户端与交易后台通信连接断开时，该方法被调用。当发生这个情况后，API会自动重新连接，客户端可不做处理。
@@ -392,6 +395,8 @@ public:
 
 	///心跳超时警告。当长时间未收到报文时，该方法被调用。
 	virtual void OnHeartBeatWarning(int nTimeLapse);
+	///客户端认证响应
+	virtual void OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	///登录请求响应
 	virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	///登出请求响应

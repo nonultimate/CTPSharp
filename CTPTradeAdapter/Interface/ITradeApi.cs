@@ -30,6 +30,16 @@ namespace CTPTradeAdapter.Interface
         void Disconnect(DataCallback callback);
 
         /// <summary>
+        /// 客户端认证
+        /// </summary>
+        /// <param name="callback">认证回调</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="productInfo">产品信息</param>
+        /// <param name="authCode">认证代码</param>
+        /// <returns></returns>
+        int Authenticate(DataCallback callback, string investorID, string productInfo, string authCode);
+
+        /// <summary>
         /// 用户登录
         /// </summary>
         /// <param name="callback">登录回调</param>

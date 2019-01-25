@@ -101,6 +101,7 @@ namespace CTPTradeAdapter.Adapter
             _api.OnRspError += OnRspError;
             _api.OnFrontConnect += OnConnected;
             _api.OnDisconnected += OnDisconnected;
+            _api.OnRspAuthenticate += OnRspAuthenticate;
             _api.OnRspUserLogin += OnRspUserLogin;
             _api.OnRspUserLogout += OnRspUserLogout;
             _api.OnRtnOrder += OnRtnOrder;
@@ -180,6 +181,20 @@ namespace CTPTradeAdapter.Adapter
             AddCallback(callback, -2);
             _isConnected = false;
             _api.Disconnect();
+        }
+
+        /// <summary>
+        /// 客户端认证
+        /// </summary>
+        /// <param name="callback">认证回调</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="productInfo">产品信息</param>
+        /// <param name="authCode">认证代码</param>
+        /// <returns></returns>
+        public int Authenticate(DataCallback callback, string investorID, string productInfo, string authCode)
+        {
+            int requestID = AddCallback(callback, -5);
+            return _api.Authenticate(requestID, investorID, productInfo, authCode);
         }
 
         /// <summary>
@@ -733,6 +748,28 @@ namespace CTPTradeAdapter.Adapter
                 IsSuccess = true
             });
             _isConnected = false;
+        }
+
+        /// <summary>
+        /// 客户端认证回调
+        /// </summary>
+        /// <param name="pRspAuthenticate">客户端认证响应</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnRspAuthenticate(ref CThostFtdcRspAuthenticateField pRspAuthenticate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
+        {
+            DataResult result = new DataResult();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = true;
+            }
+            ExecuteCallback(-5, result);
         }
 
         /// <summary>
@@ -1909,8 +1946,8 @@ namespace CTPTradeAdapter.Adapter
                 StartDelivDate = pInstrument.StartDelivDate,
                 EndDelivDate = pInstrument.EndDelivDate,
                 LifePhaseType = ConvertToInstrumentLifePhase(pInstrument.InstLifePhase),
-                LongMarginRatio = (decimal)pInstrument.LongMarginRatio,
-                ShortMarginRatio = (decimal)pInstrument.ShortMarginRatio,
+                LongMarginRatio = Convert.ToDecimal(pInstrument.LongMarginRatio.ToString("0.000000")),
+                ShortMarginRatio = Convert.ToDecimal(pInstrument.ShortMarginRatio.ToString("0.000000")),
             };
 
             return result;
@@ -1972,6 +2009,7 @@ namespace CTPTradeAdapter.Adapter
 
             return result;
         }
+
         #endregion
     }
 }

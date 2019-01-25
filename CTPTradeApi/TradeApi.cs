@@ -36,6 +36,16 @@ namespace CTPTradeApi
         public string InvestorID { get; set; }
 
         /// <summary>
+        /// 产品信息
+        /// </summary>
+        public string ProductInfo { get; set; }
+
+        /// <summary>
+        /// 认证代码
+        /// </summary>
+        public string AuthCode { get; set; }
+
+        /// <summary>
         /// 前置编号
         /// </summary>
         public int FrontID { get; set; }
@@ -91,6 +101,9 @@ namespace CTPTradeApi
         delegate void DelegateDisconnect(IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate int DelegateReqAuthenticate(IntPtr ptr, int requestID, string brokerID, string investorID, string productInfo, string authCode);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqQueryExchange(IntPtr ptr, int requestID, string exchangeID);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -143,6 +156,7 @@ namespace CTPTradeApi
         delegate void DelegateRegOnFrontConnected(IntPtr ptr, FrontConnect fc);
         delegate void DelegateRegOnDisconnected(IntPtr ptr, Disconnected dc);
         delegate void DelegateRegOnHeartBeatWarning(IntPtr ptr, HeartBeatWarning hbw);
+        delegate void DelegateRegRspAuthenticate(IntPtr ptr, RspAuthenticate cb);
         delegate void DelegateRegErrRtnBankToFutureByFuture(IntPtr ptr, ErrRtnBankToFutureByFuture cb);
         delegate void DelegateRegErrRtnFutureToBankByFuture(IntPtr ptr, ErrRtnFutureToBankByFuture cb);
         delegate void DelegateRegErrRtnOrderAction(IntPtr ptr, ErrRtnOrderAction cb);
@@ -222,6 +236,7 @@ namespace CTPTradeApi
         DelegateConnect connect;
         DelegateDisconnect disconnect;
         DelegateGetString getTradingDay;
+        DelegateReqAuthenticate reqAuthenticate;
         DelegateReqUser reqUserLogin;
         DelegateReqAccount reqUserLogout;
         DelegateReqUserUpdate reqUserPasswordUpdate;
@@ -273,6 +288,7 @@ namespace CTPTradeApi
         DelegateRegOnFrontConnected regOnFrontConnected;
         DelegateRegOnDisconnected regOnDisConnected;
         DelegateRegOnHeartBeatWarning regOnHeartBeatWarning;
+        DelegateRegRspAuthenticate regRspAuthenticate;
         DelegateRegErrRtnBankToFutureByFuture regErrRtnBankToFutureByFuture;
         DelegateRegErrRtnFutureToBankByFuture regErrRtnFutureToBankByFuture;
         DelegateRegErrRtnOrderAction regErrRtnOrderAction;
@@ -428,6 +444,7 @@ namespace CTPTradeApi
                 getTradingDay = GetDelegate<DelegateGetString>("GetTradingDay");
                 connect = GetDelegate<DelegateConnect>("Connect");
                 disconnect = GetDelegate<DelegateDisconnect>("DisConnect");
+                reqAuthenticate = GetDelegate<DelegateReqAuthenticate>("ReqAuthenticate");
                 reqUserLogin = GetDelegate<DelegateReqUser>("ReqUserLogin");
                 reqUserLogout = GetDelegate<DelegateReqAccount>("ReqUserLogout");
                 reqUserPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordUpdate");
@@ -475,6 +492,7 @@ namespace CTPTradeApi
                 regOnFrontConnected = GetDelegate<DelegateRegOnFrontConnected>("RegOnFrontConnected");
                 regOnDisConnected = GetDelegate<DelegateRegOnDisconnected>("RegOnFrontDisconnected");
                 regOnHeartBeatWarning = GetDelegate<DelegateRegOnHeartBeatWarning>("RegOnHeartBeatWarning");
+                regRspAuthenticate = GetDelegate<DelegateRegRspAuthenticate>("RegRspAuthenticate");
                 regErrRtnBankToFutureByFuture = GetDelegate<DelegateRegErrRtnBankToFutureByFuture>("RegErrRtnBankToFutureByFuture");
                 regErrRtnFutureToBankByFuture = GetDelegate<DelegateRegErrRtnFutureToBankByFuture>("RegErrRtnFutureToBankByFuture");
                 regErrRtnOrderAction = GetDelegate<DelegateRegErrRtnOrderAction>("RegErrRtnOrderAction");
@@ -618,6 +636,22 @@ namespace CTPTradeApi
         }
 
         /// <summary>
+        /// 客户端认证
+        /// </summary>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="productInfo">产品信息</param>
+        /// <param name="authCode">认证代码</param>
+        /// <returns></returns>
+        public int Authenticate(int requestID, string investorID, string productInfo, string authCode)
+        {
+            this.InvestorID = investorID;
+            this.ProductInfo = productInfo;
+            this.AuthCode = authCode;
+            return reqAuthenticate(_handle, requestID, this.BrokerID, investorID, productInfo, authCode);
+        }
+
+        /// <summary>
         /// 登入请求
         /// </summary>
         /// <param name="requestID">请求编号</param>
@@ -628,7 +662,7 @@ namespace CTPTradeApi
         {
             this.InvestorID = investorID;
             this._password = password;
-            return reqUserLogin(_handle, requestID, this.BrokerID, this.InvestorID, this._password);
+            return reqUserLogin(_handle, requestID, this.BrokerID, investorID, password);
         }
 
         /// <summary>
@@ -1392,6 +1426,31 @@ namespace CTPTradeApi
         {
             add { heartBeatWarning += value; regOnHeartBeatWarning(_spi, heartBeatWarning); }
             remove { heartBeatWarning -= value; regOnHeartBeatWarning(_spi, heartBeatWarning); }
+        }
+
+        #endregion
+
+        #region 客户端认证
+
+        RspAuthenticate rspAuthenticate;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pRspAuthenticate">客户端认证响应</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        public delegate void RspAuthenticate(ref CThostFtdcRspAuthenticateField pRspAuthenticate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 客户端认证回报
+        /// </summary>
+        public event RspAuthenticate OnRspAuthenticate
+        {
+            add { rspAuthenticate += value; regRspAuthenticate(_spi, rspAuthenticate); }
+            remove { rspAuthenticate -= value; regRspAuthenticate(_spi, rspAuthenticate); }
         }
 
         #endregion

@@ -16,6 +16,7 @@ extern CThostFtdcTraderApi* pUserApi;
 extern CBOnFrontConnected cbOnFrontConnected;		///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 extern CBOnFrontDisconnected cbOnFrontDisconnected;		///当客户端与交易后台通信连接断开时，该方法被调用。当发生这个情况后，API会自动重新连接，客户端可不做处理。
 extern CBOnHeartBeatWarning cbOnHeartBeatWarning;		///心跳超时警告。当长时间未收到报文时，该方法被调用。
+extern CBRspAuthenticate cbRspAuthenticate;		///客户端认证响应
 extern CBRspUserLogin cbRspUserLogin;	///登录请求响应
 extern CBRspUserLogout cbRspUserLogout;	///登出请求响应
 extern CBRspUserPasswordUpdate cbRspUserPasswordUpdate;	///用户口令更新请求响应
@@ -152,6 +153,22 @@ void CTraderSpi::OnFrontDisconnected(int nReason) { if (cbOnFrontDisconnected !=
 
 ///心跳超时警告。当长时间未收到报文时，该方法被调用。  @param nTimeLapse 距离上次接收报文的时间
 void CTraderSpi::OnHeartBeatWarning(int nTimeLapse) { if (cbOnHeartBeatWarning != NULL) cbOnHeartBeatWarning(nTimeLapse); }
+
+///客户端认证响应
+void CTraderSpi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (cbRspAuthenticate != NULL)
+	{
+		if (pRspAuthenticateField == NULL)
+		{
+			CThostFtdcRspAuthenticateField req;
+			memset(&req, 0, sizeof(req));
+			cbRspAuthenticate(&req, repareInfo(pRspInfo), nRequestID, bIsLast);
+		}
+		else
+			cbRspAuthenticate(pRspAuthenticateField, repareInfo(pRspInfo), nRequestID, bIsLast);
+	}
+}
 
 ///登录请求响应
 void CTraderSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
