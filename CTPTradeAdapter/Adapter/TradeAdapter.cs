@@ -66,6 +66,19 @@ namespace CTPTradeAdapter.Adapter
 
         #endregion
 
+        #region 属性
+
+        /// <summary>
+        /// 网卡信息
+        /// </summary>
+        public string MacAddress
+        {
+            get { return _api.MacAddress; }
+            set { _api.MacAddress = value; }
+        }
+
+        #endregion
+
         #region 构造方法
 
         /// <summary>

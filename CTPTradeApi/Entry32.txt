@@ -6,7 +6,7 @@ File Type: DLL
   Section contains the following exports for TradeApi.dll
 
     00000000 characteristics
-    5C490BF4 time date stamp Thu Jan 24 08:51:00 2019
+    5C4FC5DC time date stamp Tue Jan 29 11:17:48 2019
         0.00 version
            1 ordinal base
          156 number of functions
@@ -165,11 +165,11 @@ File Type: DLL
         149   94 00006F20 ?ReqRemoveParkedOrderAction@@YAHPAVCThostFtdcTraderApi@@HQAD11@Z = ?ReqRemoveParkedOrderAction@@YAHPAVCThostFtdcTraderApi@@HQAD11@Z (int __cdecl ReqRemoveParkedOrderAction(class CThostFtdcTraderApi *,int,char * const,char * const,char * const))
         150   95 00007000 ?ReqSettlementInfoConfirm@@YAHPAVCThostFtdcTraderApi@@HQAD1@Z = ?ReqSettlementInfoConfirm@@YAHPAVCThostFtdcTraderApi@@HQAD1@Z (int __cdecl ReqSettlementInfoConfirm(class CThostFtdcTraderApi *,int,char * const,char * const))
         151   96 000070D0 ?ReqTradingAccountPasswordUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z = ?ReqTradingAccountPasswordUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z (int __cdecl ReqTradingAccountPasswordUpdate(class CThostFtdcTraderApi *,int,char * const,char * const,char * const,char * const))
-        152   97 000071C0 ?ReqUserLogin@@YAHPAVCThostFtdcTraderApi@@HQAD11@Z = ?ReqUserLogin@@YAHPAVCThostFtdcTraderApi@@HQAD11@Z (int __cdecl ReqUserLogin(class CThostFtdcTraderApi *,int,char * const,char * const,char * const))
-        153   98 000072D0 ?ReqUserLogout@@YAHPAVCThostFtdcTraderApi@@HQAD1@Z = ?ReqUserLogout@@YAHPAVCThostFtdcTraderApi@@HQAD1@Z (int __cdecl ReqUserLogout(class CThostFtdcTraderApi *,int,char * const,char * const))
-        154   99 000073A0 ?ReqUserPasswordSafeUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z = ?ReqUserPasswordSafeUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z (int __cdecl ReqUserPasswordSafeUpdate(class CThostFtdcTraderApi *,int,char * const,char * const,char * const,char * const))
-        155   9A 00007490 ?ReqUserPasswordUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z = ?ReqUserPasswordUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z (int __cdecl ReqUserPasswordUpdate(class CThostFtdcTraderApi *,int,char * const,char * const,char * const,char * const))
-        156   9B 00007580 ?ReqUserSafeLogin@@YAHPAVCThostFtdcTraderApi@@HQAD11@Z = ?ReqUserSafeLogin@@YAHPAVCThostFtdcTraderApi@@HQAD11@Z (int __cdecl ReqUserSafeLogin(class CThostFtdcTraderApi *,int,char * const,char * const,char * const))
+        152   97 000071C0 ?ReqUserLogin@@YAHPAVCThostFtdcTraderApi@@HQAD1111@Z = ?ReqUserLogin@@YAHPAVCThostFtdcTraderApi@@HQAD1111@Z (int __cdecl ReqUserLogin(class CThostFtdcTraderApi *,int,char * const,char * const,char * const,char * const,char * const))
+        153   98 000072E0 ?ReqUserLogout@@YAHPAVCThostFtdcTraderApi@@HQAD1@Z = ?ReqUserLogout@@YAHPAVCThostFtdcTraderApi@@HQAD1@Z (int __cdecl ReqUserLogout(class CThostFtdcTraderApi *,int,char * const,char * const))
+        154   99 000073B0 ?ReqUserPasswordSafeUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z = ?ReqUserPasswordSafeUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z (int __cdecl ReqUserPasswordSafeUpdate(class CThostFtdcTraderApi *,int,char * const,char * const,char * const,char * const))
+        155   9A 000074A0 ?ReqUserPasswordUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z = ?ReqUserPasswordUpdate@@YAHPAVCThostFtdcTraderApi@@HQAD111@Z (int __cdecl ReqUserPasswordUpdate(class CThostFtdcTraderApi *,int,char * const,char * const,char * const,char * const))
+        156   9B 00007590 ?ReqUserSafeLogin@@YAHPAVCThostFtdcTraderApi@@HQAD1111@Z = ?ReqUserSafeLogin@@YAHPAVCThostFtdcTraderApi@@HQAD1111@Z (int __cdecl ReqUserSafeLogin(class CThostFtdcTraderApi *,int,char * const,char * const,char * const,char * const,char * const))
 
   Summary
 

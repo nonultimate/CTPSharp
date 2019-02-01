@@ -46,6 +46,11 @@ namespace CTPTradeApi
         public string AuthCode { get; set; }
 
         /// <summary>
+        /// 网卡信息
+        /// </summary>
+        public string MacAddress { get; set; }
+
+        /// <summary>
         /// 前置编号
         /// </summary>
         public int FrontID { get; set; }
@@ -101,7 +106,8 @@ namespace CTPTradeApi
         delegate void DelegateDisconnect(IntPtr ptr);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqAuthenticate(IntPtr ptr, int requestID, string brokerID, string investorID, string productInfo, string authCode);
+        delegate int DelegateReqAuthenticate(IntPtr ptr, int requestID, string brokerID, string investorID,
+            string productInfo, string authCode);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqQueryExchange(IntPtr ptr, int requestID, string exchangeID);
@@ -110,11 +116,15 @@ namespace CTPTradeApi
         delegate int DelegateReqAccount(IntPtr ptr, int requestID, string brokerID, string investorID);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqUser(IntPtr ptr, int requestID, string brokerID, string investorID, string password);
+        delegate int DelegateReqUser(IntPtr ptr, int requestID, string brokerID, string investorID, string instrumentID);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqUserUpdate(IntPtr ptr, int requestID, string brokerID, string userID, string oldPassword,
-            string newPassword);
+        delegate int DelegateReqUserLogin(IntPtr ptr, int requestID, string brokerID, string investorID,
+            string password, string macAddress, string productInfo);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate int DelegateReqUserUpdate(IntPtr ptr, int requestID, string brokerID, string userID,
+            string oldPassword, string newPassword);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqOrderInsert(IntPtr ptr, int requestID, ref CThostFtdcInputOrderField req);
@@ -237,11 +247,11 @@ namespace CTPTradeApi
         DelegateDisconnect disconnect;
         DelegateGetString getTradingDay;
         DelegateReqAuthenticate reqAuthenticate;
-        DelegateReqUser reqUserLogin;
+        DelegateReqUserLogin reqUserLogin;
         DelegateReqAccount reqUserLogout;
         DelegateReqUserUpdate reqUserPasswordUpdate;
         DelegateReqUserUpdate reqTradingAccountPasswordUpdate;
-        DelegateReqUser reqUserSafeLogin;
+        DelegateReqUserLogin reqUserSafeLogin;
         DelegateReqUserUpdate reqUserPasswordSafeUpdate;
         DelegateReqOrderInsert reqOrderInsert;
         DelegateReqOrderAction reqOrderAction;
@@ -445,11 +455,11 @@ namespace CTPTradeApi
                 connect = GetDelegate<DelegateConnect>("Connect");
                 disconnect = GetDelegate<DelegateDisconnect>("DisConnect");
                 reqAuthenticate = GetDelegate<DelegateReqAuthenticate>("ReqAuthenticate");
-                reqUserLogin = GetDelegate<DelegateReqUser>("ReqUserLogin");
+                reqUserLogin = GetDelegate<DelegateReqUserLogin>("ReqUserLogin");
                 reqUserLogout = GetDelegate<DelegateReqAccount>("ReqUserLogout");
                 reqUserPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordUpdate");
                 reqTradingAccountPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqTradingAccountPasswordUpdate");
-                reqUserSafeLogin = GetDelegate<DelegateReqUser>("ReqUserSafeLogin");
+                reqUserSafeLogin = GetDelegate<DelegateReqUserLogin>("ReqUserSafeLogin");
                 reqUserPasswordSafeUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordSafeUpdate");
                 reqOrderInsert = GetDelegate<DelegateReqOrderInsert>("ReqOrderInsert");
                 reqOrderAction = GetDelegate<DelegateReqOrderAction>("ReqOrderAction");
@@ -662,7 +672,8 @@ namespace CTPTradeApi
         {
             this.InvestorID = investorID;
             this._password = password;
-            return reqUserLogin(_handle, requestID, this.BrokerID, investorID, password);
+            return reqUserLogin(_handle, requestID, this.BrokerID, investorID, password, this.MacAddress,
+                this.ProductInfo);
         }
 
         /// <summary>
@@ -693,9 +704,11 @@ namespace CTPTradeApi
         /// <param name="accountID">资金账号</param>
         /// <param name="oldPassword">原密码</param>
         /// <param name="newPassword">新密码</param>
-        public int TradingAccountPasswordUpdate(int requestID, string accountID, string oldPassword, string newPassword)
+        public int TradingAccountPasswordUpdate(int requestID, string accountID, string oldPassword,
+            string newPassword)
         {
-            return reqTradingAccountPasswordUpdate(_handle, requestID, this.BrokerID, accountID, oldPassword, newPassword);
+            return reqTradingAccountPasswordUpdate(_handle, requestID, this.BrokerID, accountID, oldPassword,
+                newPassword);
         }
 
         /// <summary>
@@ -709,7 +722,8 @@ namespace CTPTradeApi
         {
             this.InvestorID = investorID;
             this._password = password;
-            return reqUserSafeLogin(_handle, requestID, this.BrokerID, this.InvestorID, this._password);
+            return reqUserSafeLogin(_handle, requestID, this.BrokerID, this.InvestorID, this._password,
+                this.MacAddress, this.ProductInfo);
         }
 
         /// <summary>

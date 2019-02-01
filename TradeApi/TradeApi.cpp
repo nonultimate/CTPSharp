@@ -9,9 +9,6 @@ using namespace std;
 
 #pragma warning(disable : 4996)
 
-// USER_API参数
-extern CThostFtdcTraderApi* pUserApi;
-
 //回调函数
 extern CBOnFrontConnected cbOnFrontConnected;		///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 extern CBOnFrontDisconnected cbOnFrontDisconnected;		///当客户端与交易后台通信连接断开时，该方法被调用。当发生这个情况后，API会自动重新连接，客户端可不做处理。

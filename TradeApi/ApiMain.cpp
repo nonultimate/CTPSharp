@@ -67,7 +67,7 @@ TRADEAPI_API int ReqAuthenticate(CThostFtdcTraderApi* pUserApi, int requestID, T
 }
 
 //发送用户登录请求
-TRADEAPI_API int ReqUserLogin(CThostFtdcTraderApi* pUserApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID, TThostFtdcPasswordType password)
+TRADEAPI_API int ReqUserLogin(CThostFtdcTraderApi* pUserApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID, TThostFtdcPasswordType password, TThostFtdcMacAddressType macAddress, TThostFtdcProductInfoType productInfo)
 {
 	if (pUserApi == NULL) return -1;
 
@@ -76,7 +76,8 @@ TRADEAPI_API int ReqUserLogin(CThostFtdcTraderApi* pUserApi, int requestID, TTho
 	strcpy_s(req.BrokerID, brokerID);
 	strcpy_s(req.UserID, userID);
 	strcpy_s(req.Password, password);
-	strcpy_s(req.UserProductInfo, "HF");
+	if (macAddress != NULL) strcpy_s(req.MacAddress, macAddress);
+	if (productInfo != NULL) strcpy_s(req.UserProductInfo, productInfo);
 	return pUserApi->ReqUserLogin(&req, requestID);
 }
 //发送登出请求
@@ -117,7 +118,7 @@ TRADEAPI_API int ReqTradingAccountPasswordUpdate(CThostFtdcTraderApi* pUserApi, 
 	return pUserApi->ReqTradingAccountPasswordUpdate(&req, requestID);
 }
 //安全登录请求
-TRADEAPI_API int ReqUserSafeLogin(CThostFtdcTraderApi* pUserApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID, TThostFtdcPasswordType password)
+TRADEAPI_API int ReqUserSafeLogin(CThostFtdcTraderApi* pUserApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID, TThostFtdcPasswordType password, TThostFtdcMacAddressType macAddress, TThostFtdcProductInfoType productInfo)
 {
 	if (pUserApi == NULL) return -1;
 
@@ -126,7 +127,8 @@ TRADEAPI_API int ReqUserSafeLogin(CThostFtdcTraderApi* pUserApi, int requestID, 
 	strcpy_s(req.BrokerID, brokerID);
 	strcpy_s(req.UserID, userID);
 	strcpy_s(req.Password, password);
-	strcpy_s(req.UserProductInfo, "HF");
+	if (macAddress != NULL) strcpy_s(req.MacAddress, macAddress);
+	if (productInfo != NULL) strcpy_s(req.UserProductInfo, productInfo);
 	return pUserApi->ReqUserLogin2(&req, requestID);
 }
 //安全更新用户口令

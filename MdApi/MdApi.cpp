@@ -12,8 +12,6 @@ using namespace std;
 // 这是导出变量的一个示例
 //MDAPI_API int nMdApi=0;
 
-// USER_API参数
-extern CThostFtdcMdApi* pUserApi;
 extern CBOnRspError cbOnRspError;
 extern CBOnHeartBeatWarning cbOnHeartBeatWarning;
 
