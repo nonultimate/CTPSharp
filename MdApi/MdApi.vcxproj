@@ -83,7 +83,7 @@
       <Profile>true</Profile>
     </Link>
     <PostBuildEvent>
-      <Command>dumpbin /exports $(TargetPath)  /out:$(TargetDir)\trdump.txt</Command>
+      <Command>dumpbin /exports $(TargetPath)  /out:$(TargetDir)\mddump.txt</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

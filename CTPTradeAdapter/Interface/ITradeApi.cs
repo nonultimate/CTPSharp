@@ -36,8 +36,9 @@ namespace CTPTradeAdapter.Interface
         /// <param name="investorID">投资者账号</param>
         /// <param name="productInfo">产品信息</param>
         /// <param name="authCode">认证代码</param>
+        /// <param name="appID">应用代码</param>
         /// <returns></returns>
-        int Authenticate(DataCallback callback, string investorID, string productInfo, string authCode);
+        int Authenticate(DataCallback callback, string investorID, string productInfo, string authCode, string appID);
 
         /// <summary>
         /// 用户登录
@@ -45,8 +46,9 @@ namespace CTPTradeAdapter.Interface
         /// <param name="callback">登录回调</param>
         /// <param name="investorID">投资者账号</param>
         /// <param name="password">密码</param>
+        /// <param name="oneTimePassword">动态密码</param>
         /// <param name="isSafe">是否使用安全接口</param>
-        int UserLogin(DataCallback callback, string investorID, string password, bool isSafe = false);
+        int UserLogin(DataCallback callback, string investorID, string password, string oneTimePassword, bool isSafe = false);
 
         /// <summary>
         /// 用户登出
@@ -68,6 +70,50 @@ namespace CTPTradeAdapter.Interface
         /// <param name="newPassword">新密码</param>
         /// <param name="isSafe">是否使用安全接口</param>
         int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword, bool isSafe = false);
+
+        /// <summary>
+        /// 更新资金账号口令
+        /// </summary>
+        /// <param name="callback">更新回调</param>
+        /// <param name="oldPassword">原密码</param>
+        /// <param name="newPassword">新密码</param>
+        /// <returns></returns>
+        int UpdateTradingAccountPassword(DataCallback callback, string oldPassword, string newPassword);
+
+        /// <summary>
+        /// 查询用户当前支持的认证模式
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="tradingDay">交易日</param>
+        /// <returns></returns>
+        int UserAuthMethod(DataCallback callback, string investorID, string tradingDay);
+
+        /// <summary>
+        /// 用户发出获取图形验证码请求
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="tradingDay">交易日</param>
+        /// <returns></returns>
+        int GenUserCaptcha(DataCallback callback, string investorID, string tradingDay);
+
+        /// <summary>
+        /// 用户发出获取短信验证码请求
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="tradingDay">交易日</param>
+        /// <returns></returns>
+        int GenUserText(DataCallback callback, string investorID, string tradingDay);
+
+        /// <summary>
+        /// 用户发出带有验证码的登录请求
+        /// </summary>
+        /// <param name="callback">登录回调</param>
+        /// <param name="request">登录请求</param>
+        /// <returns></returns>
+        int UserLoginWithCaptcha(DataCallback callback, LoginRequest request);
 
         /// <summary>
         /// 报单

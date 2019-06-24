@@ -16,7 +16,6 @@
 
 #pragma region 回调委托申明
 
-
 ///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 typedef int (WINAPI *CBOnFrontConnected)();
 
@@ -35,6 +34,12 @@ typedef int (WINAPI *CBRspUserLogout)(CThostFtdcUserLogoutField *pUserLogout, CT
 typedef int (WINAPI *CBRspUserPasswordUpdate)(CThostFtdcUserPasswordUpdateField *pUserPasswordUpdate, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 ///资金账户口令更新请求响应
 typedef int (WINAPI *CBRspTradingAccountPasswordUpdate)(CThostFtdcTradingAccountPasswordUpdateField *pTradingAccountPasswordUpdate, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+///查询用户当前支持的认证模式的回复
+typedef int (WINAPI *CBRspUserAuthMethod)(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+///获取图形验证码请求的回复
+typedef int (WINAPI *CBRspGenUserCaptcha)(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+///获取短信验证码请求的回复
+typedef int (WINAPI *CBRspGenUserText)(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 ///报单录入请求响应
 typedef int (WINAPI *CBRspOrderInsert)(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 ///预埋单录入请求响应
@@ -131,6 +136,8 @@ typedef int (WINAPI *CBRspQryInstrumentOrderCommRate)(CThostFtdcInstrumentOrderC
 typedef int (WINAPI *CBRspQrySecAgentTradingAccount)(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 ///请求查询二级代理商资金校验模式响应
 typedef int (WINAPI *CBRspQrySecAgentCheckMode)(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+///请求查询二级代理商信息响应
+typedef int (WINAPI *CBRspQrySecAgentTradeInfo)(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 ///请求查询期权交易成本响应
 typedef int (WINAPI *CBRspQryOptionInstrTradeCost)(CThostFtdcOptionInstrTradeCostField *pOptionInstrTradeCost, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 ///请求查询期权合约手续费响应
@@ -275,6 +282,9 @@ public:
 	CBRspUserLogout cbRspUserLogout = 0;	///登出请求响应
 	CBRspUserPasswordUpdate cbRspUserPasswordUpdate = 0;	///用户口令更新请求响应
 	CBRspTradingAccountPasswordUpdate cbRspTradingAccountPasswordUpdate = 0;	///资金账户口令更新请求响应
+	CBRspUserAuthMethod cbRspUserAuthMethod = 0; ///查询用户当前支持的认证模式的回复
+	CBRspGenUserCaptcha cbRspGenUserCaptcha = 0; ///获取图形验证码请求的回复
+	CBRspGenUserText cbRspGenUserText = 0; ///获取短信验证码请求的回复
 	CBRspOrderInsert cbRspOrderInsert = 0;	///报单录入请求响应
 	CBRspParkedOrderInsert cbRspParkedOrderInsert = 0;	///预埋单录入请求响应
 	CBRspParkedOrderAction cbRspParkedOrderAction = 0;	///预埋撤单录入请求响应
@@ -323,6 +333,7 @@ public:
 	CBRspQryInstrumentOrderCommRate cbRspQryInstrumentOrderCommRate = 0;	///请求查询报单手续费响应
 	CBRspQrySecAgentTradingAccount cbRspQrySecAgentTradingAccount = 0;	///请求查询资金账户响应
 	CBRspQrySecAgentCheckMode cbRspQrySecAgentCheckMode = 0;	///请求查询二级代理商资金校验模式响应
+	CBRspQrySecAgentTradeInfo cbRspQrySecAgentTradeInfo = 0;	///请求查询二级代理商信息响应
 	CBRspQryOptionInstrTradeCost cbRspQryOptionInstrTradeCost = 0;	///请求查询期权交易成本响应
 	CBRspQryOptionInstrCommRate cbRspQryOptionInstrCommRate = 0;	///请求查询期权合约手续费响应
 	CBRspQryExecOrder cbRspQryExecOrder = 0;	///请求查询执行宣告响应
@@ -407,6 +418,12 @@ public:
 	virtual void OnRspUserPasswordUpdate(CThostFtdcUserPasswordUpdateField *pUserPasswordUpdate, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	///资金账户口令更新请求响应
 	virtual void OnRspTradingAccountPasswordUpdate(CThostFtdcTradingAccountPasswordUpdateField *pTradingAccountPasswordUpdate, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	///查询用户当前支持的认证模式的回复
+	virtual void OnRspUserAuthMethod(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	///获取图形验证码请求的回复
+	virtual void OnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	///获取短信验证码请求的回复
+	virtual void OnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	///报单录入请求响应
 	virtual void OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	///预埋单录入请求响应
@@ -505,6 +522,8 @@ public:
 	virtual void OnRspQrySecAgentTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	///请求查询二级代理商资金校验模式响应
 	virtual void OnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+	///请求查询二级代理商信息响应
+	virtual void OnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	///请求查询期权交易成本响应
 	virtual void OnRspQryOptionInstrTradeCost(CThostFtdcOptionInstrTradeCostField *pOptionInstrTradeCost, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 	///请求查询期权合约手续费响应

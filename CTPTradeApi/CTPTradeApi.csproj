@@ -80,7 +80,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enum.cs" />
-    <Compile Include="ByteSwapHelp.cs" />
     <Compile Include="Struct.cs">
       <SubType>Code</SubType>
     </Compile>

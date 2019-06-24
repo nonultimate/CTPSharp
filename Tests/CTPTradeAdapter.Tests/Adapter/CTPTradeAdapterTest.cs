@@ -136,6 +136,7 @@ namespace CTPTradeAdapter.Adapter.Tests
         public void TestGetTradingDay()
         {
             string result = _adapter.GetTradingDay();
+            Console.WriteLine("交易日：" +result);
             Assert.AreEqual(8, result.Length);
             Thread.Sleep(100);
         }

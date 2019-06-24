@@ -75,6 +75,7 @@
     <Compile Include="Delegates.cs" />
     <Compile Include="Interface\ITradeApi.cs" />
     <Compile Include="Model\AccountInfo.cs" />
+    <Compile Include="Model\Enum\CaptchaType.cs" />
     <Compile Include="Model\Enum\ContingentConditionType.cs" />
     <Compile Include="Model\Enum\ActionFlag.cs" />
     <Compile Include="Model\Enum\DirectionType.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="Model\Enum\OpenCloseFlag.cs" />
     <Compile Include="Model\InstrumentInfo.cs" />
     <Compile Include="Model\InvestorInfo.cs" />
+    <Compile Include="Model\LoginRequest.cs" />
     <Compile Include="Model\NoticeInfo.cs" />
     <Compile Include="Model\OrderInfo.cs" />
     <Compile Include="Model\Input\OrderParameter.cs" />

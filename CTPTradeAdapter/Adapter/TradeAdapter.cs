@@ -77,6 +77,33 @@ namespace CTPTradeAdapter.Adapter
             set { _api.MacAddress = value; }
         }
 
+        /// <summary>
+        /// 产品信息
+        /// </summary>
+        public string ProductInfo
+        {
+            get { return _api.ProductInfo; }
+            set { _api.ProductInfo = value; }
+        }
+
+        /// <summary>
+        /// 接口信息
+        /// </summary>
+        public string InterfaceInfo
+        {
+            get { return _api.InterfaceInfo; }
+            set { _api.InterfaceInfo = value; }
+        }
+
+        /// <summary>
+        /// 协议信息
+        /// </summary>
+        public string ProtocolInfo
+        {
+            get { return _api.ProtocolInfo; }
+            set { _api.ProtocolInfo = value; }
+        }
+
         #endregion
 
         #region 构造方法
@@ -117,6 +144,11 @@ namespace CTPTradeAdapter.Adapter
             _api.OnRspAuthenticate += OnRspAuthenticate;
             _api.OnRspUserLogin += OnRspUserLogin;
             _api.OnRspUserLogout += OnRspUserLogout;
+            _api.OnRspUserPasswordUpdate += OnRspUserPasswordUpdate;
+            _api.OnRspTradingAccountPasswordUpdate += OnTradingPasswordUpdate;
+            _api.OnRspUserAuthMethod += OnUserAuthMethod;
+            _api.OnRspGenUserCaptcha += OnGenUserCaptcha;
+            _api.OnRspGenUserText += OnGenUserText;
             _api.OnRtnOrder += OnRtnOrder;
             _api.OnRtnTrade += OnRtnTrade;
             _api.OnRspOrderInsert += OnRspOrderInsert;
@@ -129,7 +161,6 @@ namespace CTPTradeAdapter.Adapter
             _api.OnRspParkedOrderAction += OnRspParkedOrderAction;
             _api.OnRspQryParkedOrder += OnRspQueryParkedOrder;
             _api.OnRspQryParkedOrderAction += OnRspQueryParkedOrderAction;
-            _api.OnRspUserPasswordUpdate += OnRspUserPasswordUpdate;
             _api.OnRspQryInstrument += OnRspQueryInstrument;
             _api.OnRspQryInvestor += OnRspQueryInvestor;
             _api.OnRspQryInvestorPositionDetail += OnRspQueryInvestorPositionDetail;
@@ -203,11 +234,12 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="investorID">投资者账号</param>
         /// <param name="productInfo">产品信息</param>
         /// <param name="authCode">认证代码</param>
+        /// <param name="appID">应用代码</param>
         /// <returns></returns>
-        public int Authenticate(DataCallback callback, string investorID, string productInfo, string authCode)
+        public int Authenticate(DataCallback callback, string investorID, string productInfo, string authCode, string appID)
         {
             int requestID = AddCallback(callback, -5);
-            return _api.Authenticate(requestID, investorID, productInfo, authCode);
+            return _api.Authenticate(requestID, investorID, productInfo, authCode, appID);
         }
 
         /// <summary>
@@ -216,8 +248,10 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="callback">登录回调</param>
         /// <param name="investorID">投资者账号</param>
         /// <param name="password">密码</param>
+        /// <param name="oneTimePassword">动态密码</param>
         /// <param name="isSafe">是否使用安全接口</param>
-        public int UserLogin(DataCallback callback, string investorID, string password, bool isSafe = false)
+        public int UserLogin(DataCallback callback, string investorID, string password,
+            string oneTimePassword = null, bool isSafe = false)
         {
             int requestID = AddCallback(callback, -3);
             if (isSafe)
@@ -256,6 +290,7 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="oldPassword">原密码</param>
         /// <param name="newPassword">新密码</param>
         /// <param name="isSafe">是否使用安全接口</param>
+        /// <returns></returns>
         public int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword, bool isSafe = false)
         {
             int requestID = AddCallback(callback);
@@ -266,6 +301,87 @@ namespace CTPTradeAdapter.Adapter
             else
             {
                 return _api.UserPasswordupdate(requestID, _api.InvestorID, oldPassword, newPassword);
+            }
+        }
+
+        /// <summary>
+        /// 更新资金账号口令
+        /// </summary>
+        /// <param name="callback">更新回调</param>
+        /// <param name="oldPassword">原密码</param>
+        /// <param name="newPassword">新密码</param>
+        /// <returns></returns>
+        public int UpdateTradingAccountPassword(DataCallback callback, string oldPassword, string newPassword)
+        {
+            int requestID = AddCallback(callback);
+            return _api.TradingAccountPasswordUpdate(requestID, _api.InvestorID, oldPassword, newPassword);
+        }
+
+        /// <summary>
+        /// 查询用户当前支持的认证模式
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="tradingDay">交易日</param>
+        /// <returns></returns>
+        public int UserAuthMethod(DataCallback callback, string investorID, string tradingDay)
+        {
+            int requestID = AddCallback(callback);
+            return _api.UserAuthMethod(requestID, _api.BrokerID, investorID, tradingDay);
+        }
+
+        /// <summary>
+        /// 用户发出获取图形验证码请求
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="tradingDay">交易日</param>
+        /// <returns>当前可以用的认证模式
+        /// 0代表无需认证模式
+        /// A从低位开始最后一位代表图片验证码
+        /// 倒数第二位代表动态口令
+        /// 倒数第三位代表短信验证码类型</returns>
+        public int GenUserCaptcha(DataCallback callback, string investorID, string tradingDay)
+        {
+            int requestID = AddCallback(callback);
+            return _api.GenUserCaptcha(requestID, _api.BrokerID, investorID, tradingDay);
+        }
+
+        /// <summary>
+        /// 用户发出获取短信验证码请求
+        /// </summary>
+        /// <param name="callback">查询回调</param>
+        /// <param name="investorID">投资者账号</param>
+        /// <param name="tradingDay">交易日</param>
+        /// <returns></returns>
+        public int GenUserText(DataCallback callback, string investorID, string tradingDay)
+        {
+            int requestID = AddCallback(callback);
+            return _api.GenUserText(requestID, _api.BrokerID, investorID, tradingDay);
+        }
+
+        /// <summary>
+        /// 用户发出带有验证码的登录请求
+        /// </summary>
+        /// <param name="callback">登录回调</param>
+        /// <param name="request">登录请求</param>
+        /// <returns></returns>
+        public int UserLoginWithCaptcha(DataCallback callback, LoginRequest request)
+        {
+            int requestID = AddCallback(callback);
+            CThostFtdcReqUserLoginWithCaptchaField req = ConvertToLoginField(request);
+
+            if (request.LoginType == CaptchaType.Captcha)
+            {
+                return _api.UserLoginWithCaptcha(requestID, req);
+            }
+            else if (request.LoginType == CaptchaType.Text)
+            {
+                return _api.UserLoginWithText(requestID, req);
+            }
+            else
+            {
+                return _api.UserLoginWithOTP(requestID, req);
             }
         }
 
@@ -842,6 +958,10 @@ namespace CTPTradeAdapter.Adapter
         /// <summary>
         /// 更新用户口令
         /// </summary>
+        /// <param name="pUserPasswordUpdate">用户口令变更</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
         private void OnRspUserPasswordUpdate(ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
         {
@@ -853,6 +973,100 @@ namespace CTPTradeAdapter.Adapter
             else
             {
                 result.IsSuccess = true;
+            }
+            ExecuteCallback(nRequestID, result);
+        }
+
+        /// <summary>
+        /// 更新资金账户口令
+        /// </summary>
+        /// <param name="pTradingAccountPasswordUpdate">资金账户口令变更</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnTradingPasswordUpdate(ref CThostFtdcTradingAccountPasswordUpdateField pTradingAccountPasswordUpdate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast)
+        {
+            DataResult result = new DataResult();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = true;
+            }
+            ExecuteCallback(nRequestID, result);
+        }
+
+        /// <summary>
+        /// 查询认证方式
+        /// </summary>
+        /// <param name="pRspUserAuthMethod"></param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnUserAuthMethod(ref CThostFtdcRspUserAuthMethodField pRspUserAuthMethod,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast)
+        {
+            DataResult result = new DataResult();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = true;
+                result.Result = pRspUserAuthMethod.UsableAuthMethod;
+            }
+            ExecuteCallback(nRequestID, result);
+        }
+
+        /// <summary>
+        /// 生成图片验证码
+        /// </summary>
+        /// <param name="pRspGenUserCaptcha">图片验证码信息</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnGenUserCaptcha(ref CThostFtdcRspGenUserCaptchaField pRspGenUserCaptcha,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast)
+        {
+            DataResult result = new DataResult();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = true;
+                if (pRspGenUserCaptcha.CaptchaInfoLen > 0)
+                {
+                    result.Result = pRspGenUserCaptcha.CaptchaInfo.Take(pRspGenUserCaptcha.CaptchaInfoLen).ToArray();
+                }
+            }
+            ExecuteCallback(nRequestID, result);
+        }
+
+        /// <summary>
+        /// 生成短信验证码
+        /// </summary>
+        /// <param name="pRspGenUserText">短信验证码</param>
+        /// <param name="pRspInfo">错误信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        private void OnGenUserText(ref CThostFtdcRspGenUserTextField pRspGenUserText,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast)
+        {
+            DataResult result = new DataResult();
+            if (pRspInfo.ErrorID > 0)
+            {
+                SetError(result, pRspInfo);
+            }
+            else
+            {
+                result.IsSuccess = true;
+                result.Result = pRspGenUserText.UserTextSeq;
             }
             ExecuteCallback(nRequestID, result);
         }
@@ -1488,34 +1702,62 @@ namespace CTPTradeAdapter.Adapter
         }
 
         /// <summary>
+        /// 将登录类型转换为结构体
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private CThostFtdcReqUserLoginWithCaptchaField ConvertToLoginField(LoginRequest request)
+        {
+            CThostFtdcReqUserLoginWithCaptchaField result = new CThostFtdcReqUserLoginWithCaptchaField()
+            {
+                TradingDay = request.TradingDay,
+                BrokerID = request.BrokerID,
+                UserID = request.UserID,
+                Password = request.Password,
+                UserProductInfo = request.UserProductInfo,
+                InterfaceProductInfo = request.InterfaceProductInfo,
+                ProtocolInfo = request.ProtocolInfo,
+                MacAddress = request.MacAddress,
+                ClientIPAddress = request.ClientIPAddress,
+                ClientIPPort = request.ClientIPPort,
+                LoginRemark = request.LoginRemark,
+                Captcha = request.Captcha
+            };
+
+            return result;
+        }
+
+        /// <summary>
         /// 报单转换
         /// </summary>
         /// <param name="parameter">报单参数</param>
         /// <returns></returns>
         private CThostFtdcInputOrderField ConvertToInputOrderField(OrderParameter parameter)
         {
-            CThostFtdcInputOrderField result = new CThostFtdcInputOrderField();
-            result.BrokerID = _api.BrokerID;
-            result.InvestorID = _api.InvestorID;
-            result.UserID = _api.InvestorID; ;
-            result.InstrumentID = parameter.InstrumentID;
-            result.ExchangeID = parameter.ExchangeID;
-            result.OrderRef = parameter.OrderRef;
-            result.VolumeTotalOriginal = (int)parameter.Quantity;
-            result.TimeCondition = ConvertToTimeCondition(parameter.TimeCondition);
-            result.LimitPrice = (double)parameter.Price;
-            result.StopPrice = (double)parameter.StopPrice;
-            result.Direction = ConvertToDirectionType(parameter.Direction);
-            result.OrderPriceType = ConvertToOrderPriceType(parameter.PriceType);
-            result.CombOffsetFlag = ConvertToCombOffsetFlag(parameter.OpenCloseFlag);
-            result.CombHedgeFlag = ConvertToCombHedgeFlag(parameter.HedgeFlag);
-            result.VolumeCondition = ConvertToVolumeCondition(parameter.VolumeCondition);
-            result.MinVolume = (int)parameter.MinVolume;
-            result.ContingentCondition = ConvertToContingentCondition(parameter.ContingentCondition);
-            result.ForceCloseReason = ConvertToForceCloseReason(parameter.ForceCloseReason);
-            result.GTDDate = parameter.GTDDate;
-            result.IsAutoSuspend = parameter.IsAutoSuspend;
-            result.UserForceClose = parameter.UserForceClose;
+            CThostFtdcInputOrderField result = new CThostFtdcInputOrderField()
+            {
+                BrokerID = _api.BrokerID,
+                InvestorID = _api.InvestorID,
+                UserID = _api.InvestorID,
+                InstrumentID = parameter.InstrumentID,
+                ExchangeID = parameter.ExchangeID,
+                OrderRef = parameter.OrderRef,
+                VolumeTotalOriginal = (int)parameter.Quantity,
+                TimeCondition = ConvertToTimeCondition(parameter.TimeCondition),
+                LimitPrice = (double)parameter.Price,
+                StopPrice = (double)parameter.StopPrice,
+                Direction = ConvertToDirectionType(parameter.Direction),
+                OrderPriceType = ConvertToOrderPriceType(parameter.PriceType),
+                CombOffsetFlag = ConvertToCombOffsetFlag(parameter.OpenCloseFlag),
+                CombHedgeFlag = ConvertToCombHedgeFlag(parameter.HedgeFlag),
+                VolumeCondition = ConvertToVolumeCondition(parameter.VolumeCondition),
+                MinVolume = (int)parameter.MinVolume,
+                ContingentCondition = ConvertToContingentCondition(parameter.ContingentCondition),
+                ForceCloseReason = ConvertToForceCloseReason(parameter.ForceCloseReason),
+                GTDDate = parameter.GTDDate,
+                IsAutoSuspend = parameter.IsAutoSuspend,
+                UserForceClose = parameter.UserForceClose
+            };
 
             return result;
         }
@@ -1527,20 +1769,22 @@ namespace CTPTradeAdapter.Adapter
         /// <returns></returns>
         private CThostFtdcInputOrderActionField ConvertToInputOrderActionField(CancelOrderParameter parameter)
         {
-            CThostFtdcInputOrderActionField result = new CThostFtdcInputOrderActionField();
-            result.BrokerID = _api.BrokerID;
-            result.UserID = _api.InvestorID;
-            result.InvestorID = _api.InvestorID;
-            result.InstrumentID = parameter.InstrumentID;
-            result.ExchangeID = parameter.ExchangeID;
-            result.OrderActionRef = parameter.OrderActionRef;
-            result.OrderRef = parameter.OrderRef;
-            result.OrderSysID = parameter.OrderSysID;
-            result.LimitPrice = (double)parameter.Price;
-            result.VolumeChange = (int)parameter.Quantity;
-            result.ActionFlag = ConvertToActionFlag(parameter.ActionFlag);
-            result.FrontID = _api.FrontID;
-            result.SessionID = _api.SessionID;
+            CThostFtdcInputOrderActionField result = new CThostFtdcInputOrderActionField()
+            {
+                BrokerID = _api.BrokerID,
+                UserID = _api.InvestorID,
+                InvestorID = _api.InvestorID,
+                InstrumentID = parameter.InstrumentID,
+                ExchangeID = parameter.ExchangeID,
+                OrderActionRef = parameter.OrderActionRef,
+                OrderRef = parameter.OrderRef,
+                OrderSysID = parameter.OrderSysID,
+                LimitPrice = (double)parameter.Price,
+                VolumeChange = (int)parameter.Quantity,
+                ActionFlag = ConvertToActionFlag(parameter.ActionFlag),
+                FrontID = _api.FrontID,
+                SessionID = _api.SessionID,
+            };
 
             return result;
         }
@@ -1552,27 +1796,29 @@ namespace CTPTradeAdapter.Adapter
         /// <returns></returns>
         private CThostFtdcParkedOrderField ConvertToParkedOrderField(OrderParameter parameter)
         {
-            CThostFtdcParkedOrderField result = new CThostFtdcParkedOrderField();
-            result.BrokerID = _api.BrokerID;
-            result.InvestorID = _api.InvestorID;
-            result.UserID = _api.InvestorID;
-            result.InstrumentID = parameter.InstrumentID;
-            result.ExchangeID = parameter.ExchangeID;
-            result.OrderRef = parameter.OrderRef;
-            result.VolumeTotalOriginal = (int)parameter.Quantity;
-            result.LimitPrice = (double)parameter.Price;
-            result.StopPrice = (double)parameter.StopPrice;
-            result.Direction = ConvertToDirectionType(parameter.Direction);
-            result.OrderPriceType = ConvertToOrderPriceType(parameter.PriceType);
-            result.CombOffsetFlag = ConvertToCombOffsetFlag(parameter.OpenCloseFlag);
-            result.CombHedgeFlag = ConvertToCombHedgeFlag(parameter.HedgeFlag);
-            result.VolumeCondition = ConvertToVolumeCondition(parameter.VolumeCondition);
-            result.MinVolume = (int)parameter.MinVolume;
-            result.ContingentCondition = ConvertToContingentCondition(parameter.ContingentCondition);
-            result.GTDDate = parameter.GTDDate;
-            result.ParkedOrderID = parameter.ParkedOrderID;
-            result.IsAutoSuspend = parameter.IsAutoSuspend;
-            result.UserForceClose = parameter.UserForceClose;
+            CThostFtdcParkedOrderField result = new CThostFtdcParkedOrderField()
+            {
+                BrokerID = _api.BrokerID,
+                InvestorID = _api.InvestorID,
+                UserID = _api.InvestorID,
+                InstrumentID = parameter.InstrumentID,
+                ExchangeID = parameter.ExchangeID,
+                OrderRef = parameter.OrderRef,
+                VolumeTotalOriginal = (int)parameter.Quantity,
+                LimitPrice = (double)parameter.Price,
+                StopPrice = (double)parameter.StopPrice,
+                Direction = ConvertToDirectionType(parameter.Direction),
+                OrderPriceType = ConvertToOrderPriceType(parameter.PriceType),
+                CombOffsetFlag = ConvertToCombOffsetFlag(parameter.OpenCloseFlag),
+                CombHedgeFlag = ConvertToCombHedgeFlag(parameter.HedgeFlag),
+                VolumeCondition = ConvertToVolumeCondition(parameter.VolumeCondition),
+                MinVolume = (int)parameter.MinVolume,
+                ContingentCondition = ConvertToContingentCondition(parameter.ContingentCondition),
+                GTDDate = parameter.GTDDate,
+                ParkedOrderID = parameter.ParkedOrderID,
+                IsAutoSuspend = parameter.IsAutoSuspend,
+                UserForceClose = parameter.UserForceClose,
+            };
 
             return result;
         }
@@ -1585,19 +1831,21 @@ namespace CTPTradeAdapter.Adapter
         /// <returns></returns>
         private CThostFtdcParkedOrderActionField ConvertToParkedOrderActionField(CancelOrderParameter parameter)
         {
-            CThostFtdcParkedOrderActionField result = new CThostFtdcParkedOrderActionField();
-            result.BrokerID = _api.BrokerID;
-            result.UserID = _api.InvestorID;
-            result.InstrumentID = parameter.InstrumentID;
-            result.ExchangeID = parameter.ExchangeID;
-            result.OrderRef = parameter.OrderRef;
-            result.OrderActionRef = parameter.OrderActionRef;
-            result.OrderSysID = parameter.OrderSysID;
-            result.ParkedOrderActionID = parameter.ParkedOrderActionID;
-            result.ActionFlag = ConvertToActionFlag(parameter.ActionFlag);
-            result.Status = ConvertToParkedOrderStatus(parameter.Status);
-            result.FrontID = _api.FrontID;
-            result.SessionID = _api.SessionID;
+            CThostFtdcParkedOrderActionField result = new CThostFtdcParkedOrderActionField()
+            {
+                BrokerID = _api.BrokerID,
+                UserID = _api.InvestorID,
+                InstrumentID = parameter.InstrumentID,
+                ExchangeID = parameter.ExchangeID,
+                OrderRef = parameter.OrderRef,
+                OrderActionRef = parameter.OrderActionRef,
+                OrderSysID = parameter.OrderSysID,
+                ParkedOrderActionID = parameter.ParkedOrderActionID,
+                ActionFlag = ConvertToActionFlag(parameter.ActionFlag),
+                Status = ConvertToParkedOrderStatus(parameter.Status),
+                FrontID = _api.FrontID,
+                SessionID = _api.SessionID,
+            };
 
             return result;
         }

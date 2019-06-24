@@ -18,6 +18,9 @@ extern CBRspUserLogin cbRspUserLogin;	///µÇÂ¼ÇëÇóÏìÓ¦
 extern CBRspUserLogout cbRspUserLogout;	///µÇ³öÇëÇóÏìÓ¦
 extern CBRspUserPasswordUpdate cbRspUserPasswordUpdate;	///ÓÃ»§¿ÚÁî¸üĞÂÇëÇóÏìÓ¦
 extern CBRspTradingAccountPasswordUpdate cbRspTradingAccountPasswordUpdate;	///×Ê½ğÕË»§¿ÚÁî¸üĞÂÇëÇóÏìÓ¦
+extern CBRspUserAuthMethod cbRspUserAuthMethod; ///²éÑ¯ÓÃ»§µ±Ç°Ö§³ÖµÄÈÏÖ¤Ä£Ê½µÄ»Ø¸´
+extern CBRspGenUserCaptcha cbRspGenUserCaptcha; ///»ñÈ¡Í¼ĞÎÑéÖ¤ÂëÇëÇóµÄ»Ø¸´
+extern CBRspGenUserText cbRspGenUserText; ///»ñÈ¡¶ÌĞÅÑéÖ¤ÂëÇëÇóµÄ»Ø¸´
 extern CBRspOrderInsert cbRspOrderInsert;	///±¨µ¥Â¼ÈëÇëÇóÏìÓ¦
 extern CBRspParkedOrderInsert cbRspParkedOrderInsert;	///Ô¤Âñµ¥Â¼ÈëÇëÇóÏìÓ¦
 extern CBRspParkedOrderAction cbRspParkedOrderAction;	///Ô¤Âñ³·µ¥Â¼ÈëÇëÇóÏìÓ¦
@@ -66,6 +69,7 @@ extern CBRspQryMMOptionInstrCommRate cbRspQryMMOptionInstrCommRate;	///ÇëÇó²éÑ¯×
 extern CBRspQryInstrumentOrderCommRate cbRspQryInstrumentOrderCommRate;	///ÇëÇó²éÑ¯±¨µ¥ÊÖĞø·ÑÏìÓ¦
 extern CBRspQrySecAgentTradingAccount cbRspQrySecAgentTradingAccount;	///ÇëÇó²éÑ¯×Ê½ğÕË»§ÏìÓ¦
 extern CBRspQrySecAgentCheckMode cbRspQrySecAgentCheckMode;	///ÇëÇó²éÑ¯¶ş¼¶´úÀíÉÌ×Ê½ğĞ£ÑéÄ£Ê½ÏìÓ¦
+extern CBRspQrySecAgentTradeInfo cbRspQrySecAgentTradeInfo; ///ÇëÇó²éÑ¯¶ş¼¶´úÀíÉÌĞÅÏ¢ÏìÓ¦
 extern CBRspQryOptionInstrTradeCost cbRspQryOptionInstrTradeCost;	///ÇëÇó²éÑ¯ÆÚÈ¨½»Ò×³É±¾ÏìÓ¦
 extern CBRspQryOptionInstrCommRate cbRspQryOptionInstrCommRate;	///ÇëÇó²éÑ¯ÆÚÈ¨ºÏÔ¼ÊÖĞø·ÑÏìÓ¦
 extern CBRspQryExecOrder cbRspQryExecOrder;	///ÇëÇó²éÑ¯Ö´ĞĞĞû¸æÏìÓ¦
@@ -229,6 +233,27 @@ void CTraderSpi::OnRspTradingAccountPasswordUpdate(CThostFtdcTradingAccountPassw
 		else
 			cbRspTradingAccountPasswordUpdate(pTradingAccountPasswordUpdate, repareInfo(pRspInfo), nRequestID, bIsLast);
 	}
+}
+
+///²éÑ¯ÓÃ»§µ±Ç°Ö§³ÖµÄÈÏÖ¤Ä£Ê½µÄ»Ø¸´
+void CTraderSpi::OnRspUserAuthMethod(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (pRspUserAuthMethod != NULL)
+		cbRspUserAuthMethod(pRspUserAuthMethod, repareInfo(pRspInfo), nRequestID, bIsLast);
+}
+
+///»ñÈ¡Í¼ĞÎÑéÖ¤ÂëÇëÇóµÄ»Ø¸´
+void CTraderSpi::OnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (pRspGenUserCaptcha != NULL)
+		cbRspGenUserCaptcha(pRspGenUserCaptcha, repareInfo(pRspInfo), nRequestID, bIsLast);
+}
+
+///»ñÈ¡¶ÌĞÅÑéÖ¤ÂëÇëÇóµÄ»Ø¸´
+void CTraderSpi::OnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (pRspGenUserText != NULL)
+		cbRspGenUserText(pRspGenUserText, repareInfo(pRspInfo), nRequestID, bIsLast);
 }
 
 ///±¨µ¥Â¼ÈëÇëÇóÏìÓ¦
@@ -997,6 +1022,19 @@ void CTraderSpi::OnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSe
 		else
 			cbRspQrySecAgentCheckMode(pSecAgentCheckMode, repareInfo(pRspInfo), nRequestID, bIsLast);
 	}
+}
+
+///ÇëÇó²éÑ¯¶ş¼¶´úÀíÉÌĞÅÏ¢ÏìÓ¦
+void CTraderSpi::OnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	if (pSecAgentTradeInfo == NULL)
+	{
+		CThostFtdcSecAgentTradeInfoField req;
+		memset(&req, 0, sizeof(req));
+		cbRspQrySecAgentTradeInfo(&req, repareInfo(pRspInfo), nRequestID, bIsLast);
+	}
+	else
+		cbRspQrySecAgentTradeInfo(pSecAgentTradeInfo, repareInfo(pRspInfo), nRequestID, bIsLast);
 }
 
 ///ÇëÇó²éÑ¯ÆÚÈ¨½»Ò×³É±¾ÏìÓ¦

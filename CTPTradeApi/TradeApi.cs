@@ -41,9 +41,24 @@ namespace CTPTradeApi
         public string ProductInfo { get; set; }
 
         /// <summary>
+        /// 接口信息
+        /// </summary>
+        public string InterfaceInfo { get; set; }
+
+        /// <summary>
+        /// 协议信息
+        /// </summary>
+        public string ProtocolInfo { get; set; }
+
+        /// <summary>
         /// 认证代码
         /// </summary>
         public string AuthCode { get; set; }
+
+        /// <summary>
+        /// 应用代码
+        /// </summary>
+        public string AppID { get; set; }
 
         /// <summary>
         /// 网卡信息
@@ -86,8 +101,6 @@ namespace CTPTradeApi
 
         #endregion
 
-        #region 委托定义
-
         #region 方法委托定义
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -107,7 +120,7 @@ namespace CTPTradeApi
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqAuthenticate(IntPtr ptr, int requestID, string brokerID, string investorID,
-            string productInfo, string authCode);
+            string productInfo, string authCode, string appID);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqQueryExchange(IntPtr ptr, int requestID, string exchangeID);
@@ -119,12 +132,18 @@ namespace CTPTradeApi
         delegate int DelegateReqUser(IntPtr ptr, int requestID, string brokerID, string investorID, string instrumentID);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate int DelegateReqUserLogin(IntPtr ptr, int requestID, string brokerID, string investorID,
-            string password, string macAddress, string productInfo);
+        delegate int DelegateReqUserLogin(IntPtr ptr, int requestID, string brokerID, string investorID, string password,
+            string oneTimePassword, string macAddress, string productInfo, string interfaceInfo, string protocolInfo);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqUserUpdate(IntPtr ptr, int requestID, string brokerID, string userID,
             string oldPassword, string newPassword);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate int DelegateReqUserAuth(IntPtr ptr, int requestID, string brokerID, string investorID, string tradingDay);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate int DelegateReqUserLoginWithCaptcha(IntPtr ptr, int requestID, ref CThostFtdcReqUserLoginWithCaptchaField req);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqOrderInsert(IntPtr ptr, int requestID, ref CThostFtdcInputOrderField req);
@@ -160,6 +179,644 @@ namespace CTPTradeApi
 
         #endregion
 
+        #region 接口结果回调委托定义
+
+        /// <summary>
+        /// 建立连接委托
+        /// </summary>
+        public delegate void FrontConnect();
+
+        /// <summary>
+        /// 断开连接委托
+        /// </summary>
+        /// <param name="reason">失败原因</param>
+        public delegate void Disconnected(int reason);
+
+        /// <summary>
+        /// 心跳超时警告委托
+        /// </summary>
+        /// <param name="pTimeLapes">超时时间</param>
+        public delegate void HeartBeatWarning(int pTimeLapes);
+
+        /// <summary>
+        /// 客户端认证
+        /// </summary>
+        /// <param name="pRspAuthenticate">客户端认证响应</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        public delegate void RspAuthenticate(ref CThostFtdcRspAuthenticateField pRspAuthenticate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 登录请求响应委托
+        /// </summary>
+        /// <param name="pRspUserLogin">用户登录应答</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspUserLogin(ref CThostFtdcRspUserLoginField pRspUserLogin,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 登出请求响应委托
+        /// </summary>
+        /// <param name="pUserLogout">用户登出请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspUserLogout(ref CThostFtdcUserLogoutField pUserLogout,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 用户口令更新请求响应委托
+        /// </summary>
+        /// <param name="pUserPasswordUpdate">用户口令变更</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspUserPasswordUpdate(ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 资金账户口令更新请求响应委托
+        /// </summary>
+        /// <param name="pTradingAccountPasswordUpdate">资金账户口令变更域</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspTradingAccountPasswordUpdate(
+            ref CThostFtdcTradingAccountPasswordUpdateField pTradingAccountPasswordUpdate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 查询用户当前支持的认证模式请求响应委托
+        /// </summary>
+        /// <param name="pRspUserAuthMethod">安全登陆方法</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        public delegate void RspUserAuthMethod(ref CThostFtdcRspUserAuthMethodField pRspUserAuthMethod,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast);
+
+        /// <summary>
+        /// 获取图形验证码请求委托
+        /// </summary>
+        /// <param name="pRspGenUserCaptcha">图片验证码信息</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        public delegate void RspGenUserCaptcha(ref CThostFtdcRspGenUserCaptchaField pRspGenUserCaptcha,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast);
+
+        /// <summary>
+        /// 获取短信验证码请求委托
+        /// </summary>
+        /// <param name="pRspGenUserText">短信验证码</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        public delegate void RspGenUserText(ref CThostFtdcRspGenUserTextField pRspGenUserText,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast);
+
+        /// <summary>
+        /// 期货发起银行资金转期货错误回报委托
+        /// </summary>
+        /// <param name="pReqTransfer">转账请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+		public delegate void ErrRtnBankToFutureByFuture(ref CThostFtdcReqTransferField pReqTransfer,
+            ref CThostFtdcRspInfoField pRspInfo);
+
+        /// <summary>
+        /// 期货发起期货资金转银行错误回报委托
+        /// </summary>
+        /// <param name="pReqTransfer">转账请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+		public delegate void ErrRtnFutureToBankByFuture(ref CThostFtdcReqTransferField pReqTransfer,
+            ref CThostFtdcRspInfoField pRspInfo);
+
+        /// <summary>
+        /// 报单操作错误回报委托
+        /// </summary>
+        /// <param name="pOrderAction">报单操作</param>
+        /// <param name="pRspInfo">响应信息</param>
+		public delegate void ErrRtnOrderAction(ref CThostFtdcOrderActionField pOrderAction,
+            ref CThostFtdcRspInfoField pRspInfo);
+
+        /// <summary>
+        /// 报单录入错误回报委托
+        /// </summary>
+        /// <param name="pInputOrder">输入报单</param>
+        /// <param name="pRspInfo">响应信息</param>
+		public delegate void ErrRtnOrderInsert(ref CThostFtdcInputOrderField pInputOrder,
+            ref CThostFtdcRspInfoField pRspInfo);
+
+        /// <summary>
+        /// 期货发起查询银行余额错误回报委托
+        /// </summary>
+        /// <param name="pReqQueryAccount">查询账户信息请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+		public delegate void ErrRtnQueryBankBalanceByFuture(ref CThostFtdcReqQueryAccountField pReqQueryAccount,
+            ref CThostFtdcRspInfoField pRspInfo);
+
+        /// <summary>
+        /// 系统运行时期货端手工发起冲正银行转期货错误回报委托
+        /// </summary>
+        /// <param name="pReqRepeal">冲正请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+		public delegate void ErrRtnRepealBankToFutureByFutureManual(ref CThostFtdcReqRepealField pReqRepeal,
+            ref CThostFtdcRspInfoField pRspInfo);
+
+        /// <summary>
+        /// 系统运行时期货端手工发起冲正期货转银行错误回报委托
+        /// </summary>
+        /// <param name="pReqRepeal">冲正请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+		public delegate void ErrRtnRepealFutureToBankByFutureManual(ref CThostFtdcReqRepealField pReqRepeal,
+            ref CThostFtdcRspInfoField pRspInfo);
+
+        /// <summary>
+        /// 错误应答委托
+        /// </summary>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspError(ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 期货发起银行资金转期货应答委托
+        /// </summary>
+        /// <param name="pReqTransfer">转账请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspFromBankToFutureByFuture(ref CThostFtdcReqTransferField pReqTransfer,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 期货发起期货资金转银行应答委托
+        /// </summary>
+        /// <param name="pReqTransfer">转账请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspFromFutureToBankByFuture(ref CThostFtdcReqTransferField pReqTransfer,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 报单操作请求响应委托
+        /// </summary>
+        /// <param name="pInputOrderAction">输入报单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspOrderAction(ref CThostFtdcInputOrderActionField pInputOrderAction,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 报单录入请求响应委托
+        /// </summary>
+        /// <param name="pInputOrder">输入报单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspOrderInsert(ref CThostFtdcInputOrderField pInputOrder,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 预埋撤单录入请求响应委托
+        /// </summary>
+        /// <param name="pParkedOrderAction">录入预埋单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspParkedOrderAction(ref CThostFtdcParkedOrderActionField pParkedOrderAction,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 预埋单录入请求响应委托
+        /// </summary>
+        /// <param name="pParkedOrder">预埋单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspParkedOrderInsert(ref CThostFtdcParkedOrderField pParkedOrder,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询经纪公司交易算法响应委托
+        /// </summary>
+        /// <param name="pBrokerTradingAlgos">经纪公司交易算法</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        public delegate void RspQryBrokerTradingAlgos(ref CThostFtdcBrokerTradingAlgosField pBrokerTradingAlgos,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询经纪公司交易参数响应委托
+        /// </summary>
+        /// <param name="pBrokerTradingParams">经纪公司交易参数</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryBrokerTradingParams(ref CThostFtdcBrokerTradingParamsField pBrokerTradingParams,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 查询保证金监管系统经纪公司资金账户密钥响应委托
+        /// </summary>
+        /// <param name="pCFMMCTradingAccountKey">保证金监管系统经纪公司资金账户密钥</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryCFMMCTradingAccountKey(
+            ref CThostFtdcCFMMCTradingAccountKeyField pCFMMCTradingAccountKey,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询签约银行响应委托
+        /// </summary>
+        /// <param name="pContractBank">查询签约银行响应</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryContractBank(ref CThostFtdcContractBankField pContractBank,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询行情响应委托
+        /// </summary>
+        /// <param name="pDepthMarketData">深度行情</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryDepthMarketData(ref CThostFtdcDepthMarketDataField pDepthMarketData,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询交易所响应委托
+        /// </summary>
+        /// <param name="pExchange">交易所</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryExchange(ref CThostFtdcExchangeField pExchange, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询合约响应委托
+        /// </summary>
+        /// <param name="pInstrument">合约</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryInstrument(ref CThostFtdcInstrumentField pInstrument,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询合约手续费率响应委托
+        /// </summary>
+        /// <param name="pInstrumentCommissionRate">合约手续费率</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryInstrumentCommissionRate(
+            ref CThostFtdcInstrumentCommissionRateField pInstrumentCommissionRate, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询合约保证金率响应委托
+        /// </summary>
+        /// <param name="pInstrumentMarginRate">合约保证金率</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryInstrumentMarginRate(ref CThostFtdcInstrumentMarginRateField pInstrumentMarginRate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询投资者响应委托
+        /// </summary>
+        /// <param name="pInvestor">投资者</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryInvestor(ref CThostFtdcInvestorField pInvestor, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询投资者持仓响应委托
+        /// </summary>
+        /// <param name="pInvestorPosition">投资者持仓</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryInvestorPosition(ref CThostFtdcInvestorPositionField pInvestorPosition,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询投资者持仓明细响应委托
+        /// </summary>
+        /// <param name="pInvestorPositionCombineDetail">投资者组合持仓明细</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryInvestorPositionCombineDetail(
+            ref CThostFtdcInvestorPositionCombineDetailField pInvestorPositionCombineDetail,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询投资者持仓明细响应委托
+        /// </summary>
+        /// <param name="pInvestorPositionDetail">投资者持仓明细</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryInvestorPositionDetail(
+            ref CThostFtdcInvestorPositionDetailField pInvestorPositionDetail, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询客户通知响应委托
+        /// </summary>
+        /// <param name="pNotice">客户通知</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryNotice(ref CThostFtdcNoticeField pNotice, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询报单响应委托
+        /// </summary>
+        /// <param name="pOrder">报单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryOrder(ref CThostFtdcOrderField pOrder, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询预埋单响应委托
+        /// </summary>
+        /// <param name="pParkedOrder">预埋单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryParkedOrder(ref CThostFtdcParkedOrderField pParkedOrder,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询预埋撤单响应委托
+        /// </summary>
+        /// <param name="pParkedOrderAction">输入预埋单操作</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryParkedOrderAction(ref CThostFtdcParkedOrderActionField pParkedOrderAction,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询投资者结算结果响应委托
+        /// </summary>
+        /// <param name="pSettlementInfo">投资者结算结果</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQrySettlementInfo(ref CThostFtdcSettlementInfoField pSettlementInfo,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询结算信息确认响应委托
+        /// </summary>
+        /// <param name="pSettlementInfoConfirm">投资者结算结果确认信息</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQrySettlementInfoConfirm(
+            ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询资金账户响应委托
+        /// </summary>
+        /// <param name="pTradingAccount">资金账户</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryTradingAccount(ref CThostFtdcTradingAccountField pTradingAccount,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询成交响应委托
+        /// </summary>
+        /// <param name="pTrade">成交</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryTrade(ref CThostFtdcTradeField pTrade, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询交易编码响应委托
+        /// </summary>
+        /// <param name="pTradingCode">交易编码</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryTradingCode(ref CThostFtdcTradingCodeField pTradingCode,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询交易通知响应委托
+        /// </summary>
+        /// <param name="pTradingNotice">用户事件通知</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryTradingNotice(ref CThostFtdcTradingNoticeField pTradingNotice,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询转帐银行响应委托
+        /// </summary>
+        /// <param name="pTransferBank">转帐银行</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryTransferBank(ref CThostFtdcTransferBankField pTransferBank,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询转帐流水响应委托
+        /// </summary>
+        /// <param name="pTransferSerial">银期转账交易流水表</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQryTransferSerial(ref CThostFtdcTransferSerialField pTransferSerial,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 请求查询银期签约关系响应委托
+        /// </summary>
+        /// <param name="pAccountregister">客户开销户信息表</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+        public delegate void RspQryAccountregister(ref CThostFtdcAccountregisterField pAccountregister,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 期货发起查询银行余额应答委托
+        /// </summary>
+        /// <param name="pReqQueryAccount">查询账户信息请求</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQueryBankAccountMoneyByFuture(ref CThostFtdcReqQueryAccountField pReqQueryAccount,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 查询最大报单数量响应委托
+        /// </summary>
+        /// <param name="pQueryMaxOrderVolume">查询最大报单数量</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspQueryMaxOrderVolume(ref CThostFtdcQueryMaxOrderVolumeField pQueryMaxOrderVolume,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 删除预埋单响应委托
+        /// </summary>
+        /// <param name="pRemoveParkedOrder">删除预埋单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspRemoveParkedOrder(ref CThostFtdcRemoveParkedOrderField pRemoveParkedOrder,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 删除预埋撤单响应委托
+        /// </summary>
+        /// <param name="pRemoveParkedOrderAction">删除预埋撤单</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspRemoveParkedOrderAction(
+            ref CThostFtdcRemoveParkedOrderActionField pRemoveParkedOrderAction, ref CThostFtdcRspInfoField pRspInfo,
+            int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 投资者结算结果确认响应委托
+        /// </summary>
+        /// <param name="pSettlementInfoConfirm">投资者结算结果确认信息</param>
+        /// <param name="pRspInfo">响应信息</param>
+        /// <param name="nRequestID">请求编号</param>
+        /// <param name="bIsLast">是否为最后一条数据</param>
+		public delegate void RspSettlementInfoConfirm(ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+
+        /// <summary>
+        /// 提示条件单校验错误委托
+        /// </summary>
+        /// <param name="pErrorConditionalOrder">查询错误报单操作</param>
+		public delegate void RtnErrorConditionalOrder(ref CThostFtdcErrorConditionalOrderField pErrorConditionalOrder);
+
+        /// <summary>
+        /// 银行发起银行资金转期货通知委托
+        /// </summary>
+        /// <param name="pRspTransfer">银行发起银行资金转期货响应</param>
+		public delegate void RtnFromBankToFutureByBank(ref CThostFtdcRspTransferField pRspTransfer);
+
+        /// <summary>
+        /// 期货发起银行资金转期货通知委托
+        /// </summary>
+        /// <param name="pRspTransfer">银行发起银行资金转期货响应</param>
+		public delegate void RtnFromBankToFutureByFuture(ref CThostFtdcRspTransferField pRspTransfer);
+
+        /// <summary>
+        /// 银行发起期货资金转银行通知委托
+        /// </summary>
+        /// <param name="pRspTransfer">银行发起银行资金转期货响应</param>
+		public delegate void RtnFromFutureToBankByBank(ref CThostFtdcRspTransferField pRspTransfer);
+
+        /// <summary>
+        /// 期货发起期货资金转银行通知委托
+        /// </summary>
+        /// <param name="pRspTransfer">期货发起期货资金转银行响应</param>
+        public delegate void RtnFromFutureToBankByFuture(ref CThostFtdcRspTransferField pRspTransfer);
+
+        /// <summary>
+        /// 合约交易状态通知委托
+        /// </summary>
+        /// <param name="pInstrumentStatus">合约状态</param>
+		public delegate void RtnInstrumentStatus(ref CThostFtdcInstrumentStatusField pInstrumentStatus);
+
+        /// <summary>
+        /// 报单通知委托
+        /// </summary>
+        /// <param name="pOrder">报单</param>
+		public delegate void RtnOrder(ref CThostFtdcOrderField pOrder);
+
+        /// <summary>
+        /// 期货发起查询银行余额通知委托
+        /// </summary>
+        /// <param name="pNotifyQueryAccount">查询账户信息通知</param>
+		public delegate void RtnQueryBankBalanceByFuture(ref CThostFtdcNotifyQueryAccountField pNotifyQueryAccount);
+
+        /// <summary>
+        /// 银行发起冲正银行转期货通知委托
+        /// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
+		public delegate void RtnRepealFromBankToFutureByBank(ref CThostFtdcRspRepealField pRspRepeal);
+
+        /// <summary>
+        /// 期货发起冲正银行转期货请求，银行处理完毕后报盘发回的通知委托
+        /// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
+		public delegate void RtnRepealFromBankToFutureByFuture(ref CThostFtdcRspRepealField pRspRepeal);
+
+        /// <summary>
+        /// 系统运行时期货端手工发起冲正银行转期货请求，银行处理完毕后报盘发回的通知委托
+        /// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
+		public delegate void RtnRepealFromBankToFutureByFutureManual(ref CThostFtdcRspRepealField pRspRepeal);
+
+        /// <summary>
+        /// 银行发起冲正期货转银行通知委托
+        /// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
+		public delegate void RtnRepealFromFutureToBankByBank(ref CThostFtdcRspRepealField pRspRepeal);
+
+        /// <summary>
+        /// 期货发起冲正期货转银行请求，银行处理完毕后报盘发回的通知委托
+        /// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
+		public delegate void RtnRepealFromFutureToBankByFuture(ref CThostFtdcRspRepealField pRspRepeal);
+
+        /// <summary>
+		/// 系统运行时期货端手工发起冲正期货转银行请求，银行处理完毕后报盘发回的通知委托
+		/// </summary>
+        /// <param name="pRspRepeal">冲正响应</param>
+		public delegate void RtnRepealFromFutureToBankByFutureManual(ref CThostFtdcRspRepealField pRspRepeal);
+
+        /// <summary>
+        /// 成交通知委托
+        /// </summary>
+        /// <param name="pTrade">成交</param>
+		public delegate void RtnTrade(ref CThostFtdcTradeField pTrade);
+
+        /// <summary>
+        /// 交易通知委托
+        /// </summary>
+        /// <param name="pTradingNoticeInfo">用户事件通知消息</param>
+		public delegate void RtnTradingNotice(ref CThostFtdcTradingNoticeInfoField pTradingNoticeInfo);
+
+        #endregion
+
         #region 回调委托定义
 
         // 回调委托
@@ -167,6 +824,14 @@ namespace CTPTradeApi
         delegate void DelegateRegOnDisconnected(IntPtr ptr, Disconnected dc);
         delegate void DelegateRegOnHeartBeatWarning(IntPtr ptr, HeartBeatWarning hbw);
         delegate void DelegateRegRspAuthenticate(IntPtr ptr, RspAuthenticate cb);
+        delegate void DelegateRegRspUserLogin(IntPtr ptr, RspUserLogin cb);
+        delegate void DelegateRegRspUserLogout(IntPtr ptr, RspUserLogout cb);
+        delegate void DelegateRegRspUserPasswordUpdate(IntPtr ptr, RspUserPasswordUpdate cb);
+        delegate void DelegateRegRspTradingAccountPasswordUpdate(IntPtr ptr, RspTradingAccountPasswordUpdate cb);
+        delegate void DelegateRegRspUserAuthMethod(IntPtr ptr, RspUserAuthMethod cb);
+        delegate void DelegateRegRspGenUserCapcha(IntPtr ptr, RspGenUserCaptcha cb);
+        delegate void DelegateRegRspGenUserText(IntPtr ptr, RspGenUserText cb);
+
         delegate void DelegateRegErrRtnBankToFutureByFuture(IntPtr ptr, ErrRtnBankToFutureByFuture cb);
         delegate void DelegateRegErrRtnFutureToBankByFuture(IntPtr ptr, ErrRtnFutureToBankByFuture cb);
         delegate void DelegateRegErrRtnOrderAction(IntPtr ptr, ErrRtnOrderAction cb);
@@ -212,10 +877,6 @@ namespace CTPTradeApi
         delegate void DelegateRegRspRemoveParkedOrder(IntPtr ptr, RspRemoveParkedOrder cb);
         delegate void DelegateRegRspRemoveParkedOrderAction(IntPtr ptr, RspRemoveParkedOrderAction cb);
         delegate void DelegateRegRspSettlementInfoConfirm(IntPtr ptr, RspSettlementInfoConfirm cb);
-        delegate void DelegateRegRspTradingAccountPasswordUpdate(IntPtr ptr, RspTradingAccountPasswordUpdate cb);
-        delegate void DelegateRegRspUserLogin(IntPtr ptr, RspUserLogin cb);
-        delegate void DelegateRegRspUserLogout(IntPtr ptr, RspUserLogout cb);
-        delegate void DelegateRegRspUserPasswordUpdate(IntPtr ptr, RspUserPasswordUpdate cb);
         delegate void DelegateRegRtnErrorConditionalOrder(IntPtr ptr, RtnErrorConditionalOrder cb);
         delegate void DelegateRegRtnFromBankToFutureByBank(IntPtr ptr, RtnFromBankToFutureByBank cb);
         delegate void DelegateRegRtnFromBankToFutureByFuture(IntPtr ptr, RtnFromBankToFutureByFuture cb);
@@ -235,10 +896,6 @@ namespace CTPTradeApi
 
         #endregion
 
-        #endregion
-
-        #region 委托实例
-
         #region 方法委托实例
 
         DelegateCreateSpi createSpi;
@@ -251,8 +908,14 @@ namespace CTPTradeApi
         DelegateReqAccount reqUserLogout;
         DelegateReqUserUpdate reqUserPasswordUpdate;
         DelegateReqUserUpdate reqTradingAccountPasswordUpdate;
-        DelegateReqUserLogin reqUserSafeLogin;
-        DelegateReqUserUpdate reqUserPasswordSafeUpdate;
+        DelegateReqUserLogin reqSafeUserLogin;
+        DelegateReqUserUpdate reqSafeUserPasswordUpdate;
+        DelegateReqUserAuth reqUserAuthMethod;
+        DelegateReqUserAuth reqGenUserCaptcha;
+        DelegateReqUserAuth reqGenUserText;
+        DelegateReqUserLoginWithCaptcha reqUserLoginWithCaptcha;
+        DelegateReqUserLoginWithCaptcha reqUserLoginWithText;
+        DelegateReqUserLoginWithCaptcha reqUserLoginWithOTP;
         DelegateReqOrderInsert reqOrderInsert;
         DelegateReqOrderAction reqOrderAction;
         DelegateReqQueryMaxOrderVolume reqQueryMaxOrderVolume;
@@ -299,6 +962,13 @@ namespace CTPTradeApi
         DelegateRegOnDisconnected regOnDisConnected;
         DelegateRegOnHeartBeatWarning regOnHeartBeatWarning;
         DelegateRegRspAuthenticate regRspAuthenticate;
+        DelegateRegRspUserLogin regRspUserLogin;
+        DelegateRegRspUserLogout regRspUserLogout;
+        DelegateRegRspUserPasswordUpdate regRspUserPasswordUpdate;
+        DelegateRegRspTradingAccountPasswordUpdate regRspTradingAccountPasswordUpdate;
+        DelegateRegRspUserAuthMethod regRspUserAuthMethod;
+        DelegateRegRspGenUserCapcha regRspGenUserCapcha;
+        DelegateRegRspGenUserText regRspGenUserText;
         DelegateRegErrRtnBankToFutureByFuture regErrRtnBankToFutureByFuture;
         DelegateRegErrRtnFutureToBankByFuture regErrRtnFutureToBankByFuture;
         DelegateRegErrRtnOrderAction regErrRtnOrderAction;
@@ -344,10 +1014,6 @@ namespace CTPTradeApi
         DelegateRegRspRemoveParkedOrder regRspRemoveParkedOrder;
         DelegateRegRspRemoveParkedOrderAction regRspRemoveParkedOrderAction;
         DelegateRegRspSettlementInfoConfirm regRspSettlementInfoConfirm;
-        DelegateRegRspTradingAccountPasswordUpdate regRspTradingAccountPasswordUpdate;
-        DelegateRegRspUserLogin regRspUserLogin;
-        DelegateRegRspUserLogout regRspUserLogout;
-        DelegateRegRspUserPasswordUpdate regRspUserPasswordUpdate;
         DelegateRegRtnErrorConditionalOrder regRtnErrorConditionalOrder;
         DelegateRegRtnFromBankToFutureByBank regRtnFromBankToFutureByBank;
         DelegateRegRtnFromBankToFutureByFuture regRtnFromBankToFutureByFuture;
@@ -364,8 +1030,6 @@ namespace CTPTradeApi
         DelegateRegRtnRepealFromFutureToBankByFutureManual regRtnRepealFromFutureToBankByFutureManual;
         DelegateRegRtnTrade regRtnTrade;
         DelegateRegRtnTradingNotice regRtnTradingNotice;
-
-        #endregion
 
         #endregion
 
@@ -459,8 +1123,14 @@ namespace CTPTradeApi
                 reqUserLogout = GetDelegate<DelegateReqAccount>("ReqUserLogout");
                 reqUserPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordUpdate");
                 reqTradingAccountPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqTradingAccountPasswordUpdate");
-                reqUserSafeLogin = GetDelegate<DelegateReqUserLogin>("ReqUserSafeLogin");
-                reqUserPasswordSafeUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordSafeUpdate");
+                reqSafeUserLogin = GetDelegate<DelegateReqUserLogin>("ReqUserSafeLogin");
+                reqSafeUserPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordSafeUpdate");
+                reqUserAuthMethod = GetDelegate<DelegateReqUserAuth>("ReqUserAuthMethod");
+                reqGenUserCaptcha = GetDelegate<DelegateReqUserAuth>("ReqGenUserCaptcha");
+                reqGenUserText = GetDelegate<DelegateReqUserAuth>("ReqGenUserText");
+                reqUserLoginWithCaptcha = GetDelegate<DelegateReqUserLoginWithCaptcha>("ReqUserLoginWithCaptcha");
+                reqUserLoginWithText = GetDelegate<DelegateReqUserLoginWithCaptcha>("ReqUserLoginWithText");
+                reqUserLoginWithOTP = GetDelegate<DelegateReqUserLoginWithCaptcha>("ReqUserLoginWithOTP");
                 reqOrderInsert = GetDelegate<DelegateReqOrderInsert>("ReqOrderInsert");
                 reqOrderAction = GetDelegate<DelegateReqOrderAction>("ReqOrderAction");
                 reqQueryMaxOrderVolume = GetDelegate<DelegateReqQueryMaxOrderVolume>("ReqQueryMaxOrderVolume");
@@ -503,6 +1173,13 @@ namespace CTPTradeApi
                 regOnDisConnected = GetDelegate<DelegateRegOnDisconnected>("RegOnFrontDisconnected");
                 regOnHeartBeatWarning = GetDelegate<DelegateRegOnHeartBeatWarning>("RegOnHeartBeatWarning");
                 regRspAuthenticate = GetDelegate<DelegateRegRspAuthenticate>("RegRspAuthenticate");
+                regRspUserLogin = GetDelegate<DelegateRegRspUserLogin>("RegRspUserLogin");
+                regRspUserLogout = GetDelegate<DelegateRegRspUserLogout>("RegRspUserLogout");
+                regRspUserPasswordUpdate = GetDelegate<DelegateRegRspUserPasswordUpdate>("RegRspUserPasswordUpdate");
+                regRspTradingAccountPasswordUpdate = GetDelegate<DelegateRegRspTradingAccountPasswordUpdate>("RegRspTradingAccountPasswordUpdate");
+                regRspUserAuthMethod = GetDelegate<DelegateRegRspUserAuthMethod>("RegRspUserAuthMethod");
+                regRspGenUserCapcha = GetDelegate<DelegateRegRspGenUserCapcha>("RegRspGenUserCaptcha");
+                regRspGenUserText = GetDelegate<DelegateRegRspGenUserText>("RegRspGenUserText");
                 regErrRtnBankToFutureByFuture = GetDelegate<DelegateRegErrRtnBankToFutureByFuture>("RegErrRtnBankToFutureByFuture");
                 regErrRtnFutureToBankByFuture = GetDelegate<DelegateRegErrRtnFutureToBankByFuture>("RegErrRtnFutureToBankByFuture");
                 regErrRtnOrderAction = GetDelegate<DelegateRegErrRtnOrderAction>("RegErrRtnOrderAction");
@@ -548,17 +1225,12 @@ namespace CTPTradeApi
                 regRspRemoveParkedOrder = GetDelegate<DelegateRegRspRemoveParkedOrder>("RegRspRemoveParkedOrder");
                 regRspRemoveParkedOrderAction = GetDelegate<DelegateRegRspRemoveParkedOrderAction>("RegRspRemoveParkedOrderAction");
                 regRspSettlementInfoConfirm = GetDelegate<DelegateRegRspSettlementInfoConfirm>("RegRspSettlementInfoConfirm");
-                regRspTradingAccountPasswordUpdate = GetDelegate<DelegateRegRspTradingAccountPasswordUpdate>("RegRspTradingAccountPasswordUpdate");
-                regRspUserLogin = GetDelegate<DelegateRegRspUserLogin>("RegRspUserLogin");
-                regRspUserLogout = GetDelegate<DelegateRegRspUserLogout>("RegRspUserLogout");
-                regRspUserPasswordUpdate = GetDelegate<DelegateRegRspUserPasswordUpdate>("RegRspUserPasswordUpdate");
                 regRtnErrorConditionalOrder = GetDelegate<DelegateRegRtnErrorConditionalOrder>("RegRtnErrorConditionalOrder");
                 regRtnFromBankToFutureByBank = GetDelegate<DelegateRegRtnFromBankToFutureByBank>("RegRtnFromBankToFutureByBank");
                 regRtnFromBankToFutureByFuture = GetDelegate<DelegateRegRtnFromBankToFutureByFuture>("RegRtnFromBankToFutureByFuture");
                 regRtnFromFutureToBankByBank = GetDelegate<DelegateRegRtnFromFutureToBankByBank>("RegRtnFromFutureToBankByBank");
                 regRtnFromFutureToBankByFuture = GetDelegate<DelegateRegRtnFromFutureToBankByFuture>("RegRtnFromFutureToBankByFuture");
                 regRtnInstrumentStatus = GetDelegate<DelegateRegRtnInstrumentStatus>("RegRtnInstrumentStatus");
-                regRtnOrder = GetDelegate<DelegateRegRtnOrder>("RegRtnOrder");
                 regRtnQueryBankBalanceByFuture = GetDelegate<DelegateRegRtnQueryBankBalanceByFuture>("RegRtnQueryBankBalanceByFuture");
                 regRtnRepealFromBankToFutureByBank = GetDelegate<DelegateRegRtnRepealFromBankToFutureByBank>("RegRtnRepealFromBankToFutureByBank");
                 regRtnRepealFromBankToFutureByFuture = GetDelegate<DelegateRegRtnRepealFromBankToFutureByFuture>("RegRtnRepealFromBankToFutureByFuture");
@@ -566,6 +1238,7 @@ namespace CTPTradeApi
                 regRtnRepealFromFutureToBankByBank = GetDelegate<DelegateRegRtnRepealFromFutureToBankByBank>("RegRtnRepealFromFutureToBankByBank");
                 regRtnRepealFromFutureToBankByFuture = GetDelegate<DelegateRegRtnRepealFromFutureToBankByFuture>("RegRtnRepealFromFutureToBankByFuture");
                 regRtnRepealFromFutureToBankByFutureManual = GetDelegate<DelegateRegRtnRepealFromFutureToBankByFutureManual>("RegRtnRepealFromFutureToBankByFutureManual");
+                regRtnOrder = GetDelegate<DelegateRegRtnOrder>("RegRtnOrder");
                 regRtnTrade = GetDelegate<DelegateRegRtnTrade>("RegRtnTrade");
                 regRtnTradingNotice = GetDelegate<DelegateRegRtnTradingNotice>("RegRtnTradingNotice");
 
@@ -652,13 +1325,15 @@ namespace CTPTradeApi
         /// <param name="investorID">投资者账号</param>
         /// <param name="productInfo">产品信息</param>
         /// <param name="authCode">认证代码</param>
+        /// <param name="appID">应用代码</param>
         /// <returns></returns>
-        public int Authenticate(int requestID, string investorID, string productInfo, string authCode)
+        public int Authenticate(int requestID, string investorID, string productInfo, string authCode, string appID)
         {
             this.InvestorID = investorID;
             this.ProductInfo = productInfo;
             this.AuthCode = authCode;
-            return reqAuthenticate(_handle, requestID, this.BrokerID, investorID, productInfo, authCode);
+            this.AppID = AppID;
+            return reqAuthenticate(_handle, requestID, this.BrokerID, investorID, productInfo, authCode, appID);
         }
 
         /// <summary>
@@ -667,13 +1342,14 @@ namespace CTPTradeApi
         /// <param name="requestID">请求编号</param>
         /// <param name="investorID">投资者账号</param>
         /// <param name="password">密码</param>
+        /// <param name="oneTimePassword">动态密码</param>
         /// <returns></returns>
-        public int UserLogin(int requestID, string investorID, string password)
+        public int UserLogin(int requestID, string investorID, string password, string oneTimePassword = null)
         {
             this.InvestorID = investorID;
             this._password = password;
-            return reqUserLogin(_handle, requestID, this.BrokerID, investorID, password, this.MacAddress,
-                this.ProductInfo);
+            return reqUserLogin(_handle, requestID, this.BrokerID, investorID, password, oneTimePassword,
+                this.MacAddress, this.ProductInfo, this.InterfaceInfo, this.ProtocolInfo);
         }
 
         /// <summary>
@@ -717,13 +1393,14 @@ namespace CTPTradeApi
         /// <param name="requestID">请求编号</param>
         /// <param name="investorID">投资者账号</param>
         /// <param name="password">密码</param>
+        /// <param name="oneTimePassword">动态密码</param>
         /// <returns></returns>
-        public int UserSafeLogin(int requestID, string investorID, string password)
+        public int UserSafeLogin(int requestID, string investorID, string password, string oneTimePassword = null)
         {
             this.InvestorID = investorID;
             this._password = password;
-            return reqUserSafeLogin(_handle, requestID, this.BrokerID, this.InvestorID, this._password,
-                this.MacAddress, this.ProductInfo);
+            return reqSafeUserLogin(_handle, requestID, this.BrokerID, investorID, password, oneTimePassword,
+                this.MacAddress, this.ProductInfo, this.InterfaceInfo, this.ProtocolInfo);
         }
 
         /// <summary>
@@ -735,7 +1412,79 @@ namespace CTPTradeApi
         /// <param name="newPassword">新密码</param>
         public int UserPasswordSafeUpdate(int requestID, string userID, string oldPassword, string newPassword)
         {
-            return reqUserPasswordSafeUpdate(_handle, requestID, this.BrokerID, userID, oldPassword, newPassword);
+            return reqSafeUserPasswordUpdate(_handle, requestID, this.BrokerID, userID, oldPassword, newPassword);
+        }
+
+        /// <summary>
+        /// 查询用户当前支持的认证模式
+        /// </summary>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="brokerID">经纪公司代码</param>
+        /// <param name="userID">用户代码</param>
+        /// <param name="tradingDay">交易日</param>
+        /// <returns></returns>
+        public int UserAuthMethod(int requestID, string brokerID, string userID, string tradingDay)
+        {
+            return reqUserAuthMethod(_handle, requestID, brokerID, userID, tradingDay);
+        }
+
+        /// <summary>
+        /// 用户发出获取图形验证码请求
+        /// </summary>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="brokerID">经纪公司代码</param>
+        /// <param name="userID">用户代码</param>
+        /// <param name="tradingDay">交易日</param>
+        /// <returns></returns>
+        public int GenUserCaptcha(int requestID, string brokerID, string userID, string tradingDay)
+        {
+            return reqGenUserCaptcha(_handle, requestID, brokerID, userID, tradingDay);
+        }
+
+        /// <summary>
+        /// 用户发出获取短信验证码请求
+        /// </summary>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="brokerID">经纪公司代码</param>
+        /// <param name="userID">用户代码</param>
+        /// <param name="tradingDay">交易日</param>
+        /// <returns></returns>
+        public int GenUserText(int requestID, string brokerID, string userID, string tradingDay)
+        {
+            return reqGenUserText(_handle, requestID, brokerID, userID, tradingDay);
+        }
+
+        /// <summary>
+        /// 用户发出带有图片验证码的登录请求
+        /// </summary>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="req">待验证码的登录请求</param>
+        /// <returns></returns>
+        public int UserLoginWithCaptcha(int requestID, CThostFtdcReqUserLoginWithCaptchaField req)
+        {
+            return reqUserLoginWithCaptcha(_handle, requestID, ref req);
+        }
+
+        /// <summary>
+        /// 用户发出带有短信验证码的登录请求
+        /// </summary>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="req">待验证码的登录请求</param>
+        /// <returns></returns>
+        public int UserLoginWithText(int requestID, CThostFtdcReqUserLoginWithCaptchaField req)
+        {
+            return reqUserLoginWithText(_handle, requestID, ref req);
+        }
+
+        /// <summary>
+        /// 用户发出带有动态口令的登录请求
+        /// </summary>
+        /// <param name="requestID">请求编号</param>
+        /// <param name="req">待验证码的登录请求</param>
+        /// <returns></returns>
+        public int UserLoginWithOTP(int requestID, CThostFtdcReqUserLoginWithCaptchaField req)
+        {
+            return reqUserLoginWithOTP(_handle, requestID, ref req);
         }
 
         /// <summary>
@@ -937,15 +1686,15 @@ namespace CTPTradeApi
         public int QueryOrder(int requestID, string exchangeID = null, string timeStart = null, string timeEnd = null,
             string instrumentID = null, string orderSysID = null)
         {
-            CThostFtdcQryOrderField tmp = new CThostFtdcQryOrderField();
-            tmp.BrokerID = this.BrokerID;
-            tmp.InvestorID = this.InvestorID;
-            tmp.ExchangeID = exchangeID;
-            tmp.InsertTimeStart = timeStart;
-            tmp.InsertTimeEnd = timeEnd;
-            tmp.InstrumentID = instrumentID;
-            tmp.OrderSysID = orderSysID;
-            return reqQueryOrder(_handle, requestID, ref tmp);
+            CThostFtdcQryOrderField order = new CThostFtdcQryOrderField();
+            order.BrokerID = this.BrokerID;
+            order.InvestorID = this.InvestorID;
+            order.ExchangeID = exchangeID;
+            order.InsertTimeStart = timeStart;
+            order.InsertTimeEnd = timeEnd;
+            order.InstrumentID = instrumentID;
+            order.OrderSysID = orderSysID;
+            return reqQueryOrder(_handle, requestID, ref order);
         }
 
         /// <summary>
@@ -1191,28 +1940,28 @@ namespace CTPTradeApi
         public int ParkedOrderInsert(int requestID, string instrumentID, TThostFtdcOffsetFlagType offsetFlag,
             TThostFtdcDirectionType direction, double price, int volume, string orderRef = "")
         {
-            CThostFtdcParkedOrderField tmp = new CThostFtdcParkedOrderField();
-            tmp.BrokerID = this.BrokerID;
-            tmp.BusinessUnit = null;
-            tmp.ContingentCondition = TThostFtdcContingentConditionType.ParkedOrder;
-            tmp.ForceCloseReason = TThostFtdcForceCloseReasonType.NotForceClose;
-            tmp.InvestorID = this.InvestorID;
-            tmp.IsAutoSuspend = (int)TThostFtdcBoolType.No;
-            tmp.MinVolume = 1;
-            tmp.OrderPriceType = TThostFtdcOrderPriceTypeType.LimitPrice;
-            tmp.OrderRef = orderRef;
-            tmp.TimeCondition = TThostFtdcTimeConditionType.GFD;
-            tmp.UserForceClose = (int)TThostFtdcBoolType.No;
-            tmp.UserID = this.InvestorID;
-            tmp.VolumeCondition = TThostFtdcVolumeConditionType.AV;
-            tmp.CombHedgeFlag = TThostFtdcHedgeFlagType.Speculation;
+            CThostFtdcParkedOrderField order = new CThostFtdcParkedOrderField();
+            order.BrokerID = this.BrokerID;
+            order.BusinessUnit = null;
+            order.ContingentCondition = TThostFtdcContingentConditionType.ParkedOrder;
+            order.ForceCloseReason = TThostFtdcForceCloseReasonType.NotForceClose;
+            order.InvestorID = this.InvestorID;
+            order.IsAutoSuspend = (int)TThostFtdcBoolType.No;
+            order.MinVolume = 1;
+            order.OrderPriceType = TThostFtdcOrderPriceTypeType.LimitPrice;
+            order.OrderRef = orderRef;
+            order.TimeCondition = TThostFtdcTimeConditionType.GFD;
+            order.UserForceClose = (int)TThostFtdcBoolType.No;
+            order.UserID = this.InvestorID;
+            order.VolumeCondition = TThostFtdcVolumeConditionType.AV;
+            order.CombHedgeFlag = TThostFtdcHedgeFlagType.Speculation;
 
-            tmp.InstrumentID = instrumentID;
-            tmp.CombOffsetFlag = offsetFlag;
-            tmp.Direction = direction;
-            tmp.LimitPrice = price;
-            tmp.VolumeTotalOriginal = volume;
-            return reqParkedOrderInsert(_handle, requestID, ref tmp);
+            order.InstrumentID = instrumentID;
+            order.CombOffsetFlag = offsetFlag;
+            order.Direction = direction;
+            order.LimitPrice = price;
+            order.VolumeTotalOriginal = volume;
+            return reqParkedOrderInsert(_handle, requestID, ref order);
         }
 
         /// <summary>
@@ -1240,21 +1989,21 @@ namespace CTPTradeApi
 		public int ParkedOrderAction(int requestID, string instrumentID, int frontID, int sessionID, string orderRef,
             string exchangeID = null, string orderSysID = null)
         {
-            CThostFtdcParkedOrderActionField tmp = new CThostFtdcParkedOrderActionField();
-            tmp.ActionFlag = TThostFtdcActionFlagType.Delete;
-            tmp.BrokerID = this.BrokerID;
-            tmp.InvestorID = this.InvestorID;
+            CThostFtdcParkedOrderActionField order = new CThostFtdcParkedOrderActionField();
+            order.ActionFlag = TThostFtdcActionFlagType.Delete;
+            order.BrokerID = this.BrokerID;
+            order.InvestorID = this.InvestorID;
             //tmp.UserID = this.InvestorID;
-            tmp.InstrumentID = instrumentID;
+            order.InstrumentID = instrumentID;
             //tmp.VolumeChange = int.Parse(lvi.SubItems["VolumeTotalOriginal"].Text);
 
-            tmp.FrontID = frontID;
-            tmp.SessionID = sessionID;
-            tmp.OrderRef = orderRef;
-            tmp.ExchangeID = exchangeID;
+            order.FrontID = frontID;
+            order.SessionID = sessionID;
+            order.OrderRef = orderRef;
+            order.ExchangeID = exchangeID;
             if (orderSysID != null)
-                tmp.OrderSysID = new string('\0', 21 - orderSysID.Length) + orderSysID; //OrderSysID右对齐
-            return reqParkedOrderAction(_handle, requestID, ref tmp);
+                order.OrderSysID = new string('\0', 21 - orderSysID.Length) + orderSysID; //OrderSysID右对齐
+            return reqParkedOrderAction(_handle, requestID, ref order);
         }
 
         /// <summary>
@@ -1382,1578 +2131,77 @@ namespace CTPTradeApi
 
         #endregion
 
-        #region 连接响应
+        #region 接口结果回调事件
 
-        FrontConnect frontConnect;
-
-        /// <summary>
-        /// 建立连接委托
-        /// </summary>
-        public delegate void FrontConnect();
+        private FrontConnect frontConnect;
 
         /// <summary>
         /// 当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
         /// </summary>
         public event FrontConnect OnFrontConnect
         {
-            add { frontConnect += value; regOnFrontConnected(_spi, frontConnect); }
-            remove { frontConnect -= value; regOnFrontConnected(_spi, frontConnect); }
+            add
+            {
+                frontConnect += value; regOnFrontConnected(_spi, frontConnect);
+            }
+            remove
+            {
+                frontConnect -= value; regOnFrontConnected(_spi, frontConnect);
+            }
         }
 
-        #endregion
-
-        #region 断开连接响应
-
-        Disconnected disConnected;
-
-        /// <summary>
-        /// 断开连接委托
-        /// </summary>
-        /// <param name="reason">失败原因</param>
-        public delegate void Disconnected(int reason);
+        private Disconnected disConnected;
 
         /// <summary>
         /// 当客户端与交易后台通信连接断开时，该方法被调用。当发生这个情况后，API会自动重新连接，客户端可不做处理。
         /// </summary>
         public event Disconnected OnDisconnected
         {
-            add { disConnected += value; regOnDisConnected(_spi, disConnected); }
-            remove { disConnected -= value; regOnDisConnected(_spi, disConnected); }
+            add
+            {
+                disConnected += value; regOnDisConnected(_spi, disConnected);
+            }
+            remove
+            {
+                disConnected -= value; regOnDisConnected(_spi, disConnected);
+            }
         }
 
-        #endregion
-
-        #region 心跳响应
-
-        HeartBeatWarning heartBeatWarning;
-
-        /// <summary>
-        /// 心跳超时警告委托
-        /// </summary>
-        /// <param name="pTimeLapes">超时时间</param>
-        public delegate void HeartBeatWarning(int pTimeLapes);
+        private HeartBeatWarning heartBeatWarning;
 
         /// <summary>
         /// 心跳超时警告。当长时间未收到报文时，该方法被调用。
         /// </summary>
         public event HeartBeatWarning OnHeartBeatWarning
         {
-            add { heartBeatWarning += value; regOnHeartBeatWarning(_spi, heartBeatWarning); }
-            remove { heartBeatWarning -= value; regOnHeartBeatWarning(_spi, heartBeatWarning); }
+            add
+            {
+                heartBeatWarning += value; regOnHeartBeatWarning(_spi, heartBeatWarning);
+            }
+            remove
+            {
+                heartBeatWarning -= value; regOnHeartBeatWarning(_spi, heartBeatWarning);
+            }
         }
 
-        #endregion
-
-        #region 客户端认证
-
-        RspAuthenticate rspAuthenticate;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pRspAuthenticate">客户端认证响应</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-        public delegate void RspAuthenticate(ref CThostFtdcRspAuthenticateField pRspAuthenticate,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+        private RspAuthenticate rspAuthenticate;
 
         /// <summary>
         /// 客户端认证回报
         /// </summary>
         public event RspAuthenticate OnRspAuthenticate
         {
-            add { rspAuthenticate += value; regRspAuthenticate(_spi, rspAuthenticate); }
-            remove { rspAuthenticate -= value; regRspAuthenticate(_spi, rspAuthenticate); }
-        }
-
-        #endregion
-
-        #region 期货发起银行资金转期货错误回报
-
-        ErrRtnBankToFutureByFuture errRtnBankToFutureByFuture;
-
-        /// <summary>
-        /// 期货发起银行资金转期货错误回报委托
-        /// </summary>
-        /// <param name="pReqTransfer">转账请求</param>
-        /// <param name="pRspInfo">响应信息</param>
-		public delegate void ErrRtnBankToFutureByFuture(ref CThostFtdcReqTransferField pReqTransfer,
-            ref CThostFtdcRspInfoField pRspInfo);
-
-        /// <summary>
-		/// 期货发起银行资金转期货错误回报
-		/// </summary>
-		public event ErrRtnBankToFutureByFuture OnErrRtnBankToFutureByFuture
-        {
-            add { errRtnBankToFutureByFuture += value; regErrRtnBankToFutureByFuture(_spi, errRtnBankToFutureByFuture); }
-            remove { errRtnBankToFutureByFuture -= value; regErrRtnBankToFutureByFuture(_spi, errRtnBankToFutureByFuture); }
-        }
-
-        #endregion
-
-        #region 期货发起期货资金转银行错误回报
-
-        ErrRtnFutureToBankByFuture errRtnFutureToBankByFuture;
-
-        /// <summary>
-        /// 期货发起期货资金转银行错误回报委托
-        /// </summary>
-        /// <param name="pReqTransfer">转账请求</param>
-        /// <param name="pRspInfo">响应信息</param>
-		public delegate void ErrRtnFutureToBankByFuture(ref CThostFtdcReqTransferField pReqTransfer,
-            ref CThostFtdcRspInfoField pRspInfo);
-
-        /// <summary>
-        /// 期货发起期货资金转银行错误回报
-        /// </summary>
-        public event ErrRtnFutureToBankByFuture OnErrRtnFutureToBankByFuture
-        {
-            add { errRtnFutureToBankByFuture += value; regErrRtnFutureToBankByFuture(_spi, errRtnFutureToBankByFuture); }
-            remove { errRtnFutureToBankByFuture -= value; regErrRtnFutureToBankByFuture(_spi, errRtnFutureToBankByFuture); }
-        }
-
-        #endregion
-
-        #region 报单操作错误回报
-
-        ErrRtnOrderAction errRtnOrderAction;
-
-        /// <summary>
-        /// 报单操作错误回报委托
-        /// </summary>
-        /// <param name="pOrderAction">报单操作</param>
-        /// <param name="pRspInfo">响应信息</param>
-		public delegate void ErrRtnOrderAction(ref CThostFtdcOrderActionField pOrderAction,
-            ref CThostFtdcRspInfoField pRspInfo);
-
-        /// <summary>
-        /// 报单操作错误回报
-        /// </summary>
-        public event ErrRtnOrderAction OnErrRtnOrderAction
-        {
-            add { errRtnOrderAction += value; regErrRtnOrderAction(_spi, errRtnOrderAction); }
-            remove { errRtnOrderAction -= value; regErrRtnOrderAction(_spi, errRtnOrderAction); }
-        }
-
-        #endregion
-
-        #region 报单录入错误回报
-
-        ErrRtnOrderInsert errRtnOrderInsert;
-
-        /// <summary>
-        /// 报单录入错误回报委托
-        /// </summary>
-        /// <param name="pInputOrder">输入报单</param>
-        /// <param name="pRspInfo">响应信息</param>
-		public delegate void ErrRtnOrderInsert(ref CThostFtdcInputOrderField pInputOrder,
-            ref CThostFtdcRspInfoField pRspInfo);
-
-        /// <summary>
-        /// 报单录入错误回报
-        /// </summary>
-        public event ErrRtnOrderInsert OnErrRtnOrderInsert
-        {
-            add { errRtnOrderInsert += value; regErrRtnOrderInsert(_spi, errRtnOrderInsert); }
-            remove { errRtnOrderInsert -= value; regErrRtnOrderInsert(_spi, errRtnOrderInsert); }
-        }
-
-        #endregion
-
-        #region 期货发起查询银行余额错误回报
-
-        ErrRtnQueryBankBalanceByFuture errRtnQueryBankBalanceByFuture;
-
-        /// <summary>
-        /// 期货发起查询银行余额错误回报委托
-        /// </summary>
-        /// <param name="pReqQueryAccount">查询账户信息请求</param>
-        /// <param name="pRspInfo">响应信息</param>
-		public delegate void ErrRtnQueryBankBalanceByFuture(ref CThostFtdcReqQueryAccountField pReqQueryAccount,
-            ref CThostFtdcRspInfoField pRspInfo);
-
-        /// <summary>
-        /// 期货发起查询银行余额错误回报
-        /// </summary>
-        public event ErrRtnQueryBankBalanceByFuture OnErrRtnQueryBankBalanceByFuture
-        {
             add
             {
-                errRtnQueryBankBalanceByFuture += value;
-                regErrRtnQueryBankBalanceByFuture(_spi, errRtnQueryBankBalanceByFuture);
+                rspAuthenticate += value; regRspAuthenticate(_spi, rspAuthenticate);
             }
             remove
             {
-                errRtnQueryBankBalanceByFuture -= value;
-                regErrRtnQueryBankBalanceByFuture(_spi, errRtnQueryBankBalanceByFuture);
+                rspAuthenticate -= value; regRspAuthenticate(_spi, rspAuthenticate);
             }
         }
 
-        #endregion
-
-        #region 期货端手工发起冲正银行转期货错误回报
-
-        ErrRtnRepealBankToFutureByFutureManual errRtnRepealBankToFutureByFutureManual;
-
-        /// <summary>
-        /// 系统运行时期货端手工发起冲正银行转期货错误回报委托
-        /// </summary>
-        /// <param name="pReqRepeal">冲正请求</param>
-        /// <param name="pRspInfo">响应信息</param>
-		public delegate void ErrRtnRepealBankToFutureByFutureManual(ref CThostFtdcReqRepealField pReqRepeal,
-            ref CThostFtdcRspInfoField pRspInfo);
-
-        /// <summary>
-        /// 系统运行时期货端手工发起冲正银行转期货错误回报
-        /// </summary>
-        public event ErrRtnRepealBankToFutureByFutureManual OnErrRtnRepealBankToFutureByFutureManual
-        {
-            add
-            {
-                errRtnRepealBankToFutureByFutureManual += value;
-                regErrRtnRepealBankToFutureByFutureManual(_spi, errRtnRepealBankToFutureByFutureManual);
-            }
-            remove
-            {
-                errRtnRepealBankToFutureByFutureManual -= value;
-                regErrRtnRepealBankToFutureByFutureManual(_spi, errRtnRepealBankToFutureByFutureManual);
-            }
-        }
-
-        #endregion
-
-        #region 期货端手工发起冲正期货转银行错误回报
-
-        ErrRtnRepealFutureToBankByFutureManual errRtnRepealFutureToBankByFutureManual;
-
-        /// <summary>
-        /// 系统运行时期货端手工发起冲正期货转银行错误回报委托
-        /// </summary>
-        /// <param name="pReqRepeal">冲正请求</param>
-        /// <param name="pRspInfo">响应信息</param>
-		public delegate void ErrRtnRepealFutureToBankByFutureManual(ref CThostFtdcReqRepealField pReqRepeal,
-            ref CThostFtdcRspInfoField pRspInfo);
-
-        /// <summary>
-        /// 系统运行时期货端手工发起冲正期货转银行错误回报
-        /// </summary>
-        public event ErrRtnRepealFutureToBankByFutureManual OnErrRtnRepealFutureToBankByFutureManual
-        {
-            add
-            {
-                errRtnRepealFutureToBankByFutureManual += value;
-                regErrRtnRepealFutureToBankByFutureManual(_spi, errRtnRepealFutureToBankByFutureManual);
-            }
-            remove
-            {
-                errRtnRepealFutureToBankByFutureManual -= value;
-                regErrRtnRepealFutureToBankByFutureManual(_spi, errRtnRepealFutureToBankByFutureManual);
-            }
-        }
-
-        #endregion
-
-        #region 错误应答
-
-        RspError rspError;
-
-        /// <summary>
-        /// 错误应答委托
-        /// </summary>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspError(ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 错误应答
-        /// </summary>
-        public event RspError OnRspError
-        {
-            add
-            {
-                rspError += value;
-                regRspError(_spi, rspError);
-            }
-            remove
-            {
-                rspError -= value;
-                regRspError(_spi, rspError);
-            }
-        }
-
-        #endregion
-
-        #region 期货发起银行资金转期货应答
-
-        RspFromBankToFutureByFuture rspFromBankToFutureByFuture;
-
-        /// <summary>
-        /// 期货发起银行资金转期货应答委托
-        /// </summary>
-        /// <param name="pReqTransfer">转账请求</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspFromBankToFutureByFuture(ref CThostFtdcReqTransferField pReqTransfer,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 期货发起银行资金转期货应答
-        /// </summary>
-        public event RspFromBankToFutureByFuture OnRspFromBankToFutureByFuture
-        {
-            add
-            {
-                rspFromBankToFutureByFuture += value;
-                regRspFromBankToFutureByFuture(_spi, rspFromBankToFutureByFuture);
-            }
-            remove
-            {
-                rspFromBankToFutureByFuture -= value;
-                regRspFromBankToFutureByFuture(_spi, rspFromBankToFutureByFuture);
-            }
-        }
-
-        #endregion
-
-        #region 期货发起期货资金转银行应答
-
-        RspFromFutureToBankByFuture rspFromFutureToBankByFuture;
-
-        /// <summary>
-        /// 期货发起期货资金转银行应答委托
-        /// </summary>
-        /// <param name="pReqTransfer">转账请求</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspFromFutureToBankByFuture(ref CThostFtdcReqTransferField pReqTransfer,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 期货发起期货资金转银行应答
-        /// </summary>
-        public event RspFromFutureToBankByFuture OnRspFromFutureToBankByFuture
-        {
-            add
-            {
-                rspFromFutureToBankByFuture += value;
-                regRspFromFutureToBankByFuture(_spi, rspFromFutureToBankByFuture);
-            }
-            remove
-            {
-                rspFromFutureToBankByFuture -= value;
-                regRspFromFutureToBankByFuture(_spi, rspFromFutureToBankByFuture);
-            }
-        }
-
-        #endregion
-
-        #region 报单操作请求响应
-
-        RspOrderAction rspOrderAction;
-
-        /// <summary>
-        /// 报单操作请求响应委托
-        /// </summary>
-        /// <param name="pInputOrderAction">输入报单</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspOrderAction(ref CThostFtdcInputOrderActionField pInputOrderAction,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 报单操作请求响应
-        /// </summary>
-        public event RspOrderAction OnRspOrderAction
-        {
-            add
-            {
-                rspOrderAction += value;
-                regRspOrderAction(_spi, rspOrderAction);
-            }
-            remove
-            {
-                rspOrderAction -= value;
-                regRspOrderAction(_spi, rspOrderAction);
-            }
-        }
-
-        #endregion
-
-        #region 报单录入请求响应
-
-        RspOrderInsert rspOrderInsert;
-
-        /// <summary>
-        /// 报单录入请求响应委托
-        /// </summary>
-        /// <param name="pInputOrder">输入报单</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspOrderInsert(ref CThostFtdcInputOrderField pInputOrder,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 报单录入请求响应
-        /// </summary>
-        public event RspOrderInsert OnRspOrderInsert
-        {
-            add
-            {
-                rspOrderInsert += value;
-                regRspOrderInsert(_spi, rspOrderInsert);
-            }
-            remove
-            {
-                rspOrderInsert -= value;
-                regRspOrderInsert(_spi, rspOrderInsert);
-            }
-        }
-
-        #endregion
-
-        #region 预埋撤单录入请求响应
-
-        RspParkedOrderAction rspParkedOrderAction;
-
-        /// <summary>
-        /// 预埋撤单录入请求响应委托
-        /// </summary>
-        /// <param name="pParkedOrderAction">录入预埋单</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspParkedOrderAction(ref CThostFtdcParkedOrderActionField pParkedOrderAction,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 预埋撤单录入请求响应
-        /// </summary>
-        public event RspParkedOrderAction OnRspParkedOrderAction
-        {
-            add
-            {
-                rspParkedOrderAction += value;
-                regRspParkedOrderAction(_spi, rspParkedOrderAction);
-            }
-            remove
-            {
-                rspParkedOrderAction -= value;
-                regRspParkedOrderAction(_spi, rspParkedOrderAction);
-            }
-        }
-
-        #endregion
-
-        #region 预埋单录入请求响应
-
-        RspParkedOrderInsert rspParkedOrderInsert;
-
-        /// <summary>
-        /// 预埋单录入请求响应委托
-        /// </summary>
-        /// <param name="pParkedOrder">预埋单</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspParkedOrderInsert(ref CThostFtdcParkedOrderField pParkedOrder,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 预埋单录入请求响应
-        /// </summary>
-        public event RspParkedOrderInsert OnRspParkedOrderInsert
-        {
-            add
-            {
-                rspParkedOrderInsert += value;
-                regRspParkedOrderInsert(_spi, rspParkedOrderInsert);
-            }
-            remove
-            {
-                rspParkedOrderInsert -= value;
-                regRspParkedOrderInsert(_spi, rspParkedOrderInsert);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询经纪公司交易算法响应
-
-        RspQryBrokerTradingAlgos rspQryBrokerTradingAlgos;
-
-        /// <summary>
-        /// 请求查询经纪公司交易算法响应委托
-        /// </summary>
-        /// <param name="pBrokerTradingAlgos">经纪公司交易算法</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryBrokerTradingAlgos(ref CThostFtdcBrokerTradingAlgosField pBrokerTradingAlgos,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询经纪公司交易算法响应
-        /// </summary>
-        public event RspQryBrokerTradingAlgos OnRspQryBrokerTradingAlgos
-        {
-            add
-            {
-                rspQryBrokerTradingAlgos += value;
-                regRspQueryBrokerTradingAlgos(_spi, rspQryBrokerTradingAlgos);
-            }
-            remove
-            {
-                rspQryBrokerTradingAlgos -= value;
-                regRspQueryBrokerTradingAlgos(_spi, rspQryBrokerTradingAlgos);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询经纪公司交易参数响应
-
-        RspQryBrokerTradingParams rspQryBrokerTradingParams;
-
-        /// <summary>
-        /// 请求查询经纪公司交易参数响应委托
-        /// </summary>
-        /// <param name="pBrokerTradingParams">经纪公司交易参数</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryBrokerTradingParams(ref CThostFtdcBrokerTradingParamsField pBrokerTradingParams,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询经纪公司交易参数响应
-        /// </summary>
-        public event RspQryBrokerTradingParams OnRspQryBrokerTradingParams
-        {
-            add
-            {
-                rspQryBrokerTradingParams += value;
-                regRspQueryBrokerTradingParams(_spi, rspQryBrokerTradingParams);
-            }
-            remove
-            {
-                rspQryBrokerTradingParams -= value;
-                regRspQueryBrokerTradingParams(_spi, rspQryBrokerTradingParams);
-            }
-        }
-
-        #endregion
-
-        #region 查询保证金监管系统经纪公司资金账户密钥响应
-
-        RspQryCFMMCTradingAccountKey rspQryCFMMCTradingAccountKey;
-
-        /// <summary>
-        /// 查询保证金监管系统经纪公司资金账户密钥响应委托
-        /// </summary>
-        /// <param name="pCFMMCTradingAccountKey">保证金监管系统经纪公司资金账户密钥</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryCFMMCTradingAccountKey(
-            ref CThostFtdcCFMMCTradingAccountKeyField pCFMMCTradingAccountKey,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 查询保证金监管系统经纪公司资金账户密钥响应
-        /// </summary>
-        public event RspQryCFMMCTradingAccountKey OnRspQryCFMMCTradingAccountKey
-        {
-            add
-            {
-                rspQryCFMMCTradingAccountKey += value;
-                regRspQueryCFMMCTradingAccountKey(_spi, rspQryCFMMCTradingAccountKey);
-            }
-            remove
-            {
-                rspQryCFMMCTradingAccountKey -= value;
-                regRspQueryCFMMCTradingAccountKey(_spi, rspQryCFMMCTradingAccountKey);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询签约银行响应
-
-        RspQryContractBank rspQryContractBank;
-
-        /// <summary>
-        /// 请求查询签约银行响应委托
-        /// </summary>
-        /// <param name="pContractBank">查询签约银行响应</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryContractBank(ref CThostFtdcContractBankField pContractBank,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询签约银行响应
-        /// </summary>
-        public event RspQryContractBank OnRspQryContractBank
-        {
-            add
-            {
-                rspQryContractBank += value;
-                regRspQueryContractBank(_spi, rspQryContractBank);
-            }
-            remove
-            {
-                rspQryContractBank -= value;
-                regRspQueryContractBank(_spi, rspQryContractBank);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询行情响应
-
-        RspQryDepthMarketData rspQryDepthMarketData;
-
-        /// <summary>
-        /// 请求查询行情响应委托
-        /// </summary>
-        /// <param name="pDepthMarketData">深度行情</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryDepthMarketData(ref CThostFtdcDepthMarketDataField pDepthMarketData,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询行情响应
-        /// </summary>
-        public event RspQryDepthMarketData OnRspQryDepthMarketData
-        {
-            add
-            {
-                rspQryDepthMarketData += value;
-                regRspQueryDepthMarketData(_spi, rspQryDepthMarketData);
-            }
-            remove
-            {
-                rspQryDepthMarketData -= value;
-                regRspQueryDepthMarketData(_spi, rspQryDepthMarketData);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询交易所响应
-
-        RspQryExchange rspQryExchange;
-
-        /// <summary>
-        /// 请求查询交易所响应委托
-        /// </summary>
-        /// <param name="pExchange">交易所</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryExchange(ref CThostFtdcExchangeField pExchange, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询交易所响应
-        /// </summary>
-        public event RspQryExchange OnRspQryExchange
-        {
-            add
-            {
-                rspQryExchange += value;
-                regRspQueryExchange(_spi, rspQryExchange);
-            }
-            remove
-            {
-                rspQryExchange -= value;
-                regRspQueryExchange(_spi, rspQryExchange);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询合约响应
-
-        RspQryInstrument rspQryInstrument;
-
-        /// <summary>
-        /// 请求查询合约响应委托
-        /// </summary>
-        /// <param name="pInstrument">合约</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryInstrument(ref CThostFtdcInstrumentField pInstrument,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询合约响应
-        /// </summary>
-        public event RspQryInstrument OnRspQryInstrument
-        {
-            add
-            {
-                rspQryInstrument += value;
-                regRspQueryInstrument(_spi, rspQryInstrument);
-            }
-            remove
-            {
-                rspQryInstrument -= value;
-                regRspQueryInstrument(_spi, rspQryInstrument);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询合约手续费率响应
-
-        RspQryInstrumentCommissionRate rspQryInstrumentCommissionRate;
-
-        /// <summary>
-        /// 请求查询合约手续费率响应委托
-        /// </summary>
-        /// <param name="pInstrumentCommissionRate">合约手续费率</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryInstrumentCommissionRate(
-            ref CThostFtdcInstrumentCommissionRateField pInstrumentCommissionRate, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询合约手续费率响应
-        /// </summary>
-        public event RspQryInstrumentCommissionRate OnRspQryInstrumentCommissionRate
-        {
-            add
-            {
-                rspQryInstrumentCommissionRate += value;
-                regRspQueryInstrumentCommissionRate(_spi, rspQryInstrumentCommissionRate);
-            }
-            remove
-            {
-                rspQryInstrumentCommissionRate -= value;
-                regRspQueryInstrumentCommissionRate(_spi, rspQryInstrumentCommissionRate);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询合约保证金率响应
-
-        RspQryInstrumentMarginRate rspQryInstrumentMarginRate;
-
-        /// <summary>
-        /// 请求查询合约保证金率响应委托
-        /// </summary>
-        /// <param name="pInstrumentMarginRate">合约保证金率</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryInstrumentMarginRate(ref CThostFtdcInstrumentMarginRateField pInstrumentMarginRate,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询合约保证金率响应
-        /// </summary>
-        public event RspQryInstrumentMarginRate OnRspQryInstrumentMarginRate
-        {
-            add
-            {
-                rspQryInstrumentMarginRate += value;
-                regRspQueryInstrumentMarginRate(_spi, rspQryInstrumentMarginRate);
-            }
-            remove
-            {
-                rspQryInstrumentMarginRate -= value;
-                regRspQueryInstrumentMarginRate(_spi, rspQryInstrumentMarginRate);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询投资者响应
-
-        RspQryInvestor rspQryInvestor;
-
-        /// <summary>
-        /// 请求查询投资者响应委托
-        /// </summary>
-        /// <param name="pInvestor">投资者</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryInvestor(ref CThostFtdcInvestorField pInvestor, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询投资者响应
-        /// </summary>
-        public event RspQryInvestor OnRspQryInvestor
-        {
-            add
-            {
-                rspQryInvestor += value;
-                regRspQueryInvestor(_spi, rspQryInvestor);
-            }
-            remove
-            {
-                rspQryInvestor -= value;
-                regRspQueryInvestor(_spi, rspQryInvestor);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询投资者持仓响应
-
-        RspQryInvestorPosition rspQryInvestorPosition;
-
-        /// <summary>
-        /// 请求查询投资者持仓响应委托
-        /// </summary>
-        /// <param name="pInvestorPosition">投资者持仓</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryInvestorPosition(ref CThostFtdcInvestorPositionField pInvestorPosition,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询投资者持仓响应
-        /// </summary>
-        public event RspQryInvestorPosition OnRspQryInvestorPosition
-        {
-            add
-            {
-                rspQryInvestorPosition += value;
-                regRspQueryInvestorPosition(_spi, rspQryInvestorPosition);
-            }
-            remove
-            {
-                rspQryInvestorPosition -= value;
-                regRspQueryInvestorPosition(_spi, rspQryInvestorPosition);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询投资者持仓明细响应
-
-        RspQryInvestorPositionCombineDetail rspQryInvestorPositionCombineDetail;
-
-        /// <summary>
-        /// 请求查询投资者持仓明细响应委托
-        /// </summary>
-        /// <param name="pInvestorPositionCombineDetail">投资者组合持仓明细</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryInvestorPositionCombineDetail(
-            ref CThostFtdcInvestorPositionCombineDetailField pInvestorPositionCombineDetail,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询投资者持仓明细响应
-        /// </summary>
-        public event RspQryInvestorPositionCombineDetail OnRspQryInvestorPositionCombineDetail
-        {
-            add
-            {
-                rspQryInvestorPositionCombineDetail += value;
-                regRspQueryInvestorPositionCombineDetail(_spi, rspQryInvestorPositionCombineDetail);
-            }
-            remove
-            {
-                rspQryInvestorPositionCombineDetail -= value;
-                regRspQueryInvestorPositionCombineDetail(_spi, rspQryInvestorPositionCombineDetail);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询投资者持仓明细响应
-
-        RspQryInvestorPositionDetail rspQryInvestorPositionDetail;
-
-        /// <summary>
-        /// 请求查询投资者持仓明细响应委托
-        /// </summary>
-        /// <param name="pInvestorPositionDetail">投资者持仓明细</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryInvestorPositionDetail(
-            ref CThostFtdcInvestorPositionDetailField pInvestorPositionDetail, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询投资者持仓明细响应
-        /// </summary>
-        public event RspQryInvestorPositionDetail OnRspQryInvestorPositionDetail
-        {
-            add
-            {
-                rspQryInvestorPositionDetail += value;
-                regRspQueryInvestorPositionDetail(_spi, rspQryInvestorPositionDetail);
-            }
-            remove
-            {
-                rspQryInvestorPositionDetail -= value;
-                regRspQueryInvestorPositionDetail(_spi, rspQryInvestorPositionDetail);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询客户通知响应
-
-        RspQryNotice rspQryNotice;
-
-        /// <summary>
-        /// 请求查询客户通知响应委托
-        /// </summary>
-        /// <param name="pNotice">客户通知</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryNotice(ref CThostFtdcNoticeField pNotice, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询客户通知响应
-        /// </summary>
-        public event RspQryNotice OnRspQryNotice
-        {
-            add
-            {
-                rspQryNotice += value;
-                regRspQueryNotice(_spi, rspQryNotice);
-            }
-            remove
-            {
-                rspQryNotice -= value;
-                regRspQueryNotice(_spi, rspQryNotice);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询报单响应
-
-        RspQryOrder rspQryOrder;
-
-        /// <summary>
-        /// 请求查询报单响应委托
-        /// </summary>
-        /// <param name="pOrder">报单</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryOrder(ref CThostFtdcOrderField pOrder, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询报单响应
-        /// </summary>
-        public event RspQryOrder OnRspQryOrder
-        {
-            add
-            {
-                rspQryOrder += value;
-                regRspQueryOrder(_spi, rspQryOrder);
-            }
-            remove
-            {
-                rspQryOrder -= value;
-                regRspQueryOrder(_spi, rspQryOrder);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询预埋单响应
-
-        RspQryParkedOrder rspQryParkedOrder;
-
-        /// <summary>
-        /// 请求查询预埋单响应委托
-        /// </summary>
-        /// <param name="pParkedOrder">预埋单</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryParkedOrder(ref CThostFtdcParkedOrderField pParkedOrder,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询预埋单响应
-        /// </summary>
-        public event RspQryParkedOrder OnRspQryParkedOrder
-        {
-            add
-            {
-                rspQryParkedOrder += value;
-                regRspQueryParkedOrder(_spi, rspQryParkedOrder);
-            }
-            remove
-            {
-                rspQryParkedOrder -= value;
-                regRspQueryParkedOrder(_spi, rspQryParkedOrder);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询预埋撤单响应
-
-        RspQryParkedOrderAction rspQryParkedOrderAction;
-
-        /// <summary>
-        /// 请求查询预埋撤单响应委托
-        /// </summary>
-        /// <param name="pParkedOrderAction">输入预埋单操作</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryParkedOrderAction(ref CThostFtdcParkedOrderActionField pParkedOrderAction,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询预埋撤单响应
-        /// </summary>
-        public event RspQryParkedOrderAction OnRspQryParkedOrderAction
-        {
-            add
-            {
-                rspQryParkedOrderAction += value;
-                regRspQueryParkedOrderAction(_spi, rspQryParkedOrderAction);
-            }
-            remove
-            {
-                rspQryParkedOrderAction -= value;
-                regRspQueryParkedOrderAction(_spi, rspQryParkedOrderAction);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询投资者结算结果响应
-
-        RspQrySettlementInfo rspQrySettlementInfo;
-
-        /// <summary>
-        /// 请求查询投资者结算结果响应委托
-        /// </summary>
-        /// <param name="pSettlementInfo">投资者结算结果</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQrySettlementInfo(ref CThostFtdcSettlementInfoField pSettlementInfo,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询投资者结算结果响应
-        /// </summary>
-        public event RspQrySettlementInfo OnRspQrySettlementInfo
-        {
-            add
-            {
-                rspQrySettlementInfo += value;
-                regRspQuerySettlementInfo(_spi, rspQrySettlementInfo);
-            }
-            remove
-            {
-                rspQrySettlementInfo -= value;
-                regRspQuerySettlementInfo(_spi, rspQrySettlementInfo);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询结算信息确认响应
-
-        RspQrySettlementInfoConfirm rspQrySettlementInfoConfirm;
-
-        /// <summary>
-        /// 请求查询结算信息确认响应委托
-        /// </summary>
-        /// <param name="pSettlementInfoConfirm">投资者结算结果确认信息</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQrySettlementInfoConfirm(
-            ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询结算信息确认响应
-        /// </summary>
-        public event RspQrySettlementInfoConfirm OnRspQrySettlementInfoConfirm
-        {
-            add
-            {
-                rspQrySettlementInfoConfirm += value;
-                regRspQuerySettlementInfoConfirm(_spi, rspQrySettlementInfoConfirm);
-            }
-            remove
-            {
-                rspQrySettlementInfoConfirm -= value;
-                regRspQuerySettlementInfoConfirm(_spi, rspQrySettlementInfoConfirm);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询成交响应
-
-        RspQryTrade rspQryTrade;
-        /// <summary>
-        /// 请求查询成交响应委托
-        /// </summary>
-        /// <param name="pTrade">成交</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryTrade(ref CThostFtdcTradeField pTrade, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询成交响应
-        /// </summary>
-        public event RspQryTrade OnRspQryTrade
-        {
-            add
-            {
-                rspQryTrade += value;
-                regRspQueryTrade(_spi, rspQryTrade);
-            }
-            remove
-            {
-                rspQryTrade -= value;
-                regRspQueryTrade(_spi, rspQryTrade);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询资金账户响应
-        RspQryTradingAccount rspQryTradingAccount;
-
-        /// <summary>
-        /// 请求查询资金账户响应委托
-        /// </summary>
-        /// <param name="pTradingAccount">资金账户</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryTradingAccount(ref CThostFtdcTradingAccountField pTradingAccount,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询资金账户响应
-        /// </summary>
-        public event RspQryTradingAccount OnRspQryTradingAccount
-        {
-            add
-            {
-                rspQryTradingAccount += value;
-                regRspQueryTradingAccount(_spi, rspQryTradingAccount);
-            }
-            remove
-            {
-                rspQryTradingAccount -= value;
-                regRspQueryTradingAccount(_spi, rspQryTradingAccount);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询交易编码响应
-
-        RspQryTradingCode rspQryTradingCode;
-
-        /// <summary>
-        /// 请求查询交易编码响应委托
-        /// </summary>
-        /// <param name="pTradingCode">交易编码</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryTradingCode(ref CThostFtdcTradingCodeField pTradingCode,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询交易编码响应
-        /// </summary>
-        public event RspQryTradingCode OnRspQryTradingCode
-        {
-            add
-            {
-                rspQryTradingCode += value;
-                regRspQueryTradingCode(_spi, rspQryTradingCode);
-            }
-            remove
-            {
-                rspQryTradingCode -= value;
-                regRspQueryTradingCode(_spi, rspQryTradingCode);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询交易通知响应
-
-        RspQryTradingNotice rspQryTradingNotice;
-        /// <summary>
-        /// 请求查询交易通知响应委托
-        /// </summary>
-        /// <param name="pTradingNotice">用户事件通知</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryTradingNotice(ref CThostFtdcTradingNoticeField pTradingNotice,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询交易通知响应
-        /// </summary>
-        public event RspQryTradingNotice OnRspQryTradingNotice
-        {
-            add
-            {
-                rspQryTradingNotice += value;
-                regRspQueryTradingNotice(_spi, rspQryTradingNotice);
-            }
-            remove
-            {
-                rspQryTradingNotice -= value;
-                regRspQueryTradingNotice(_spi, rspQryTradingNotice);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询转帐银行响应
-
-        RspQryTransferBank rspQryTransferBank;
-        /// <summary>
-        /// 请求查询转帐银行响应委托
-        /// </summary>
-        /// <param name="pTransferBank">转帐银行</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryTransferBank(ref CThostFtdcTransferBankField pTransferBank,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-        /// <summary>
-        /// 请求查询转帐银行响应
-        /// </summary>
-        public event RspQryTransferBank OnRspQryTransferBank
-        {
-            add
-            {
-                rspQryTransferBank += value;
-                regRspQueryTransferBank(_spi, rspQryTransferBank);
-            }
-            remove
-            {
-                rspQryTransferBank -= value;
-                regRspQueryTransferBank(_spi, rspQryTransferBank);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询转帐流水响应
-
-        RspQryTransferSerial rspQryTransferSerial;
-
-        /// <summary>
-        /// 请求查询转帐流水响应委托
-        /// </summary>
-        /// <param name="pTransferSerial">银期转账交易流水表</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQryTransferSerial(ref CThostFtdcTransferSerialField pTransferSerial,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询转帐流水响应
-        /// </summary>
-        public event RspQryTransferSerial OnRspQryTransferSerial
-        {
-            add
-            {
-                rspQryTransferSerial += value;
-                regRspQueryTransferSerial(_spi, rspQryTransferSerial);
-            }
-            remove
-            {
-                rspQryTransferSerial -= value;
-                regRspQueryTransferSerial(_spi, rspQryTransferSerial);
-            }
-        }
-
-        #endregion
-
-        #region 请求查询银期签约关系响应
-
-        RspQryAccountregister rspQryAccountregister;
-
-        /// <summary>
-        /// 请求查询银期签约关系响应委托
-        /// </summary>
-        /// <param name="pAccountregister">客户开销户信息表</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-        public delegate void RspQryAccountregister(ref CThostFtdcAccountregisterField pAccountregister,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 请求查询转帐流水响应
-        /// </summary>
-        public event RspQryAccountregister OnRspQryAccountregister
-        {
-            add
-            {
-                rspQryAccountregister += value;
-                regRspQueryAccountregister(_spi, rspQryAccountregister);
-            }
-            remove
-            {
-                rspQryAccountregister -= value;
-                regRspQueryAccountregister(_spi, rspQryAccountregister);
-            }
-        }
-
-        #endregion
-
-        #region 期货发起查询银行余额应答
-
-        RspQueryBankAccountMoneyByFuture rspQueryBankAccountMoneyByFuture;
-
-        /// <summary>
-        /// 期货发起查询银行余额应答委托
-        /// </summary>
-        /// <param name="pReqQueryAccount">查询账户信息请求</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQueryBankAccountMoneyByFuture(ref CThostFtdcReqQueryAccountField pReqQueryAccount,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 期货发起查询银行余额应答
-        /// </summary>
-        public event RspQueryBankAccountMoneyByFuture OnRspQueryBankAccountMoneyByFuture
-        {
-            add
-            {
-                rspQueryBankAccountMoneyByFuture += value;
-                regRspQueryBankAccountMoneyByFuture(_spi, rspQueryBankAccountMoneyByFuture);
-            }
-            remove
-            {
-                rspQueryBankAccountMoneyByFuture -= value;
-                regRspQueryBankAccountMoneyByFuture(_spi, rspQueryBankAccountMoneyByFuture);
-            }
-        }
-
-        #endregion
-
-        #region 查询最大报单数量响应
-
-        RspQueryMaxOrderVolume rspQueryMaxOrderVolume;
-
-        /// <summary>
-        /// 查询最大报单数量响应委托
-        /// </summary>
-        /// <param name="pQueryMaxOrderVolume">查询最大报单数量</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspQueryMaxOrderVolume(ref CThostFtdcQueryMaxOrderVolumeField pQueryMaxOrderVolume,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 查询最大报单数量响应
-        /// </summary>
-        public event RspQueryMaxOrderVolume OnRspQueryMaxOrderVolume
-        {
-            add
-            {
-                rspQueryMaxOrderVolume += value;
-                regRspQueryMaxOrderVolume(_spi, rspQueryMaxOrderVolume);
-            }
-            remove
-            {
-                rspQueryMaxOrderVolume -= value;
-                regRspQueryMaxOrderVolume(_spi, rspQueryMaxOrderVolume);
-            }
-        }
-
-        #endregion
-
-        #region 删除预埋单响应
-
-        RspRemoveParkedOrder rspRemoveParkedOrder;
-
-        /// <summary>
-        /// 删除预埋单响应委托
-        /// </summary>
-        /// <param name="pRemoveParkedOrder">删除预埋单</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspRemoveParkedOrder(ref CThostFtdcRemoveParkedOrderField pRemoveParkedOrder,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 删除预埋单响应
-        /// </summary>
-        public event RspRemoveParkedOrder OnRspRemoveParkedOrder
-        {
-            add
-            {
-                rspRemoveParkedOrder += value;
-                regRspRemoveParkedOrder(_spi, rspRemoveParkedOrder);
-            }
-            remove
-            {
-                rspRemoveParkedOrder -= value;
-                regRspRemoveParkedOrder(_spi, rspRemoveParkedOrder);
-            }
-        }
-
-        #endregion
-
-        #region 删除预埋撤单响应
-
-        RspRemoveParkedOrderAction rspRemoveParkedOrderAction;
-
-        /// <summary>
-        /// 删除预埋撤单响应委托
-        /// </summary>
-        /// <param name="pRemoveParkedOrderAction">删除预埋撤单</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspRemoveParkedOrderAction(
-            ref CThostFtdcRemoveParkedOrderActionField pRemoveParkedOrderAction, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 删除预埋撤单响应
-        /// </summary>
-        public event RspRemoveParkedOrderAction OnRspRemoveParkedOrderAction
-        {
-            add
-            {
-                rspRemoveParkedOrderAction += value;
-                regRspRemoveParkedOrderAction(_spi, rspRemoveParkedOrderAction);
-            }
-            remove
-            {
-                rspRemoveParkedOrderAction -= value;
-                regRspRemoveParkedOrderAction(_spi, rspRemoveParkedOrderAction);
-            }
-        }
-
-        #endregion
-
-        #region 投资者结算结果确认响应
-
-        RspSettlementInfoConfirm rspSettlementInfoConfirm;
-
-        /// <summary>
-        /// 投资者结算结果确认响应委托
-        /// </summary>
-        /// <param name="pSettlementInfoConfirm">投资者结算结果确认信息</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspSettlementInfoConfirm(ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 投资者结算结果确认响应
-        /// </summary>
-        public event RspSettlementInfoConfirm OnRspSettlementInfoConfirm
-        {
-            add
-            {
-                rspSettlementInfoConfirm += value;
-                regRspSettlementInfoConfirm(_spi, rspSettlementInfoConfirm);
-            }
-            remove
-            {
-                rspSettlementInfoConfirm -= value;
-                regRspSettlementInfoConfirm(_spi, rspSettlementInfoConfirm);
-            }
-        }
-
-        #endregion
-
-        #region 资金账户口令更新请求响应
-
-        RspTradingAccountPasswordUpdate rspTradingAccountPasswordUpdate;
-
-        /// <summary>
-        /// 资金账户口令更新请求响应委托
-        /// </summary>
-        /// <param name="pTradingAccountPasswordUpdate">资金账户口令变更域</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspTradingAccountPasswordUpdate(
-            ref CThostFtdcTradingAccountPasswordUpdateField pTradingAccountPasswordUpdate,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
-
-        /// <summary>
-        /// 资金账户口令更新请求响应
-        /// </summary>
-        public event RspTradingAccountPasswordUpdate OnRspTradingAccountPasswordUpdate
-        {
-            add
-            {
-                rspTradingAccountPasswordUpdate += value;
-                regRspTradingAccountPasswordUpdate(_spi, rspTradingAccountPasswordUpdate);
-            }
-            remove
-            {
-                rspTradingAccountPasswordUpdate -= value;
-                regRspTradingAccountPasswordUpdate(_spi, rspTradingAccountPasswordUpdate);
-            }
-        }
-
-        #endregion
-
-        #region 登录请求响应
-
-        RspUserLogin rspUserLogin;
-
-        /// <summary>
-        /// 登录请求响应委托
-        /// </summary>
-        /// <param name="pRspUserLogin">用户登录应答</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspUserLogin(ref CThostFtdcRspUserLoginField pRspUserLogin,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+        private RspUserLogin rspUserLogin;
 
         /// <summary>
         /// 登录请求响应
@@ -2972,21 +2220,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 登出请求响应
-
-        RspUserLogout rspUserLogout;
-
-        /// <summary>
-        /// 登出请求响应委托
-        /// </summary>
-        /// <param name="pUserLogout">用户登出请求</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspUserLogout(ref CThostFtdcUserLogoutField pUserLogout,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+        private RspUserLogout rspUserLogout;
 
         /// <summary>
         /// 登出请求响应
@@ -3005,21 +2239,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 用户口令更新请求响应
-
-        RspUserPasswordUpdate rspUserPasswordUpdate;
-
-        /// <summary>
-        /// 用户口令更新请求响应委托
-        /// </summary>
-        /// <param name="pUserPasswordUpdate">用户口令变更</param>
-        /// <param name="pRspInfo">响应信息</param>
-        /// <param name="nRequestID">请求编号</param>
-        /// <param name="bIsLast">是否为最后一条数据</param>
-		public delegate void RspUserPasswordUpdate(ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast);
+        private RspUserPasswordUpdate rspUserPasswordUpdate;
 
         /// <summary>
         /// 用户口令更新请求响应
@@ -3038,17 +2258,930 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 提示条件单校验错误
-
-        RtnErrorConditionalOrder rtnErrorConditionalOrder;
+        private RspTradingAccountPasswordUpdate rspTradingAccountPasswordUpdate;
 
         /// <summary>
-        /// 提示条件单校验错误委托
+        /// 资金账户口令更新请求响应
         /// </summary>
-        /// <param name="pErrorConditionalOrder">查询错误报单操作</param>
-		public delegate void RtnErrorConditionalOrder(ref CThostFtdcErrorConditionalOrderField pErrorConditionalOrder);
+        public event RspTradingAccountPasswordUpdate OnRspTradingAccountPasswordUpdate
+        {
+            add
+            {
+                rspTradingAccountPasswordUpdate += value;
+                regRspTradingAccountPasswordUpdate(_spi, rspTradingAccountPasswordUpdate);
+            }
+            remove
+            {
+                rspTradingAccountPasswordUpdate -= value;
+                regRspTradingAccountPasswordUpdate(_spi, rspTradingAccountPasswordUpdate);
+            }
+        }
+
+        private RspUserAuthMethod rspUserAuthMethod;
+
+        /// <summary>
+        /// 查询用户当前支持的认证模式请求响应
+        /// </summary>
+        public event RspUserAuthMethod OnRspUserAuthMethod
+        {
+            add
+            {
+                rspUserAuthMethod += value;
+                regRspUserAuthMethod(_spi, rspUserAuthMethod);
+            }
+            remove
+            {
+                rspUserAuthMethod -= value;
+                regRspUserAuthMethod(_spi, rspUserAuthMethod);
+            }
+        }
+
+        private RspGenUserCaptcha rspGenUserCaptcha;
+
+        /// <summary>
+        /// 获取图形验证码响应事件
+        /// </summary>
+        public event RspGenUserCaptcha OnRspGenUserCaptcha
+        {
+            add
+            {
+                rspGenUserCaptcha += value;
+                regRspGenUserCapcha(_spi, rspGenUserCaptcha);
+            }
+            remove
+            {
+                rspGenUserCaptcha -= value;
+                regRspGenUserCapcha(_spi, rspGenUserCaptcha);
+            }
+        }
+
+        private RspGenUserText rspGenUserText;
+
+        /// <summary>
+        /// 获取短信验证码响应事件
+        /// </summary>
+        public event RspGenUserText OnRspGenUserText
+        {
+            add
+            {
+                rspGenUserText += value;
+                regRspGenUserText(_spi, rspGenUserText);
+            }
+            remove
+            {
+                rspGenUserText -= value;
+                regRspGenUserText(_spi, rspGenUserText);
+            }
+        }
+
+        private ErrRtnBankToFutureByFuture errRtnBankToFutureByFuture;
+
+        /// <summary>
+		/// 期货发起银行资金转期货错误回报
+		/// </summary>
+		public event ErrRtnBankToFutureByFuture OnErrRtnBankToFutureByFuture
+        {
+            add
+            {
+                errRtnBankToFutureByFuture += value; regErrRtnBankToFutureByFuture(_spi, errRtnBankToFutureByFuture);
+            }
+            remove
+            {
+                errRtnBankToFutureByFuture -= value; regErrRtnBankToFutureByFuture(_spi, errRtnBankToFutureByFuture);
+            }
+        }
+
+        private ErrRtnFutureToBankByFuture errRtnFutureToBankByFuture;
+
+        /// <summary>
+        /// 期货发起期货资金转银行错误回报
+        /// </summary>
+        public event ErrRtnFutureToBankByFuture OnErrRtnFutureToBankByFuture
+        {
+            add
+            {
+                errRtnFutureToBankByFuture += value; regErrRtnFutureToBankByFuture(_spi, errRtnFutureToBankByFuture);
+            }
+            remove
+            {
+                errRtnFutureToBankByFuture -= value; regErrRtnFutureToBankByFuture(_spi, errRtnFutureToBankByFuture);
+            }
+        }
+
+        private ErrRtnOrderAction errRtnOrderAction;
+
+        /// <summary>
+        /// 报单操作错误回报
+        /// </summary>
+        public event ErrRtnOrderAction OnErrRtnOrderAction
+        {
+            add
+            {
+                errRtnOrderAction += value; regErrRtnOrderAction(_spi, errRtnOrderAction);
+            }
+            remove
+            {
+                errRtnOrderAction -= value; regErrRtnOrderAction(_spi, errRtnOrderAction);
+            }
+        }
+
+        private ErrRtnOrderInsert errRtnOrderInsert;
+
+        /// <summary>
+        /// 报单录入错误回报
+        /// </summary>
+        public event ErrRtnOrderInsert OnErrRtnOrderInsert
+        {
+            add
+            {
+                errRtnOrderInsert += value; regErrRtnOrderInsert(_spi, errRtnOrderInsert);
+            }
+            remove
+            {
+                errRtnOrderInsert -= value; regErrRtnOrderInsert(_spi, errRtnOrderInsert);
+            }
+        }
+
+        private ErrRtnQueryBankBalanceByFuture errRtnQueryBankBalanceByFuture;
+
+        /// <summary>
+        /// 期货发起查询银行余额错误回报
+        /// </summary>
+        public event ErrRtnQueryBankBalanceByFuture OnErrRtnQueryBankBalanceByFuture
+        {
+            add
+            {
+                errRtnQueryBankBalanceByFuture += value;
+                regErrRtnQueryBankBalanceByFuture(_spi, errRtnQueryBankBalanceByFuture);
+            }
+            remove
+            {
+                errRtnQueryBankBalanceByFuture -= value;
+                regErrRtnQueryBankBalanceByFuture(_spi, errRtnQueryBankBalanceByFuture);
+            }
+        }
+
+        private ErrRtnRepealBankToFutureByFutureManual errRtnRepealBankToFutureByFutureManual;
+
+        /// <summary>
+        /// 系统运行时期货端手工发起冲正银行转期货错误回报
+        /// </summary>
+        public event ErrRtnRepealBankToFutureByFutureManual OnErrRtnRepealBankToFutureByFutureManual
+        {
+            add
+            {
+                errRtnRepealBankToFutureByFutureManual += value;
+                regErrRtnRepealBankToFutureByFutureManual(_spi, errRtnRepealBankToFutureByFutureManual);
+            }
+            remove
+            {
+                errRtnRepealBankToFutureByFutureManual -= value;
+                regErrRtnRepealBankToFutureByFutureManual(_spi, errRtnRepealBankToFutureByFutureManual);
+            }
+        }
+
+        private ErrRtnRepealFutureToBankByFutureManual errRtnRepealFutureToBankByFutureManual;
+
+        /// <summary>
+        /// 系统运行时期货端手工发起冲正期货转银行错误回报
+        /// </summary>
+        public event ErrRtnRepealFutureToBankByFutureManual OnErrRtnRepealFutureToBankByFutureManual
+        {
+            add
+            {
+                errRtnRepealFutureToBankByFutureManual += value;
+                regErrRtnRepealFutureToBankByFutureManual(_spi, errRtnRepealFutureToBankByFutureManual);
+            }
+            remove
+            {
+                errRtnRepealFutureToBankByFutureManual -= value;
+                regErrRtnRepealFutureToBankByFutureManual(_spi, errRtnRepealFutureToBankByFutureManual);
+            }
+        }
+
+        private RspError rspError;
+
+        /// <summary>
+        /// 错误应答
+        /// </summary>
+        public event RspError OnRspError
+        {
+            add
+            {
+                rspError += value;
+                regRspError(_spi, rspError);
+            }
+            remove
+            {
+                rspError -= value;
+                regRspError(_spi, rspError);
+            }
+        }
+
+        private RspFromBankToFutureByFuture rspFromBankToFutureByFuture;
+
+        /// <summary>
+        /// 期货发起银行资金转期货应答
+        /// </summary>
+        public event RspFromBankToFutureByFuture OnRspFromBankToFutureByFuture
+        {
+            add
+            {
+                rspFromBankToFutureByFuture += value;
+                regRspFromBankToFutureByFuture(_spi, rspFromBankToFutureByFuture);
+            }
+            remove
+            {
+                rspFromBankToFutureByFuture -= value;
+                regRspFromBankToFutureByFuture(_spi, rspFromBankToFutureByFuture);
+            }
+        }
+
+        private RspFromFutureToBankByFuture rspFromFutureToBankByFuture;
+
+        /// <summary>
+        /// 期货发起期货资金转银行应答
+        /// </summary>
+        public event RspFromFutureToBankByFuture OnRspFromFutureToBankByFuture
+        {
+            add
+            {
+                rspFromFutureToBankByFuture += value;
+                regRspFromFutureToBankByFuture(_spi, rspFromFutureToBankByFuture);
+            }
+            remove
+            {
+                rspFromFutureToBankByFuture -= value;
+                regRspFromFutureToBankByFuture(_spi, rspFromFutureToBankByFuture);
+            }
+        }
+
+        private RspOrderAction rspOrderAction;
+
+        /// <summary>
+        /// 报单操作请求响应
+        /// </summary>
+        public event RspOrderAction OnRspOrderAction
+        {
+            add
+            {
+                rspOrderAction += value;
+                regRspOrderAction(_spi, rspOrderAction);
+            }
+            remove
+            {
+                rspOrderAction -= value;
+                regRspOrderAction(_spi, rspOrderAction);
+            }
+        }
+
+        private RspOrderInsert rspOrderInsert;
+
+        /// <summary>
+        /// 报单录入请求响应
+        /// </summary>
+        public event RspOrderInsert OnRspOrderInsert
+        {
+            add
+            {
+                rspOrderInsert += value;
+                regRspOrderInsert(_spi, rspOrderInsert);
+            }
+            remove
+            {
+                rspOrderInsert -= value;
+                regRspOrderInsert(_spi, rspOrderInsert);
+            }
+        }
+
+        private RspParkedOrderAction rspParkedOrderAction;
+
+        /// <summary>
+        /// 预埋撤单录入请求响应
+        /// </summary>
+        public event RspParkedOrderAction OnRspParkedOrderAction
+        {
+            add
+            {
+                rspParkedOrderAction += value;
+                regRspParkedOrderAction(_spi, rspParkedOrderAction);
+            }
+            remove
+            {
+                rspParkedOrderAction -= value;
+                regRspParkedOrderAction(_spi, rspParkedOrderAction);
+            }
+        }
+
+        private RspParkedOrderInsert rspParkedOrderInsert;
+
+        /// <summary>
+        /// 预埋单录入请求响应
+        /// </summary>
+        public event RspParkedOrderInsert OnRspParkedOrderInsert
+        {
+            add
+            {
+                rspParkedOrderInsert += value;
+                regRspParkedOrderInsert(_spi, rspParkedOrderInsert);
+            }
+            remove
+            {
+                rspParkedOrderInsert -= value;
+                regRspParkedOrderInsert(_spi, rspParkedOrderInsert);
+            }
+        }
+
+        private RspQryBrokerTradingAlgos rspQryBrokerTradingAlgos;
+
+        /// <summary>
+        /// 请求查询经纪公司交易算法响应
+        /// </summary>
+        public event RspQryBrokerTradingAlgos OnRspQryBrokerTradingAlgos
+        {
+            add
+            {
+                rspQryBrokerTradingAlgos += value;
+                regRspQueryBrokerTradingAlgos(_spi, rspQryBrokerTradingAlgos);
+            }
+            remove
+            {
+                rspQryBrokerTradingAlgos -= value;
+                regRspQueryBrokerTradingAlgos(_spi, rspQryBrokerTradingAlgos);
+            }
+        }
+
+        private RspQryBrokerTradingParams rspQryBrokerTradingParams;
+
+        /// <summary>
+        /// 请求查询经纪公司交易参数响应
+        /// </summary>
+        public event RspQryBrokerTradingParams OnRspQryBrokerTradingParams
+        {
+            add
+            {
+                rspQryBrokerTradingParams += value;
+                regRspQueryBrokerTradingParams(_spi, rspQryBrokerTradingParams);
+            }
+            remove
+            {
+                rspQryBrokerTradingParams -= value;
+                regRspQueryBrokerTradingParams(_spi, rspQryBrokerTradingParams);
+            }
+        }
+
+        private RspQryCFMMCTradingAccountKey rspQryCFMMCTradingAccountKey;
+
+        /// <summary>
+        /// 查询保证金监管系统经纪公司资金账户密钥响应
+        /// </summary>
+        public event RspQryCFMMCTradingAccountKey OnRspQryCFMMCTradingAccountKey
+        {
+            add
+            {
+                rspQryCFMMCTradingAccountKey += value;
+                regRspQueryCFMMCTradingAccountKey(_spi, rspQryCFMMCTradingAccountKey);
+            }
+            remove
+            {
+                rspQryCFMMCTradingAccountKey -= value;
+                regRspQueryCFMMCTradingAccountKey(_spi, rspQryCFMMCTradingAccountKey);
+            }
+        }
+
+        private RspQryContractBank rspQryContractBank;
+
+        /// <summary>
+        /// 请求查询签约银行响应
+        /// </summary>
+        public event RspQryContractBank OnRspQryContractBank
+        {
+            add
+            {
+                rspQryContractBank += value;
+                regRspQueryContractBank(_spi, rspQryContractBank);
+            }
+            remove
+            {
+                rspQryContractBank -= value;
+                regRspQueryContractBank(_spi, rspQryContractBank);
+            }
+        }
+
+        private RspQryDepthMarketData rspQryDepthMarketData;
+
+        /// <summary>
+        /// 请求查询行情响应
+        /// </summary>
+        public event RspQryDepthMarketData OnRspQryDepthMarketData
+        {
+            add
+            {
+                rspQryDepthMarketData += value;
+                regRspQueryDepthMarketData(_spi, rspQryDepthMarketData);
+            }
+            remove
+            {
+                rspQryDepthMarketData -= value;
+                regRspQueryDepthMarketData(_spi, rspQryDepthMarketData);
+            }
+        }
+
+        private RspQryExchange rspQryExchange;
+
+        /// <summary>
+        /// 请求查询交易所响应
+        /// </summary>
+        public event RspQryExchange OnRspQryExchange
+        {
+            add
+            {
+                rspQryExchange += value;
+                regRspQueryExchange(_spi, rspQryExchange);
+            }
+            remove
+            {
+                rspQryExchange -= value;
+                regRspQueryExchange(_spi, rspQryExchange);
+            }
+        }
+
+        private RspQryInstrument rspQryInstrument;
+
+        /// <summary>
+        /// 请求查询合约响应
+        /// </summary>
+        public event RspQryInstrument OnRspQryInstrument
+        {
+            add
+            {
+                rspQryInstrument += value;
+                regRspQueryInstrument(_spi, rspQryInstrument);
+            }
+            remove
+            {
+                rspQryInstrument -= value;
+                regRspQueryInstrument(_spi, rspQryInstrument);
+            }
+        }
+
+        private RspQryInstrumentCommissionRate rspQryInstrumentCommissionRate;
+
+        /// <summary>
+        /// 请求查询合约手续费率响应
+        /// </summary>
+        public event RspQryInstrumentCommissionRate OnRspQryInstrumentCommissionRate
+        {
+            add
+            {
+                rspQryInstrumentCommissionRate += value;
+                regRspQueryInstrumentCommissionRate(_spi, rspQryInstrumentCommissionRate);
+            }
+            remove
+            {
+                rspQryInstrumentCommissionRate -= value;
+                regRspQueryInstrumentCommissionRate(_spi, rspQryInstrumentCommissionRate);
+            }
+        }
+
+        private RspQryInstrumentMarginRate rspQryInstrumentMarginRate;
+
+        /// <summary>
+        /// 请求查询合约保证金率响应
+        /// </summary>
+        public event RspQryInstrumentMarginRate OnRspQryInstrumentMarginRate
+        {
+            add
+            {
+                rspQryInstrumentMarginRate += value;
+                regRspQueryInstrumentMarginRate(_spi, rspQryInstrumentMarginRate);
+            }
+            remove
+            {
+                rspQryInstrumentMarginRate -= value;
+                regRspQueryInstrumentMarginRate(_spi, rspQryInstrumentMarginRate);
+            }
+        }
+
+        private RspQryInvestor rspQryInvestor;
+
+        /// <summary>
+        /// 请求查询投资者响应
+        /// </summary>
+        public event RspQryInvestor OnRspQryInvestor
+        {
+            add
+            {
+                rspQryInvestor += value;
+                regRspQueryInvestor(_spi, rspQryInvestor);
+            }
+            remove
+            {
+                rspQryInvestor -= value;
+                regRspQueryInvestor(_spi, rspQryInvestor);
+            }
+        }
+
+        private RspQryInvestorPosition rspQryInvestorPosition;
+
+        /// <summary>
+        /// 请求查询投资者持仓响应
+        /// </summary>
+        public event RspQryInvestorPosition OnRspQryInvestorPosition
+        {
+            add
+            {
+                rspQryInvestorPosition += value;
+                regRspQueryInvestorPosition(_spi, rspQryInvestorPosition);
+            }
+            remove
+            {
+                rspQryInvestorPosition -= value;
+                regRspQueryInvestorPosition(_spi, rspQryInvestorPosition);
+            }
+        }
+
+        private RspQryInvestorPositionCombineDetail rspQryInvestorPositionCombineDetail;
+
+        /// <summary>
+        /// 请求查询投资者持仓明细响应
+        /// </summary>
+        public event RspQryInvestorPositionCombineDetail OnRspQryInvestorPositionCombineDetail
+        {
+            add
+            {
+                rspQryInvestorPositionCombineDetail += value;
+                regRspQueryInvestorPositionCombineDetail(_spi, rspQryInvestorPositionCombineDetail);
+            }
+            remove
+            {
+                rspQryInvestorPositionCombineDetail -= value;
+                regRspQueryInvestorPositionCombineDetail(_spi, rspQryInvestorPositionCombineDetail);
+            }
+        }
+
+        private RspQryInvestorPositionDetail rspQryInvestorPositionDetail;
+
+        /// <summary>
+        /// 请求查询投资者持仓明细响应
+        /// </summary>
+        public event RspQryInvestorPositionDetail OnRspQryInvestorPositionDetail
+        {
+            add
+            {
+                rspQryInvestorPositionDetail += value;
+                regRspQueryInvestorPositionDetail(_spi, rspQryInvestorPositionDetail);
+            }
+            remove
+            {
+                rspQryInvestorPositionDetail -= value;
+                regRspQueryInvestorPositionDetail(_spi, rspQryInvestorPositionDetail);
+            }
+        }
+
+        private RspQryNotice rspQryNotice;
+
+        /// <summary>
+        /// 请求查询客户通知响应
+        /// </summary>
+        public event RspQryNotice OnRspQryNotice
+        {
+            add
+            {
+                rspQryNotice += value;
+                regRspQueryNotice(_spi, rspQryNotice);
+            }
+            remove
+            {
+                rspQryNotice -= value;
+                regRspQueryNotice(_spi, rspQryNotice);
+            }
+        }
+
+        private RspQryOrder rspQryOrder;
+
+        /// <summary>
+        /// 请求查询报单响应
+        /// </summary>
+        public event RspQryOrder OnRspQryOrder
+        {
+            add
+            {
+                rspQryOrder += value;
+                regRspQueryOrder(_spi, rspQryOrder);
+            }
+            remove
+            {
+                rspQryOrder -= value;
+                regRspQueryOrder(_spi, rspQryOrder);
+            }
+        }
+
+        private RspQryParkedOrder rspQryParkedOrder;
+
+        /// <summary>
+        /// 请求查询预埋单响应
+        /// </summary>
+        public event RspQryParkedOrder OnRspQryParkedOrder
+        {
+            add
+            {
+                rspQryParkedOrder += value;
+                regRspQueryParkedOrder(_spi, rspQryParkedOrder);
+            }
+            remove
+            {
+                rspQryParkedOrder -= value;
+                regRspQueryParkedOrder(_spi, rspQryParkedOrder);
+            }
+        }
+
+        private RspQryParkedOrderAction rspQryParkedOrderAction;
+
+        /// <summary>
+        /// 请求查询预埋撤单响应
+        /// </summary>
+        public event RspQryParkedOrderAction OnRspQryParkedOrderAction
+        {
+            add
+            {
+                rspQryParkedOrderAction += value;
+                regRspQueryParkedOrderAction(_spi, rspQryParkedOrderAction);
+            }
+            remove
+            {
+                rspQryParkedOrderAction -= value;
+                regRspQueryParkedOrderAction(_spi, rspQryParkedOrderAction);
+            }
+        }
+
+        private RspQrySettlementInfo rspQrySettlementInfo;
+
+        /// <summary>
+        /// 请求查询投资者结算结果响应
+        /// </summary>
+        public event RspQrySettlementInfo OnRspQrySettlementInfo
+        {
+            add
+            {
+                rspQrySettlementInfo += value;
+                regRspQuerySettlementInfo(_spi, rspQrySettlementInfo);
+            }
+            remove
+            {
+                rspQrySettlementInfo -= value;
+                regRspQuerySettlementInfo(_spi, rspQrySettlementInfo);
+            }
+        }
+
+        private RspQrySettlementInfoConfirm rspQrySettlementInfoConfirm;
+
+        /// <summary>
+        /// 请求查询结算信息确认响应
+        /// </summary>
+        public event RspQrySettlementInfoConfirm OnRspQrySettlementInfoConfirm
+        {
+            add
+            {
+                rspQrySettlementInfoConfirm += value;
+                regRspQuerySettlementInfoConfirm(_spi, rspQrySettlementInfoConfirm);
+            }
+            remove
+            {
+                rspQrySettlementInfoConfirm -= value;
+                regRspQuerySettlementInfoConfirm(_spi, rspQrySettlementInfoConfirm);
+            }
+        }
+
+        private RspQryTrade rspQryTrade;
+
+        /// <summary>
+        /// 请求查询成交响应
+        /// </summary>
+        public event RspQryTrade OnRspQryTrade
+        {
+            add
+            {
+                rspQryTrade += value;
+                regRspQueryTrade(_spi, rspQryTrade);
+            }
+            remove
+            {
+                rspQryTrade -= value;
+                regRspQueryTrade(_spi, rspQryTrade);
+            }
+        }
+
+        private RspQryTradingAccount rspQryTradingAccount;
+
+        /// <summary>
+        /// 请求查询资金账户响应
+        /// </summary>
+        public event RspQryTradingAccount OnRspQryTradingAccount
+        {
+            add
+            {
+                rspQryTradingAccount += value;
+                regRspQueryTradingAccount(_spi, rspQryTradingAccount);
+            }
+            remove
+            {
+                rspQryTradingAccount -= value;
+                regRspQueryTradingAccount(_spi, rspQryTradingAccount);
+            }
+        }
+
+        private RspQryTradingCode rspQryTradingCode;
+
+        /// <summary>
+        /// 请求查询交易编码响应
+        /// </summary>
+        public event RspQryTradingCode OnRspQryTradingCode
+        {
+            add
+            {
+                rspQryTradingCode += value;
+                regRspQueryTradingCode(_spi, rspQryTradingCode);
+            }
+            remove
+            {
+                rspQryTradingCode -= value;
+                regRspQueryTradingCode(_spi, rspQryTradingCode);
+            }
+        }
+
+        private RspQryTradingNotice rspQryTradingNotice;
+
+        /// <summary>
+        /// 请求查询交易通知响应
+        /// </summary>
+        public event RspQryTradingNotice OnRspQryTradingNotice
+        {
+            add
+            {
+                rspQryTradingNotice += value;
+                regRspQueryTradingNotice(_spi, rspQryTradingNotice);
+            }
+            remove
+            {
+                rspQryTradingNotice -= value;
+                regRspQueryTradingNotice(_spi, rspQryTradingNotice);
+            }
+        }
+
+        private RspQryTransferBank rspQryTransferBank;
+
+        /// <summary>
+        /// 请求查询转帐银行响应
+        /// </summary>
+        public event RspQryTransferBank OnRspQryTransferBank
+        {
+            add
+            {
+                rspQryTransferBank += value;
+                regRspQueryTransferBank(_spi, rspQryTransferBank);
+            }
+            remove
+            {
+                rspQryTransferBank -= value;
+                regRspQueryTransferBank(_spi, rspQryTransferBank);
+            }
+        }
+
+        private RspQryTransferSerial rspQryTransferSerial;
+
+        /// <summary>
+        /// 请求查询转帐流水响应
+        /// </summary>
+        public event RspQryTransferSerial OnRspQryTransferSerial
+        {
+            add
+            {
+                rspQryTransferSerial += value;
+                regRspQueryTransferSerial(_spi, rspQryTransferSerial);
+            }
+            remove
+            {
+                rspQryTransferSerial -= value;
+                regRspQueryTransferSerial(_spi, rspQryTransferSerial);
+            }
+        }
+
+        private RspQryAccountregister rspQryAccountregister;
+
+        /// <summary>
+        /// 请求查询转帐流水响应
+        /// </summary>
+        public event RspQryAccountregister OnRspQryAccountregister
+        {
+            add
+            {
+                rspQryAccountregister += value;
+                regRspQueryAccountregister(_spi, rspQryAccountregister);
+            }
+            remove
+            {
+                rspQryAccountregister -= value;
+                regRspQueryAccountregister(_spi, rspQryAccountregister);
+            }
+        }
+
+        private RspQueryBankAccountMoneyByFuture rspQueryBankAccountMoneyByFuture;
+
+        /// <summary>
+        /// 期货发起查询银行余额应答
+        /// </summary>
+        public event RspQueryBankAccountMoneyByFuture OnRspQueryBankAccountMoneyByFuture
+        {
+            add
+            {
+                rspQueryBankAccountMoneyByFuture += value;
+                regRspQueryBankAccountMoneyByFuture(_spi, rspQueryBankAccountMoneyByFuture);
+            }
+            remove
+            {
+                rspQueryBankAccountMoneyByFuture -= value;
+                regRspQueryBankAccountMoneyByFuture(_spi, rspQueryBankAccountMoneyByFuture);
+            }
+        }
+
+        private RspQueryMaxOrderVolume rspQueryMaxOrderVolume;
+
+        /// <summary>
+        /// 查询最大报单数量响应
+        /// </summary>
+        public event RspQueryMaxOrderVolume OnRspQueryMaxOrderVolume
+        {
+            add
+            {
+                rspQueryMaxOrderVolume += value;
+                regRspQueryMaxOrderVolume(_spi, rspQueryMaxOrderVolume);
+            }
+            remove
+            {
+                rspQueryMaxOrderVolume -= value;
+                regRspQueryMaxOrderVolume(_spi, rspQueryMaxOrderVolume);
+            }
+        }
+
+        private RspRemoveParkedOrder rspRemoveParkedOrder;
+
+        /// <summary>
+        /// 删除预埋单响应
+        /// </summary>
+        public event RspRemoveParkedOrder OnRspRemoveParkedOrder
+        {
+            add
+            {
+                rspRemoveParkedOrder += value;
+                regRspRemoveParkedOrder(_spi, rspRemoveParkedOrder);
+            }
+            remove
+            {
+                rspRemoveParkedOrder -= value;
+                regRspRemoveParkedOrder(_spi, rspRemoveParkedOrder);
+            }
+        }
+
+        private RspRemoveParkedOrderAction rspRemoveParkedOrderAction;
+
+        /// <summary>
+        /// 删除预埋撤单响应
+        /// </summary>
+        public event RspRemoveParkedOrderAction OnRspRemoveParkedOrderAction
+        {
+            add
+            {
+                rspRemoveParkedOrderAction += value;
+                regRspRemoveParkedOrderAction(_spi, rspRemoveParkedOrderAction);
+            }
+            remove
+            {
+                rspRemoveParkedOrderAction -= value;
+                regRspRemoveParkedOrderAction(_spi, rspRemoveParkedOrderAction);
+            }
+        }
+
+        private RspSettlementInfoConfirm rspSettlementInfoConfirm;
+
+        /// <summary>
+        /// 投资者结算结果确认响应
+        /// </summary>
+        public event RspSettlementInfoConfirm OnRspSettlementInfoConfirm
+        {
+            add
+            {
+                rspSettlementInfoConfirm += value;
+                regRspSettlementInfoConfirm(_spi, rspSettlementInfoConfirm);
+            }
+            remove
+            {
+                rspSettlementInfoConfirm -= value;
+                regRspSettlementInfoConfirm(_spi, rspSettlementInfoConfirm);
+            }
+        }
+
+        private RtnErrorConditionalOrder rtnErrorConditionalOrder;
 
         /// <summary>
         /// 提示条件单校验错误
@@ -3067,17 +3200,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 银行发起银行资金转期货通知
-
-        RtnFromBankToFutureByBank rtnFromBankToFutureByBank;
-
-        /// <summary>
-        /// 银行发起银行资金转期货通知委托
-        /// </summary>
-        /// <param name="pRspTransfer">银行发起银行资金转期货响应</param>
-		public delegate void RtnFromBankToFutureByBank(ref CThostFtdcRspTransferField pRspTransfer);
+        private RtnFromBankToFutureByBank rtnFromBankToFutureByBank;
 
         /// <summary>
         /// 银行发起银行资金转期货通知
@@ -3096,17 +3219,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 期货发起银行资金转期货通知
-
-        RtnFromBankToFutureByFuture rtnFromBankToFutureByFuture;
-
-        /// <summary>
-        /// 期货发起银行资金转期货通知委托
-        /// </summary>
-        /// <param name="pRspTransfer">银行发起银行资金转期货响应</param>
-		public delegate void RtnFromBankToFutureByFuture(ref CThostFtdcRspTransferField pRspTransfer);
+        private RtnFromBankToFutureByFuture rtnFromBankToFutureByFuture;
 
         /// <summary>
         /// 期货发起银行资金转期货通知
@@ -3125,17 +3238,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 银行发起期货资金转银行通知
-
-        RtnFromFutureToBankByBank rtnFromFutureToBankByBank;
-
-        /// <summary>
-        /// 银行发起期货资金转银行通知委托
-        /// </summary>
-        /// <param name="pRspTransfer">银行发起银行资金转期货响应</param>
-		public delegate void RtnFromFutureToBankByBank(ref CThostFtdcRspTransferField pRspTransfer);
+        private RtnFromFutureToBankByBank rtnFromFutureToBankByBank;
 
         /// <summary>
         /// 银行发起期货资金转银行通知
@@ -3154,17 +3257,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 期货发起期货资金转银行通知
-
-        RtnFromFutureToBankByFuture rtnFromFutureToBankByFuture;
-
-        /// <summary>
-        /// 期货发起期货资金转银行通知委托
-        /// </summary>
-        /// <param name="pRspTransfer">期货发起期货资金转银行响应</param>
-		public delegate void RtnFromFutureToBankByFuture(ref CThostFtdcRspTransferField pRspTransfer);
+        private RtnFromFutureToBankByFuture rtnFromFutureToBankByFuture;
 
         /// <summary>
         /// 期货发起期货资金转银行通知
@@ -3183,17 +3276,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 合约交易状态通知
-
-        RtnInstrumentStatus rtnInstrumentStatus;
-
-        /// <summary>
-        /// 合约交易状态通知委托
-        /// </summary>
-        /// <param name="pInstrumentStatus">合约状态</param>
-		public delegate void RtnInstrumentStatus(ref CThostFtdcInstrumentStatusField pInstrumentStatus);
+        private RtnInstrumentStatus rtnInstrumentStatus;
 
         /// <summary>
         /// 合约交易状态通知
@@ -3212,17 +3295,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 报单通知
-
-        RtnOrder rtnOrder;
-
-        /// <summary>
-        /// 报单通知委托
-        /// </summary>
-        /// <param name="pOrder">报单</param>
-		public delegate void RtnOrder(ref CThostFtdcOrderField pOrder);
+        private RtnOrder rtnOrder;
 
         /// <summary>
         /// 报单通知
@@ -3241,17 +3314,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 期货发起查询银行余额通知
-
-        RtnQueryBankBalanceByFuture rtnQueryBankBalanceByFuture;
-
-        /// <summary>
-        /// 期货发起查询银行余额通知委托
-        /// </summary>
-        /// <param name="pNotifyQueryAccount">查询账户信息通知</param>
-		public delegate void RtnQueryBankBalanceByFuture(ref CThostFtdcNotifyQueryAccountField pNotifyQueryAccount);
+        private RtnQueryBankBalanceByFuture rtnQueryBankBalanceByFuture;
 
         /// <summary>
         /// 期货发起查询银行余额通知
@@ -3270,17 +3333,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 银行发起冲正银行转期货通知
-
-        RtnRepealFromBankToFutureByBank rtnRepealFromBankToFutureByBank;
-
-        /// <summary>
-        /// 银行发起冲正银行转期货通知委托
-        /// </summary>
-        /// <param name="pRspRepeal">冲正响应</param>
-		public delegate void RtnRepealFromBankToFutureByBank(ref CThostFtdcRspRepealField pRspRepeal);
+        private RtnRepealFromBankToFutureByBank rtnRepealFromBankToFutureByBank;
 
         /// <summary>
         /// 银行发起冲正银行转期货通知
@@ -3299,17 +3352,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 期货发起冲正银行转期货请求通知
-
-        RtnRepealFromBankToFutureByFuture rtnRepealFromBankToFutureByFuture;
-
-        /// <summary>
-        /// 期货发起冲正银行转期货请求，银行处理完毕后报盘发回的通知委托
-        /// </summary>
-        /// <param name="pRspRepeal">冲正响应</param>
-		public delegate void RtnRepealFromBankToFutureByFuture(ref CThostFtdcRspRepealField pRspRepeal);
+        private RtnRepealFromBankToFutureByFuture rtnRepealFromBankToFutureByFuture;
 
         /// <summary>
         /// 期货发起冲正银行转期货请求，银行处理完毕后报盘发回的通知
@@ -3328,16 +3371,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 期货端手工发起冲正银行转期货请求通知
-        RtnRepealFromBankToFutureByFutureManual rtnRepealFromBankToFutureByFutureManual;
-
-        /// <summary>
-        /// 系统运行时期货端手工发起冲正银行转期货请求，银行处理完毕后报盘发回的通知委托
-        /// </summary>
-        /// <param name="pRspRepeal">冲正响应</param>
-		public delegate void RtnRepealFromBankToFutureByFutureManual(ref CThostFtdcRspRepealField pRspRepeal);
+        private RtnRepealFromBankToFutureByFutureManual rtnRepealFromBankToFutureByFutureManual;
 
         /// <summary>
         /// 系统运行时期货端手工发起冲正银行转期货请求，银行处理完毕后报盘发回的通知
@@ -3356,17 +3390,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 银行发起冲正期货转银行通知
-
-        RtnRepealFromFutureToBankByBank rtnRepealFromFutureToBankByBank;
-
-        /// <summary>
-        /// 银行发起冲正期货转银行通知委托
-        /// </summary>
-        /// <param name="pRspRepeal">冲正响应</param>
-		public delegate void RtnRepealFromFutureToBankByBank(ref CThostFtdcRspRepealField pRspRepeal);
+        private RtnRepealFromFutureToBankByBank rtnRepealFromFutureToBankByBank;
 
         /// <summary>
         /// 银行发起冲正期货转银行通知
@@ -3385,17 +3409,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 期货发起冲正期货转银行请求通知
-
-        RtnRepealFromFutureToBankByFuture rtnRepealFromFutureToBankByFuture;
-
-        /// <summary>
-        /// 期货发起冲正期货转银行请求，银行处理完毕后报盘发回的通知委托
-        /// </summary>
-        /// <param name="pRspRepeal">冲正响应</param>
-		public delegate void RtnRepealFromFutureToBankByFuture(ref CThostFtdcRspRepealField pRspRepeal);
+        private RtnRepealFromFutureToBankByFuture rtnRepealFromFutureToBankByFuture;
 
         /// <summary>
         /// 期货发起冲正期货转银行请求，银行处理完毕后报盘发回的通知
@@ -3414,17 +3428,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 期货端手工发起冲正期货转银行请求通知
-
-        RtnRepealFromFutureToBankByFutureManual rtnRepealFromFutureToBankByFutureManual;
-
-        /// <summary>
-		/// 系统运行时期货端手工发起冲正期货转银行请求，银行处理完毕后报盘发回的通知委托
-		/// </summary>
-        /// <param name="pRspRepeal">冲正响应</param>
-		public delegate void RtnRepealFromFutureToBankByFutureManual(ref CThostFtdcRspRepealField pRspRepeal);
+        private RtnRepealFromFutureToBankByFutureManual rtnRepealFromFutureToBankByFutureManual;
 
         /// <summary>
         /// 系统运行时期货端手工发起冲正期货转银行请求，银行处理完毕后报盘发回的通知
@@ -3443,17 +3447,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 成交通知
-
-        RtnTrade rtnTrade;
-
-        /// <summary>
-        /// 成交通知委托
-        /// </summary>
-        /// <param name="pTrade">成交</param>
-		public delegate void RtnTrade(ref CThostFtdcTradeField pTrade);
+        private RtnTrade rtnTrade;
 
         /// <summary>
         /// 成交通知
@@ -3472,17 +3466,7 @@ namespace CTPTradeApi
             }
         }
 
-        #endregion
-
-        #region 交易通知
-
-        RtnTradingNotice rtnTradingNotice;
-
-        /// <summary>
-        /// 交易通知委托
-        /// </summary>
-        /// <param name="pTradingNoticeInfo">用户事件通知消息</param>
-		public delegate void RtnTradingNotice(ref CThostFtdcTradingNoticeInfoField pTradingNoticeInfo);
+        private RtnTradingNotice rtnTradingNotice;
 
         /// <summary>
         /// 交易通知

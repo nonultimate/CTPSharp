@@ -110,6 +110,7 @@ namespace CTPTradeApi.Tests
         public void TestGetApiVersion()
         {
             string result = _api.GetApiVersion();
+            Console.WriteLine("Api version：" + result);
             Assert.IsTrue(!string.IsNullOrEmpty(result));
         }
 
@@ -120,7 +121,7 @@ namespace CTPTradeApi.Tests
         public void TestGetTradingDay()
         {
             string result = _api.GetTradingDay();
-            Console.WriteLine("Trading day：" + result);
+            Console.WriteLine("交易日：" + result);
             Assert.AreEqual(8, result.Length);
         }
 
@@ -144,12 +145,14 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestUserPasswordupdate()
         {
-            _api.OnRspUserPasswordUpdate += new TradeApi.RspUserPasswordUpdate((ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspUserPasswordUpdate += new TradeApi.RspUserPasswordUpdate((
+                ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("更新用户口令成功，OldPassword: {0}, NewPassword: {1}", pUserPasswordUpdate.OldPassword, pUserPasswordUpdate.NewPassword);
+                    Console.WriteLine("更新用户口令成功，旧口令：{0}, 新口令：{1}", pUserPasswordUpdate.OldPassword,
+                        pUserPasswordUpdate.NewPassword);
                 }
                 else
                 {
@@ -181,12 +184,14 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestUserPasswordSafeUpdate()
         {
-            _api.OnRspUserPasswordUpdate += new TradeApi.RspUserPasswordUpdate((ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspUserPasswordUpdate += new TradeApi.RspUserPasswordUpdate((
+                ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("更新用户口令成功，OldPassword: {0}, NewPassword: {1}", pUserPasswordUpdate.OldPassword, pUserPasswordUpdate.NewPassword);
+                    Console.WriteLine("更新用户口令成功，旧口令：{0}, 新口令：{1}", pUserPasswordUpdate.OldPassword,
+                        pUserPasswordUpdate.NewPassword);
                 }
                 else
                 {
@@ -218,12 +223,14 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestTradingAccountPasswordUpdate()
         {
-            _api.OnRspTradingAccountPasswordUpdate += new TradeApi.RspTradingAccountPasswordUpdate((ref CThostFtdcTradingAccountPasswordUpdateField pTradingAccountPasswordUpdate,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspTradingAccountPasswordUpdate += new TradeApi.RspTradingAccountPasswordUpdate((
+                ref CThostFtdcTradingAccountPasswordUpdateField pTradingAccountPasswordUpdate,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("更新资金账户口令成功，OldPassword: {0}, NewPassword: {1}", pTradingAccountPasswordUpdate.OldPassword, pTradingAccountPasswordUpdate.NewPassword);
+                    Console.WriteLine("更新资金账户口令成功，旧口令：{0}, 新口令：{1}",
+                        pTradingAccountPasswordUpdate.OldPassword, pTradingAccountPasswordUpdate.NewPassword);
                 }
                 else
                 {
@@ -257,10 +264,10 @@ namespace CTPTradeApi.Tests
         {
             _api.OnRtnOrder += new TradeApi.RtnOrder((ref CThostFtdcOrderField pOrder) =>
             {
-                Console.WriteLine("下单成功, BrokerID: {0}, OrderSysID: {1}", pOrder.BrokerID, pOrder.OrderSysID);
+                Console.WriteLine("下单成功, 合约代码：{0}，价格：{1}", pOrder.InstrumentID, pOrder.LimitPrice);
             });
-            _api.OnRspOrderInsert += new TradeApi.RspOrderInsert((ref CThostFtdcInputOrderField pInputOrder, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast) =>
+            _api.OnRspOrderInsert += new TradeApi.RspOrderInsert((ref CThostFtdcInputOrderField pInputOrder,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID != 0)
                 {
@@ -271,7 +278,7 @@ namespace CTPTradeApi.Tests
             CThostFtdcInputOrderField order = new CThostFtdcInputOrderField();
             order.BrokerID = _brokerID;
             order.InvestorID = _investorID;
-            order.InstrumentID = "TF1809";
+            order.InstrumentID = "TF1909";
             order.OrderRef = "1";
             order.UserID = _investorID;
             order.OrderPriceType = TThostFtdcOrderPriceTypeType.LimitPrice;
@@ -311,16 +318,16 @@ namespace CTPTradeApi.Tests
             {
                 if (pOrder.OrderStatus == TThostFtdcOrderStatusType.Canceled)
                 {
-                    Console.WriteLine("撤单成功, BrokerID: {0}, OrderSysID: {1}", pOrder.BrokerID, pOrder.OrderSysID);
+                    Console.WriteLine("撤单成功, 合约代码：{0}", pOrder.BrokerID, pOrder.InstrumentID);
                 }
                 else
                 {
-                    Console.WriteLine("下单成功, BrokerID: {0}, OrderSysID: {1}", pOrder.BrokerID, pOrder.OrderSysID);
+                    Console.WriteLine("下单成功, 合约代码：{0}", pOrder.BrokerID, pOrder.InstrumentID);
                     CThostFtdcInputOrderActionField field = new CThostFtdcInputOrderActionField();
                     field.ActionFlag = TThostFtdcActionFlagType.Delete;
                     field.BrokerID = _brokerID;
                     field.InvestorID = _investorID;
-                    field.InstrumentID = "TF1809";
+                    field.InstrumentID = "TF1909";
                     if (pOrder.FrontID != 0)
                         field.FrontID = pOrder.FrontID;
                     if (pOrder.SessionID != 0)
@@ -335,8 +342,8 @@ namespace CTPTradeApi.Tests
                 }
                 Thread.Sleep(50);
             });
-            _api.OnRspOrderInsert += new TradeApi.RspOrderInsert((ref CThostFtdcInputOrderField pInputOrder, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast) =>
+            _api.OnRspOrderInsert += new TradeApi.RspOrderInsert((ref CThostFtdcInputOrderField pInputOrder,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID != 0)
                 {
@@ -347,7 +354,7 @@ namespace CTPTradeApi.Tests
             CThostFtdcInputOrderField order = new CThostFtdcInputOrderField();
             order.BrokerID = _brokerID;
             order.InvestorID = _investorID;
-            order.InstrumentID = "TF1809";
+            order.InstrumentID = "TF1909";
             order.OrderRef = "1";
             order.UserID = _investorID;
             order.OrderPriceType = TThostFtdcOrderPriceTypeType.LimitPrice;
@@ -374,8 +381,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryMaxOrderVolume()
         {
-            _api.OnRspQueryMaxOrderVolume += new TradeApi.RspQueryMaxOrderVolume((ref CThostFtdcQueryMaxOrderVolumeField pQueryMaxOrderVolume,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQueryMaxOrderVolume += new TradeApi.RspQueryMaxOrderVolume((
+                ref CThostFtdcQueryMaxOrderVolumeField pQueryMaxOrderVolume, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -405,8 +413,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestSettlementInfoConfirm()
         {
-            _api.OnRspSettlementInfoConfirm += new TradeApi.RspSettlementInfoConfirm((ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspSettlementInfoConfirm += new TradeApi.RspSettlementInfoConfirm((
+                ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -428,12 +437,12 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryOrder()
         {
-            _api.OnRspQryOrder += new TradeApi.RspQryOrder((ref CThostFtdcOrderField pOrder, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast) =>
+            _api.OnRspQryOrder += new TradeApi.RspQryOrder((ref CThostFtdcOrderField pOrder,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("报单查询成功, OrderSysID: {0},FrontID: {1},SessionID: {2},OrderRef: {3},ExchangeID: {4},LimitPrice: {5}", pOrder.OrderSysID, pOrder.FrontID, pOrder.SessionID, pOrder.OrderRef, pOrder.ExchangeID, pOrder.LimitPrice);
+                    Console.WriteLine("报单查询成功, 合约代码：{0}，价格：{1}", pOrder.InstrumentID, pOrder.LimitPrice);
                 }
                 else
                 {
@@ -451,8 +460,8 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryTrade()
         {
-            _api.OnRspQryTrade += new TradeApi.RspQryTrade((ref CThostFtdcTradeField pTrade, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast) =>
+            _api.OnRspQryTrade += new TradeApi.RspQryTrade((ref CThostFtdcTradeField pTrade,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -474,12 +483,13 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryInvestorPosition()
         {
-            _api.OnRspQryInvestorPosition += new TradeApi.RspQryInvestorPosition((ref CThostFtdcInvestorPositionField pInvestorPosition,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryInvestorPosition += new TradeApi.RspQryInvestorPosition((
+                ref CThostFtdcInvestorPositionField pInvestorPosition, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("投资者持仓查询成功, InstrumentID: {0}", pInvestorPosition.InstrumentID);
+                    Console.WriteLine("投资者持仓查询成功, 合约代码：{0}", pInvestorPosition.InstrumentID);
                 }
                 else
                 {
@@ -497,8 +507,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryTradingAccount()
         {
-            _api.OnRspQryTradingAccount += new TradeApi.RspQryTradingAccount((ref CThostFtdcTradingAccountField pTradingAccount,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryTradingAccount += new TradeApi.RspQryTradingAccount((
+                ref CThostFtdcTradingAccountField pTradingAccount, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -520,8 +531,8 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryInvestor()
         {
-            _api.OnRspQryInvestor += new TradeApi.RspQryInvestor((ref CThostFtdcInvestorField pInvestor, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast) =>
+            _api.OnRspQryInvestor += new TradeApi.RspQryInvestor((ref CThostFtdcInvestorField pInvestor,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -566,12 +577,13 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryInstrumentMarginRate()
         {
-            _api.OnRspQryInstrumentMarginRate += new TradeApi.RspQryInstrumentMarginRate((ref CThostFtdcInstrumentMarginRateField pInstrumentMarginRate,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryInstrumentMarginRate += new TradeApi.RspQryInstrumentMarginRate((
+                ref CThostFtdcInstrumentMarginRateField pInstrumentMarginRate, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("合约保证金率查询成功, InstrumentID: {0}", pInstrumentMarginRate.InstrumentID);
+                    Console.WriteLine("合约保证金率查询成功, 合约代码：{0}", pInstrumentMarginRate.InstrumentID);
                 }
                 else
                 {
@@ -590,12 +602,13 @@ namespace CTPTradeApi.Tests
         public void TestQueryInstrumentCommissionRate()
         {
             string instrumentID = "bu1712";
-            _api.OnRspQryInstrumentCommissionRate += new TradeApi.RspQryInstrumentCommissionRate((ref CThostFtdcInstrumentCommissionRateField pInstrumentCommissionRate,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryInstrumentCommissionRate += new TradeApi.RspQryInstrumentCommissionRate((
+                ref CThostFtdcInstrumentCommissionRateField pInstrumentCommissionRate,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("合约手续费率查询成功, InstrumentID: {0}", pInstrumentCommissionRate.InstrumentID);
+                    Console.WriteLine("合约手续费率查询成功, 合约代码：{0}", pInstrumentCommissionRate.InstrumentID);
                 }
                 else
                 {
@@ -613,8 +626,8 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryExchange()
         {
-            _api.OnRspQryExchange += new TradeApi.RspQryExchange((ref CThostFtdcExchangeField pExchange, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast) =>
+            _api.OnRspQryExchange += new TradeApi.RspQryExchange((ref CThostFtdcExchangeField pExchange,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -641,7 +654,7 @@ namespace CTPTradeApi.Tests
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("合约查询成功, InstrumentID: {0}", pInstrument.InstrumentID);
+                    Console.WriteLine("合约查询成功, 合约代码：{0}", pInstrument.InstrumentID);
                 }
                 else
                 {
@@ -659,12 +672,13 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQryDepthMarketData()
         {
-            _api.OnRspQryDepthMarketData += new TradeApi.RspQryDepthMarketData((ref CThostFtdcDepthMarketDataField pDepthMarketData,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryDepthMarketData += new TradeApi.RspQryDepthMarketData((
+                ref CThostFtdcDepthMarketDataField pDepthMarketData, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("行情查询成功, InstrumentID: {0}", pDepthMarketData.InstrumentID);
+                    Console.WriteLine("行情查询成功, 合约代码：{0}", pDepthMarketData.InstrumentID);
                 }
                 else
                 {
@@ -682,8 +696,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQuerySettlementInfo()
         {
-            _api.OnRspQrySettlementInfo += new TradeApi.RspQrySettlementInfo((ref CThostFtdcSettlementInfoField pSettlementInfo,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQrySettlementInfo += new TradeApi.RspQrySettlementInfo((
+                ref CThostFtdcSettlementInfoField pSettlementInfo, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -705,12 +720,13 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryInvestorPositionDetail()
         {
-            _api.OnRspQryInvestorPositionDetail += new TradeApi.RspQryInvestorPositionDetail((ref CThostFtdcInvestorPositionDetailField pInvestorPositionDetail,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryInvestorPositionDetail += new TradeApi.RspQryInvestorPositionDetail((
+                ref CThostFtdcInvestorPositionDetailField pInvestorPositionDetail, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("投资者持仓明细查询成功, InstrumentID: {0}", pInvestorPositionDetail.InstrumentID);
+                    Console.WriteLine("投资者持仓明细查询成功, 合约代码：{0}", pInvestorPositionDetail.InstrumentID);
                 }
                 else
                 {
@@ -728,8 +744,8 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryNotice()
         {
-            _api.OnRspQryNotice += new TradeApi.RspQryNotice((ref CThostFtdcNoticeField pNotice, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast) =>
+            _api.OnRspQryNotice += new TradeApi.RspQryNotice((ref CThostFtdcNoticeField pNotice,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -751,8 +767,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQuerySettlementInfoConfirm()
         {
-            _api.OnRspQrySettlementInfoConfirm += new TradeApi.RspQrySettlementInfoConfirm((ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQrySettlementInfoConfirm += new TradeApi.RspQrySettlementInfoConfirm((
+                ref CThostFtdcSettlementInfoConfirmField pSettlementInfoConfirm, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -774,8 +791,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryInvestorPositionCombinaDetail()
         {
-            _api.OnRspQryInvestorPositionCombineDetail += new TradeApi.RspQryInvestorPositionCombineDetail((ref CThostFtdcInvestorPositionCombineDetailField pInvestorPositionCombineDetail,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryInvestorPositionCombineDetail += new TradeApi.RspQryInvestorPositionCombineDetail((
+                ref CThostFtdcInvestorPositionCombineDetailField pInvestorPositionCombineDetail,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -797,8 +815,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryCFMMCTradingAccountKey()
         {
-            _api.OnRspQryCFMMCTradingAccountKey += new TradeApi.RspQryCFMMCTradingAccountKey((ref CThostFtdcCFMMCTradingAccountKeyField pCFMMCTradingAccountKey,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryCFMMCTradingAccountKey += new TradeApi.RspQryCFMMCTradingAccountKey((
+                ref CThostFtdcCFMMCTradingAccountKeyField pCFMMCTradingAccountKey,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -820,8 +839,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryTradingNotice()
         {
-            _api.OnRspQryTradingNotice += new TradeApi.RspQryTradingNotice((ref CThostFtdcTradingNoticeField pTradingNotice,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryTradingNotice += new TradeApi.RspQryTradingNotice((
+                ref CThostFtdcTradingNoticeField pTradingNotice, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -843,8 +863,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryBrokerTradingParams()
         {
-            _api.OnRspQryBrokerTradingParams += new TradeApi.RspQryBrokerTradingParams((ref CThostFtdcBrokerTradingParamsField pBrokerTradingParams,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryBrokerTradingParams += new TradeApi.RspQryBrokerTradingParams((
+                ref CThostFtdcBrokerTradingParamsField pBrokerTradingParams,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -866,8 +887,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryBrokerTradingAlgos()
         {
-            _api.OnRspQryBrokerTradingAlgos += new TradeApi.RspQryBrokerTradingAlgos((ref CThostFtdcBrokerTradingAlgosField pBrokerTradingAlgos,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryBrokerTradingAlgos += new TradeApi.RspQryBrokerTradingAlgos((
+                ref CThostFtdcBrokerTradingAlgosField pBrokerTradingAlgos,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -917,7 +939,7 @@ namespace CTPTradeApi.Tests
             field.UserID = _investorID;
             field.VolumeCondition = TThostFtdcVolumeConditionType.AV;
             field.CombHedgeFlag = TThostFtdcHedgeFlagType.Speculation;
-            field.InstrumentID = "TF1809";
+            field.InstrumentID = "TF1909";
             field.CombOffsetFlag = TThostFtdcOffsetFlagType.Open;
             field.Direction = TThostFtdcDirectionType.Buy;
             field.LimitPrice = 97.080;
@@ -932,8 +954,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestParkedOrderAction()
         {
-            _api.OnRspParkedOrderAction += new TradeApi.RspParkedOrderAction((ref CThostFtdcParkedOrderActionField pParkedOrderAction,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspParkedOrderAction += new TradeApi.RspParkedOrderAction((
+                ref CThostFtdcParkedOrderActionField pParkedOrderAction, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -948,7 +971,7 @@ namespace CTPTradeApi.Tests
             CThostFtdcParkedOrderActionField field = new CThostFtdcParkedOrderActionField();
             field.BrokerID = _brokerID;
             field.InvestorID = _investorID;
-            field.InstrumentID = "TF1809";
+            field.InstrumentID = "TF1909";
             field.ActionFlag = TThostFtdcActionFlagType.Delete;
             field.FrontID = 1;
             field.SessionID = 574058695;
@@ -966,8 +989,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestRemoveParkedOrder()
         {
-            _api.OnRspRemoveParkedOrder += new TradeApi.RspRemoveParkedOrder((ref CThostFtdcRemoveParkedOrderField pRemoveParkedOrder,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspRemoveParkedOrder += new TradeApi.RspRemoveParkedOrder((
+                ref CThostFtdcRemoveParkedOrderField pRemoveParkedOrder,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -979,8 +1003,9 @@ namespace CTPTradeApi.Tests
                 }
                 Assert.IsTrue(pRspInfo.ErrorID == 0);
             });
-            _api.OnRspParkedOrderInsert += new TradeApi.RspParkedOrderInsert((ref CThostFtdcParkedOrderField pParkedOrder,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspParkedOrderInsert += new TradeApi.RspParkedOrderInsert((
+                ref CThostFtdcParkedOrderField pParkedOrder, ref CThostFtdcRspInfoField pRspInfo,
+                int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -997,7 +1022,7 @@ namespace CTPTradeApi.Tests
             CThostFtdcParkedOrderField field = new CThostFtdcParkedOrderField();
             field.BrokerID = _brokerID;
             field.InvestorID = _investorID;
-            field.InstrumentID = "TF1809";
+            field.InstrumentID = "TF1909";
             field.OrderRef = "";
             field.UserID = _investorID;
             field.OrderPriceType = TThostFtdcOrderPriceTypeType.LimitPrice;
@@ -1023,12 +1048,14 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestRemoveParkedOrderAction()
         {
-            _api.OnRspRemoveParkedOrderAction += new TradeApi.RspRemoveParkedOrderAction((ref CThostFtdcRemoveParkedOrderActionField pRemoveParkedOrderAction, ref CThostFtdcRspInfoField pRspInfo,
-            int nRequestID, byte bIsLast) =>
+            _api.OnRspRemoveParkedOrderAction += new TradeApi.RspRemoveParkedOrderAction((
+                ref CThostFtdcRemoveParkedOrderActionField pRemoveParkedOrderAction,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("删除预埋撤单成功, ParkedOrderActionID: {0}", pRemoveParkedOrderAction.ParkedOrderActionID);
+                    Console.WriteLine("删除预埋撤单成功, ParkedOrderActionID: {0}",
+                        pRemoveParkedOrderAction.ParkedOrderActionID);
                 }
                 else
                 {
@@ -1036,8 +1063,9 @@ namespace CTPTradeApi.Tests
                 }
                 Assert.IsTrue(pRspInfo.ErrorID == 0);
             });
-            _api.OnRspParkedOrderAction += new TradeApi.RspParkedOrderAction((ref CThostFtdcParkedOrderActionField pParkedOrderAction,
-           ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspParkedOrderAction += new TradeApi.RspParkedOrderAction((
+                ref CThostFtdcParkedOrderActionField pParkedOrderAction,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -1055,7 +1083,7 @@ namespace CTPTradeApi.Tests
             field.ActionFlag = TThostFtdcActionFlagType.Delete;
             field.BrokerID = _brokerID;
             field.InvestorID = _investorID;
-            field.InstrumentID = "TF1809";
+            field.InstrumentID = "TF1909";
             field.FrontID = 1;
             field.SessionID = -1253843411;
             field.OrderRef = "1";
@@ -1095,8 +1123,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryTransferSerial()
         {
-            _api.OnRspQryTransferSerial += new TradeApi.RspQryTransferSerial((ref CThostFtdcTransferSerialField pTransferSerial,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryTransferSerial += new TradeApi.RspQryTransferSerial((
+                ref CThostFtdcTransferSerialField pTransferSerial,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -1118,8 +1147,9 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryAccountregister()
         {
-            _api.OnRspQryAccountregister += new TradeApi.RspQryAccountregister((ref CThostFtdcAccountregisterField pAccountregister,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryAccountregister += new TradeApi.RspQryAccountregister((
+                ref CThostFtdcAccountregisterField pAccountregister,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -1142,7 +1172,7 @@ namespace CTPTradeApi.Tests
         public void TestQueryContractBank()
         {
             _api.OnRspQryContractBank += new TradeApi.RspQryContractBank((ref CThostFtdcContractBankField pContractBank,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
@@ -1165,11 +1195,12 @@ namespace CTPTradeApi.Tests
         public void TestQueryParkedOrder()
         {
             _api.OnRspQryParkedOrder += new TradeApi.RspQryParkedOrder((ref CThostFtdcParkedOrderField pParkedOrder,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("预埋单查询成功, ParkedOrderID: {0},Status: {1}", pParkedOrder.ParkedOrderID, pParkedOrder.Status);
+                    Console.WriteLine("预埋单查询成功, ParkedOrderID: {0},Status: {1}", pParkedOrder.ParkedOrderID,
+                        pParkedOrder.Status);
                 }
                 else
                 {
@@ -1187,12 +1218,14 @@ namespace CTPTradeApi.Tests
         [TestMethod()]
         public void TestQueryParkedOrderAction()
         {
-            _api.OnRspQryParkedOrderAction += new TradeApi.RspQryParkedOrderAction((ref CThostFtdcParkedOrderActionField pParkedOrderAction,
-            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            _api.OnRspQryParkedOrderAction += new TradeApi.RspQryParkedOrderAction((
+                ref CThostFtdcParkedOrderActionField pParkedOrderAction,
+                ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
             {
                 if (pRspInfo.ErrorID == 0)
                 {
-                    Console.WriteLine("预埋撤单查询成功, parkedOrderActionID: {0},Status: {1}", pParkedOrderAction.ParkedOrderActionID, pParkedOrderAction.Status);
+                    Console.WriteLine("预埋撤单查询成功, parkedOrderActionID: {0}, Status: {1}",
+                        pParkedOrderAction.ParkedOrderActionID, pParkedOrderAction.Status);
                 }
                 else
                 {
