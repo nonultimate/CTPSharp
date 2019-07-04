@@ -3,6 +3,7 @@ C#版CTP交易和行情接口类库，在原基础上进行二次封装，支持
 x86和amd64文件夹内的文件为MdApi.dll、TradeApi.dll、thostmduserapi.dll、thosttraderapi.dll，需要将这两个文件夹复制到当前程序文件夹。
 
 CTP版本6.3.16_20190305
+看穿式监管版查看分支[ctpse](https://github.com/nonultimate/CTPSharp/tree/ctpse)
 
 [使用说明](https://github.com/nonultimate/CTPSharp/wiki)
 

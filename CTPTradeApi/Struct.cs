@@ -217,6 +217,11 @@ namespace CTPTradeApi
         /// </summary>
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 17)]
         public string AuthCode;
+        /// <summary>
+        /// 应用代码
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
+        public string AppID;
     }
 
     /// <summary>
@@ -241,12 +246,12 @@ namespace CTPTradeApi
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 11)]
         public string UserProductInfo;
         /// <summary>
-        /// App代码
+        /// 应用代码
         /// </summary>
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
         public string AppID;
         /// <summary>
-        /// App类型
+        /// 应用类型
         /// </summary>
         public char AppType;
     }
@@ -282,12 +287,12 @@ namespace CTPTradeApi
         /// </summary>
         public int IsResult;
         /// <summary>
-        /// App代码
+        /// 应用代码
         /// </summary>
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
         public string AppID;
         /// <summary>
-        /// App类型
+        /// 应用类型
         /// </summary>
         public char AppType;
     }
