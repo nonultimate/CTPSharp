@@ -18,22 +18,22 @@ namespace CTPMarketApi.Tests
         /// <summary>
         /// 连接地址
         /// </summary>
-        private string _frontAddr = "tcp://180.168.146.187:10010";
+        private string _frontAddr = "tcp://180.169.50.131:42205";
 
         /// <summary>
         /// 经纪商代码
         /// </summary>
-        private string _brokerID = "9999";
+        private string _brokerID = "2071";
 
         /// <summary>
         /// 投资者账号
         /// </summary>
-        private string _investor = "081081";
+        private string _investorID = "10000020";
 
         /// <summary>
         /// 密码
         /// </summary>
-        private string _password = "test1234";
+        private string _password = "123456test";
 
         /// <summary>
         /// 是否连接
@@ -59,7 +59,7 @@ namespace CTPMarketApi.Tests
             _api.OnFrontConnected += new MarketApi.FrontConnected(() =>
             {
                 _isConnected = true;
-                _api.UserLogin(-3, _investor, _password);
+                _api.UserLogin(-3, _investorID, _password);
             });
             _api.OnRspUserLogin += new MarketApi.RspUserLogin((ref CThostFtdcRspUserLoginField pRspUserLogin,
                 ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
@@ -78,7 +78,7 @@ namespace CTPMarketApi.Tests
             });
 
             _api.Connect();
-            Thread.Sleep(200);
+            Thread.Sleep(500);
         }
 
         /// <summary>
@@ -105,6 +105,7 @@ namespace CTPMarketApi.Tests
         public void TestGetApiVersion()
         {
             string result = _api.GetApiVersion();
+            Console.WriteLine("Api version: " + result);
             Assert.IsTrue(!string.IsNullOrEmpty(result));
         }
 

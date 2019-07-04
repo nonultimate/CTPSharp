@@ -24,6 +24,8 @@ namespace CTPTradeAdapter.Adapter
         /// </summary>
         private TradeApi _api;
 
+        private DataCollect _dataCollect;
+
         /// <summary>
         /// 回调方法字典
         /// </summary>
@@ -114,6 +116,7 @@ namespace CTPTradeAdapter.Adapter
         public TradeAdapter()
         {
             _api = new TradeApi();
+            _dataCollect = new DataCollect();
 
             BindEvents();
         }
@@ -243,25 +246,54 @@ namespace CTPTradeAdapter.Adapter
         }
 
         /// <summary>
+        /// 需要在终端认证成功后，用户登录前调用该接口
+        /// </summary>
+        /// <param name="clientIP">终端IP</param>
+        /// <param name="clientPort">终端端口</param>
+        /// <param name="loginTime">登录时间</param>
+        /// <returns></returns>
+        public int RegisterUserSystemInfo(string clientIP, int clientPort, string loginTime)
+        {
+            int result = -1;
+            var systemInfo = _dataCollect.GetSsystemInfo();
+            if (systemInfo.Item2 > 0)
+            {
+                result = _api.RegisterUserSystemInfo(systemInfo.Item1, systemInfo.Item2, clientIP, clientPort, loginTime);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 上报用户终端信息，用于中继服务器操作员登录模式
+        /// 操作员登录后，可以多次调用该接口上报客户信息
+        /// </summary>
+        /// <param name="clientIP">终端IP</param>
+        /// <param name="clientPort">终端端口</param>
+        /// <param name="loginTime">登录时间</param>
+        /// <returns></returns>
+        public int SubmitUserSystemInfo(string clientIP, int clientPort, string loginTime)
+        {
+            int result = -1;
+            var systemInfo = _dataCollect.GetSsystemInfo();
+            if (systemInfo.Item2 > 0)
+            {
+                result = _api.SubmitUserSystemInfo(systemInfo.Item1, systemInfo.Item2, clientIP, clientPort, loginTime);
+            }
+            return result;
+        }
+
+        /// <summary>
         /// 用户登录
         /// </summary>
         /// <param name="callback">登录回调</param>
         /// <param name="investorID">投资者账号</param>
         /// <param name="password">密码</param>
         /// <param name="oneTimePassword">动态密码</param>
-        /// <param name="isSafe">是否使用安全接口</param>
-        public int UserLogin(DataCallback callback, string investorID, string password,
-            string oneTimePassword = null, bool isSafe = false)
+        public int UserLogin(DataCallback callback, string investorID, string password, string oneTimePassword = null)
         {
             int requestID = AddCallback(callback, -3);
-            if (isSafe)
-            {
-                return _api.UserSafeLogin(requestID, investorID, password);
-            }
-            else
-            {
-                return _api.UserLogin(requestID, investorID, password);
-            }
+
+            return _api.UserLogin(requestID, investorID, password);
         }
 
         /// <summary>
@@ -289,19 +321,11 @@ namespace CTPTradeAdapter.Adapter
         /// <param name="callback">更新回调</param>
         /// <param name="oldPassword">原密码</param>
         /// <param name="newPassword">新密码</param>
-        /// <param name="isSafe">是否使用安全接口</param>
         /// <returns></returns>
-        public int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword, bool isSafe = false)
+        public int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword)
         {
             int requestID = AddCallback(callback);
-            if (isSafe)
-            {
-                return _api.UserPasswordSafeUpdate(requestID, _api.InvestorID, oldPassword, newPassword);
-            }
-            else
-            {
-                return _api.UserPasswordupdate(requestID, _api.InvestorID, oldPassword, newPassword);
-            }
+            return _api.UserPasswordupdate(requestID, _api.InvestorID, oldPassword, newPassword);
         }
 
         /// <summary>

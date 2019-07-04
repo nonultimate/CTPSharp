@@ -69,6 +69,47 @@ TRADEAPI_API int ReqAuthenticate(CThostFtdcTraderApi* pApi, int requestID, TThos
 	return pApi->ReqAuthenticate(&req, requestID);
 }
 
+//需要在终端认证成功后，用户登录前调用该接口
+TRADEAPI_API int RegisterUserSystemInfo(CThostFtdcTraderApi* pApi, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID,
+	TThostFtdcClientSystemInfoType clientSystemInfo, TThostFtdcSystemInfoLenType clientSystemInfoLen, TThostFtdcIPAddressType clientPublicIP,
+	TThostFtdcIPPortType clientIPPort, TThostFtdcTimeType clientLoginTime, TThostFtdcAppIDType clientAppID)
+{
+	if (pApi == NULL) return -1;
+	CThostFtdcUserSystemInfoField req;
+	memset(&req, 0, sizeof(req));
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.UserID, userID);
+	strcpy_s(req.ClientSystemInfo, clientSystemInfo);
+	strcpy_s(req.ClientPublicIP, clientPublicIP);
+	strcpy_s(req.ClientLoginTime, clientLoginTime);
+	strcpy_s(req.ClientAppID, clientAppID);
+	req.ClientSystemInfoLen = clientSystemInfoLen;
+	req.ClientIPPort = clientIPPort;
+
+	return pApi->RegisterUserSystemInfo(&req);
+}
+
+//上报用户终端信息，用于中继服务器操作员登录模式
+//操作员登录后，可以多次调用该接口上报客户信息
+TRADEAPI_API int SubmitUserSystemInfo(CThostFtdcTraderApi* pApi, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID,
+	TThostFtdcClientSystemInfoType clientSystemInfo, TThostFtdcSystemInfoLenType clientSystemInfoLen, TThostFtdcIPAddressType clientPublicIP,
+	TThostFtdcIPPortType clientIPPort, TThostFtdcTimeType clientLoginTime, TThostFtdcAppIDType clientAppID)
+{
+	if (pApi == NULL) return -1;
+	CThostFtdcUserSystemInfoField req;
+	memset(&req, 0, sizeof(req));
+	strcpy_s(req.BrokerID, brokerID);
+	strcpy_s(req.UserID, userID);
+	strcpy_s(req.ClientSystemInfo, clientSystemInfo);
+	strcpy_s(req.ClientPublicIP, clientPublicIP);
+	strcpy_s(req.ClientLoginTime, clientLoginTime);
+	strcpy_s(req.ClientAppID, clientAppID);
+	req.ClientSystemInfoLen = clientSystemInfoLen;
+	req.ClientIPPort = clientIPPort;
+
+	pApi->SubmitUserSystemInfo(&req);
+}
+
 //发送用户登录请求
 TRADEAPI_API int ReqUserLogin(CThostFtdcTraderApi* pApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID,
 	TThostFtdcPasswordType password, TThostFtdcPasswordType oneTimePassword, TThostFtdcMacAddressType macAddress, TThostFtdcProductInfoType productInfo,
@@ -127,40 +168,6 @@ TRADEAPI_API int ReqTradingAccountPasswordUpdate(CThostFtdcTraderApi* pApi, int 
 	strcpy_s(req.NewPassword, newPassword);
 	strcpy_s(req.OldPassword, oldPassword);
 	return pApi->ReqTradingAccountPasswordUpdate(&req, requestID);
-}
-//安全登录请求
-TRADEAPI_API int ReqUserSafeLogin(CThostFtdcTraderApi* pApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID,
-	TThostFtdcPasswordType password, TThostFtdcPasswordType oneTimePassword, TThostFtdcMacAddressType macAddress, TThostFtdcProductInfoType productInfo,
-	TThostFtdcProductInfoType interfaceInfo, TThostFtdcProtocolInfoType	protocolInfo)
-{
-	if (pApi == NULL) return -1;
-
-	CThostFtdcReqUserLoginField req;
-	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, brokerID);
-	strcpy_s(req.UserID, userID);
-	strcpy_s(req.Password, password);
-	if (oneTimePassword != NULL) strcpy_s(req.OneTimePassword, oneTimePassword);
-	if (macAddress != NULL) strcpy_s(req.MacAddress, macAddress);
-	if (productInfo != NULL) strcpy_s(req.UserProductInfo, productInfo);
-	if (interfaceInfo != NULL) strcpy_s(req.InterfaceProductInfo, interfaceInfo);
-	if (protocolInfo != NULL) strcpy_s(req.ProtocolInfo, protocolInfo);
-
-	return pApi->ReqUserLogin2(&req, requestID);
-}
-//安全更新用户口令
-TRADEAPI_API int ReqUserPasswordSafeUpdate(CThostFtdcTraderApi* pApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID,
-	TThostFtdcUserIDType oldPassword, TThostFtdcPasswordType newPassword)
-{
-	if (pApi == NULL) return -1;
-
-	CThostFtdcUserPasswordUpdateField req;
-	memset(&req, 0, sizeof(req));
-	strcpy_s(req.BrokerID, brokerID);
-	strcpy_s(req.UserID, userID);
-	strcpy_s(req.OldPassword, oldPassword);
-	strcpy_s(req.NewPassword, newPassword);
-	return pApi->ReqUserPasswordUpdate2(&req, requestID);
 }
 //查询用户当前支持的认证模式
 TRADEAPI_API int ReqUserAuthMethod(CThostFtdcTraderApi* pApi, int requestID, TThostFtdcBrokerIDType brokerID, TThostFtdcUserIDType userID, TThostFtdcDateType tradingDay)

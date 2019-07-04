@@ -217,6 +217,11 @@ namespace CTPTradeApi
         /// </summary>
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 17)]
         public string AuthCode;
+        /// <summary>
+        /// 应用代码
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
+        public string AppID;
     }
 
     /// <summary>
@@ -241,12 +246,12 @@ namespace CTPTradeApi
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 11)]
         public string UserProductInfo;
         /// <summary>
-        /// App代码
+        /// 应用代码
         /// </summary>
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
         public string AppID;
         /// <summary>
-        /// App类型
+        /// 应用类型
         /// </summary>
         public char AppType;
     }
@@ -282,16 +287,62 @@ namespace CTPTradeApi
         /// </summary>
         public int IsResult;
         /// <summary>
-        /// App代码
+        /// 应用代码
         /// </summary>
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
         public string AppID;
         /// <summary>
-        /// App类型
+        /// 应用类型
         /// </summary>
         public char AppType;
     }
-    
+
+    /// <summary>
+    /// 用户系统信息
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CThostFtdcUserSystemInfoField
+    {
+        /// <summary>
+        /// 经纪公司代码
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 11)]
+        public string BrokerID;
+        /// <summary>
+        /// 用户代码
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
+        public string UserID;
+        /// <summary>
+        /// 用户端系统内部信息长度
+        /// </summary>
+        public int ClientSystemInfoLen;
+        /// <summary>
+        /// 用户端系统内部信息
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 273)]
+        public string ClientSystemInfo;
+        /// <summary>
+        /// 终端IP
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
+        public string ClientPublicIP;
+        /// <summary>
+        /// 终端IP端口
+        /// </summary>
+        public string ClientIPPort;
+        /// <summary>
+        /// 登录成功时间
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 9)]
+        public string ClientLoginTime;
+        /// <summary>
+        /// 应用代码
+        /// </summary>
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 33)]
+        public string AppID;
+    }
+
     /// <summary>
     /// 用户发出获取安全安全登陆方法请求
     /// </summary>

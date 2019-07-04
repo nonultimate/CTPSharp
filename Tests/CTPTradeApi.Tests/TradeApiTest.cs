@@ -22,22 +22,22 @@ namespace CTPTradeApi.Tests
         /// 180.168.146.187:10001
         /// 218.202.237.33:10002
         /// </summary>
-        private string _frontAddr = "tcp://218.202.237.33:10002";
+        private string _frontAddr = "tcp://180.169.50.131:42205";
 
         /// <summary>
         /// 经纪商代码
         /// </summary>
-        private string _brokerID = "9999";
+        private string _brokerID = "2071";
 
         /// <summary>
         /// 投资者账号
         /// </summary>
-        private string _investorID = "081081";
+        private string _investorID = "10000020";
 
         /// <summary>
         /// 密码
         /// </summary>
-        private string _password = "test1234";
+        private string _password = "123456test";
 
         /// <summary>
         /// 是否连接
@@ -63,7 +63,20 @@ namespace CTPTradeApi.Tests
             _api.OnFrontConnect += new TradeApi.FrontConnect(() =>
             {
                 _isConnected = true;
-                _api.UserLogin(-3, _investorID, _password);
+                _api.Authenticate(-5, _investorID, "", "20190627GTJA0001", "ZCXX_gtjaAmm_v1.3");
+            });
+            _api.OnRspAuthenticate += new TradeApi.RspAuthenticate((ref CThostFtdcRspAuthenticateField pRspAuthenticate,
+            ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
+            {
+                if (pRspInfo.ErrorID == 0)
+                {
+                    _api.UserLogin(-3, _investorID, _password);
+                }
+                else
+                {
+                    Console.WriteLine("Authenticate error: " + pRspInfo.ErrorMsg);
+                    throw new Exception("Authenticate error:" + pRspInfo.ErrorMsg);
+                }
             });
             _api.OnRspUserLogin += new TradeApi.RspUserLogin((ref CThostFtdcRspUserLoginField pRspUserLogin,
             ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
@@ -83,7 +96,7 @@ namespace CTPTradeApi.Tests
             });
 
             _api.Connect();
-            Thread.Sleep(200);
+            Thread.Sleep(500);
         }
 
         /// <summary>
@@ -110,7 +123,7 @@ namespace CTPTradeApi.Tests
         public void TestGetApiVersion()
         {
             string result = _api.GetApiVersion();
-            Console.WriteLine("Api version：" + result);
+            Console.WriteLine("Api version: " + result);
             Assert.IsTrue(!string.IsNullOrEmpty(result));
         }
 
@@ -123,20 +136,6 @@ namespace CTPTradeApi.Tests
             string result = _api.GetTradingDay();
             Console.WriteLine("交易日：" + result);
             Assert.AreEqual(8, result.Length);
-        }
-
-        /// <summary>
-        /// 测试安全登录
-        /// </summary>
-        [TestMethod]
-        public void TestUserSafeLogin()
-        {
-            _api.OnRspError += new TradeApi.RspError((ref CThostFtdcRspInfoField pRspInfo, int nRequestID, byte bIsLast) =>
-            {
-                Assert.Fail(pRspInfo.ErrorMsg);
-            });
-            _api.UserSafeLogin(1, _investorID, _password);
-            Thread.Sleep(200);
         }
 
         /// <summary>
@@ -175,45 +174,6 @@ namespace CTPTradeApi.Tests
             Thread.Sleep(100);
 
             _api.UserPasswordupdate(3, _investorID, newPassword, _password);
-            Thread.Sleep(100);
-        }
-
-        /// <summary>
-        /// 测试更新用户口令2
-        /// </summary>
-        [TestMethod()]
-        public void TestUserPasswordSafeUpdate()
-        {
-            _api.OnRspUserPasswordUpdate += new TradeApi.RspUserPasswordUpdate((
-                ref CThostFtdcUserPasswordUpdateField pUserPasswordUpdate, ref CThostFtdcRspInfoField pRspInfo,
-                int nRequestID, byte bIsLast) =>
-            {
-                if (pRspInfo.ErrorID == 0)
-                {
-                    Console.WriteLine("更新用户口令成功，旧口令：{0}, 新口令：{1}", pUserPasswordUpdate.OldPassword,
-                        pUserPasswordUpdate.NewPassword);
-                }
-                else
-                {
-                    Console.WriteLine(pRspInfo.ErrorMsg);
-                }
-                if (nRequestID == 1)
-                {
-                    Assert.IsFalse(pRspInfo.ErrorID == 0);
-                }
-                else if (nRequestID == 2 || nRequestID == 3)
-                {
-                    Assert.IsTrue(pRspInfo.ErrorID == 0);
-                }
-            });
-            string newPassword = "asde34562";
-            _api.UserPasswordSafeUpdate(1, _investorID, newPassword, newPassword);
-            Thread.Sleep(100);
-
-            _api.UserPasswordSafeUpdate(2, _investorID, _password, newPassword);
-            Thread.Sleep(100);
-
-            _api.UserPasswordSafeUpdate(3, _investorID, newPassword, _password);
             Thread.Sleep(100);
         }
 

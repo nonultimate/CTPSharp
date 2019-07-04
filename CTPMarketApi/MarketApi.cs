@@ -179,7 +179,7 @@ namespace CTPMarketApi
             {
                 string path = Path.GetFullPath(string.Format("{0}\\{1}", LibraryWrapper.ProcessorArchitecture,
                     DllName));
-                _wrapper = new LibraryWrapper(path, "thostmduserapi.dll");
+                _wrapper = new LibraryWrapper(path, "thostmduserapi_se.dll");
 
                 #region 读取方法入口列表
 

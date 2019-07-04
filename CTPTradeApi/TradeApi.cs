@@ -123,6 +123,10 @@ namespace CTPTradeApi
             string productInfo, string authCode, string appID);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        delegate int DelegateRegisterUserSystemInfo(IntPtr ptr, string brokerID, string userID, string systemInfo,
+            int systemInfoLen, string clientIP, int clientPort, string loginTime, string appID);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         delegate int DelegateReqQueryExchange(IntPtr ptr, int requestID, string exchangeID);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -904,12 +908,12 @@ namespace CTPTradeApi
         DelegateDisconnect disconnect;
         DelegateGetString getTradingDay;
         DelegateReqAuthenticate reqAuthenticate;
+        DelegateRegisterUserSystemInfo registerUserSystemInfo;
+        DelegateRegisterUserSystemInfo submitUserSystemInfo;
         DelegateReqUserLogin reqUserLogin;
         DelegateReqAccount reqUserLogout;
         DelegateReqUserUpdate reqUserPasswordUpdate;
         DelegateReqUserUpdate reqTradingAccountPasswordUpdate;
-        DelegateReqUserLogin reqSafeUserLogin;
-        DelegateReqUserUpdate reqSafeUserPasswordUpdate;
         DelegateReqUserAuth reqUserAuthMethod;
         DelegateReqUserAuth reqGenUserCaptcha;
         DelegateReqUserAuth reqGenUserText;
@@ -1071,7 +1075,7 @@ namespace CTPTradeApi
             {
                 string path = Path.GetFullPath(string.Format("{0}\\{1}", LibraryWrapper.ProcessorArchitecture,
                     DllName));
-                _wrapper = new LibraryWrapper(path, "thosttraderapi.dll");
+                _wrapper = new LibraryWrapper(path, "thosttraderapi_se.dll");
 
                 #region 读取方法入口列表
 
@@ -1119,12 +1123,12 @@ namespace CTPTradeApi
                 connect = GetDelegate<DelegateConnect>("Connect");
                 disconnect = GetDelegate<DelegateDisconnect>("DisConnect");
                 reqAuthenticate = GetDelegate<DelegateReqAuthenticate>("ReqAuthenticate");
+                registerUserSystemInfo = GetDelegate<DelegateRegisterUserSystemInfo>("RegisterUserSystemInfo");
+                submitUserSystemInfo = GetDelegate<DelegateRegisterUserSystemInfo>("SubmitUserSystemInfo");
                 reqUserLogin = GetDelegate<DelegateReqUserLogin>("ReqUserLogin");
                 reqUserLogout = GetDelegate<DelegateReqAccount>("ReqUserLogout");
                 reqUserPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordUpdate");
                 reqTradingAccountPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqTradingAccountPasswordUpdate");
-                reqSafeUserLogin = GetDelegate<DelegateReqUserLogin>("ReqUserSafeLogin");
-                reqSafeUserPasswordUpdate = GetDelegate<DelegateReqUserUpdate>("ReqUserPasswordSafeUpdate");
                 reqUserAuthMethod = GetDelegate<DelegateReqUserAuth>("ReqUserAuthMethod");
                 reqGenUserCaptcha = GetDelegate<DelegateReqUserAuth>("ReqGenUserCaptcha");
                 reqGenUserText = GetDelegate<DelegateReqUserAuth>("ReqGenUserText");
@@ -1337,6 +1341,39 @@ namespace CTPTradeApi
         }
 
         /// <summary>
+        /// 需要在终端认证成功后，用户登录前调用该接口
+        /// </summary>
+        /// <param name="systemInfo">用户端系统内部信息</param>
+        /// <param name="systemInfoLen">用户端系统内部信息长度</param>
+        /// <param name="clientIP">终端IP</param>
+        /// <param name="clientPort">终端端口</param>
+        /// <param name="loginTime">登录时间</param>
+        /// <returns></returns>
+        public int RegisterUserSystemInfo(string systemInfo, int systemInfoLen, string clientIP, int clientPort,
+            string loginTime)
+        {
+            return registerUserSystemInfo(_handle, this.BrokerID, this.InvestorID, systemInfo, systemInfoLen, clientIP,
+                clientPort, loginTime, this.AppID);
+        }
+
+        /// <summary>
+        /// 上报用户终端信息，用于中继服务器操作员登录模式
+        /// 操作员登录后，可以多次调用该接口上报客户信息
+        /// </summary>
+        /// <param name="systemInfo">用户端系统内部信息</param>
+        /// <param name="systemInfoLen">用户端系统内部信息长度</param>
+        /// <param name="clientIP">终端IP</param>
+        /// <param name="clientPort">终端端口</param>
+        /// <param name="loginTime">登录时间</param>
+        /// <returns></returns>
+        public int SubmitUserSystemInfo(string systemInfo, int systemInfoLen, string clientIP, int clientPort,
+            string loginTime)
+        {
+            return submitUserSystemInfo(_handle, this.BrokerID, this.InvestorID, systemInfo, systemInfoLen, clientIP,
+                clientPort, loginTime, this.AppID);
+        }
+
+        /// <summary>
         /// 登入请求
         /// </summary>
         /// <param name="requestID">请求编号</param>
@@ -1385,34 +1422,6 @@ namespace CTPTradeApi
         {
             return reqTradingAccountPasswordUpdate(_handle, requestID, this.BrokerID, accountID, oldPassword,
                 newPassword);
-        }
-
-        /// <summary>
-        /// 安全登入请求
-        /// </summary>
-        /// <param name="requestID">请求编号</param>
-        /// <param name="investorID">投资者账号</param>
-        /// <param name="password">密码</param>
-        /// <param name="oneTimePassword">动态密码</param>
-        /// <returns></returns>
-        public int UserSafeLogin(int requestID, string investorID, string password, string oneTimePassword = null)
-        {
-            this.InvestorID = investorID;
-            this._password = password;
-            return reqSafeUserLogin(_handle, requestID, this.BrokerID, investorID, password, oneTimePassword,
-                this.MacAddress, this.ProductInfo, this.InterfaceInfo, this.ProtocolInfo);
-        }
-
-        /// <summary>
-        /// 安全更新用户口令
-        /// </summary>
-        /// <param name="requestID">请求编号</param>
-        /// <param name="userID">投资者账号</param>
-        /// <param name="oldPassword">原密码</param>
-        /// <param name="newPassword">新密码</param>
-        public int UserPasswordSafeUpdate(int requestID, string userID, string oldPassword, string newPassword)
-        {
-            return reqSafeUserPasswordUpdate(_handle, requestID, this.BrokerID, userID, oldPassword, newPassword);
         }
 
         /// <summary>

@@ -43,6 +43,6 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\api\x86\thostmduserapi.lib" />
+    <Library Include="..\api\x86\thostmduserapi_se.lib" />
   </ItemGroup>
 </Project>

@@ -1,12 +1,12 @@
 ﻿
-Dump of file D:\Work\git\CTPSharp\Debug\MdApi.dll
+Dump of file D:\Work\CTPSharp\Debug\MdApi.dll
 
 File Type: DLL
 
   Section contains the following exports for MdApi.dll
 
     00000000 characteristics
-    5D09A2FE time date stamp Wed Jun 19 10:50:38 2019
+    5D16EACE time date stamp Sat Jun 29 12:36:30 2019
         0.00 version
            1 ordinal base
           18 number of functions

@@ -41,14 +41,32 @@ namespace CTPTradeAdapter.Interface
         int Authenticate(DataCallback callback, string investorID, string productInfo, string authCode, string appID);
 
         /// <summary>
+        /// 需要在终端认证成功后，用户登录前调用该接口
+        /// </summary>
+        /// <param name="clientIP">终端IP</param>
+        /// <param name="clientPort">终端端口</param>
+        /// <param name="loginTime">登录时间</param>
+        /// <returns></returns>
+        int RegisterUserSystemInfo(string clientIP, int clientPort, string loginTime);
+
+        /// <summary>
+        /// 上报用户终端信息，用于中继服务器操作员登录模式
+        /// 操作员登录后，可以多次调用该接口上报客户信息
+        /// </summary>
+        /// <param name="clientIP">终端IP</param>
+        /// <param name="clientPort">终端端口</param>
+        /// <param name="loginTime">登录时间</param>
+        /// <returns></returns>
+        int SubmitUserSystemInfo(string clientIP, int clientPort, string loginTime);
+
+        /// <summary>
         /// 用户登录
         /// </summary>
         /// <param name="callback">登录回调</param>
         /// <param name="investorID">投资者账号</param>
         /// <param name="password">密码</param>
         /// <param name="oneTimePassword">动态密码</param>
-        /// <param name="isSafe">是否使用安全接口</param>
-        int UserLogin(DataCallback callback, string investorID, string password, string oneTimePassword, bool isSafe = false);
+        int UserLogin(DataCallback callback, string investorID, string password, string oneTimePassword);
 
         /// <summary>
         /// 用户登出
@@ -68,8 +86,7 @@ namespace CTPTradeAdapter.Interface
         /// <param name="callback">更新回调</param>
         /// <param name="oldPassword">原密码</param>
         /// <param name="newPassword">新密码</param>
-        /// <param name="isSafe">是否使用安全接口</param>
-        int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword, bool isSafe = false);
+        int UpdateUserPassword(DataCallback callback, string oldPassword, string newPassword);
 
         /// <summary>
         /// 更新资金账号口令

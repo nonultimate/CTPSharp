@@ -43,6 +43,6 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\api\amd64\thosttraderapi.lib" />
+    <Library Include="..\api\amd64\thosttraderapi_se.lib" />
   </ItemGroup>
 </Project>
